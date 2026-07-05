@@ -2414,6 +2414,21 @@ io.on('connection',(socket)=>{
     const lobby=curLobby;
     if(!lobby.players[targetId])return;
 
+    const playerCount=Object.keys(lobby.players).length;
+    // With only 2 players, "voting" would mean exactly one person can
+    // unilaterally kick the other — that's not a real vote. Require at
+    // least 3 total players so a kick always reflects agreement from
+    // more than one person. This is a hard requirement, not a special
+    // case of the threshold math below — it's checked first and blocks
+    // the vote entirely if the lobby is too small.
+    if(playerCount<3){
+      socket.emit('systemMessage',{
+        text:'Vote kick needs at least 3 players in the lobby to be fair — it is not available yet.',
+        type:'vote'
+      });
+      return;
+    }
+
     // Cooldown: a player can only attempt to initiate a vote-kick once per
     // VOTE_KICK_COOLDOWN_MS, regardless of target, so it can't be spammed/abused.
     const now=Date.now();
@@ -2443,13 +2458,12 @@ io.on('connection',(socket)=>{
 
     const targetName=lobby.players[targetId]?.name||'Unknown';
     const voterName=curPlayer.name;
-    const playerCount=Object.keys(lobby.players).length;
     const voteCount=lobby.votes[targetId].size;
 
     // Vote threshold — always exactly "at least half the lobby, rounded up"
-    // must vote to kick. This is a single consistent, fair rule that scales
-    // predictably for every possible lobby size (never a special case):
-    //   2 players → needed 1   (the only other player)
+    // must vote to kick. playerCount is guaranteed >= 3 at this point (the
+    // <3 case was already rejected above), so this never produces a
+    // 1-vote-kicks scenario — the smallest possible threshold is 2:
     //   3 players → needed 2   (both other players)
     //   4 players → needed 2   (majority of the other 3)
     //   5 players → needed 3
