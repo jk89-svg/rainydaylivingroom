@@ -251,6 +251,12 @@ body.dark .p-entry:hover{background:#3a3a50;}
 .sys-leave{color:#c00;font-weight:700;font-size:.67rem;}
 .sys-kick{color:#c00;font-weight:800;font-size:.67rem;}
 .sys-vote{color:var(--accent-text);font-weight:700;font-size:.65rem;font-style:italic;}
+.sys-picking{color:#1a7a1a;font-weight:700;font-size:.67rem;}
+.sys-drawing{color:#1560c4;font-weight:700;font-size:.67rem;}
+.sys-correct{color:#1a7a1a;font-weight:800;font-size:.67rem;}
+.sys-like{color:#1a7a1a;font-weight:700;font-size:.67rem;}
+.sys-dislike{color:#c00;font-weight:700;font-size:.67rem;}
+.sys-reveal{color:#555;font-weight:700;font-size:.65rem;font-style:italic;}
 .msg-blocked{color:#cc0000!important;font-weight:800!important;font-size:.65rem!important;font-style:italic;background:#ffe8e8;border-radius:4px;margin:2px 4px;padding:3px 7px;border-left:3px solid #cc0000;}
 body.dark .sys-join{color:#5ddd5d;}
 body.dark .sys-leave{color:#ff6666;}
@@ -269,9 +275,9 @@ body.dark .sys-vote{color:#F0C040;}
 .ctx-item:hover{background:var(--accent-subtle);}.ctx-danger{color:#c00;}.ctx-danger:hover{background:#ffe0e0;}
 body.dark .ctx-item:hover{background:#3a3a50;}
 
-.name-bubble{position:absolute;top:-6px;left:44px;background:#fff;border:2px solid var(--accent);
-  border-radius:8px;padding:2px 7px;font-size:.62rem;font-weight:800;color:#222;white-space:nowrap;
-  box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:5;max-width:140px;overflow:hidden;text-overflow:ellipsis;}
+.name-bubble{position:fixed;background:#fff;border:2px solid var(--accent);
+  border-radius:8px;padding:3px 8px;font-size:.68rem;font-weight:800;color:#222;white-space:nowrap;
+  box-shadow:0 3px 10px rgba(0,0,0,.3);z-index:9000;pointer-events:none;}
 
 to{transform:translateX(-50%) scale(1);opacity:1;}}
 
@@ -398,20 +404,56 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 #toolButtons button.active{border-color:var(--accent);background:var(--accent-subtle);}
 #toolButtons button:hover{background:#f0f0f0;}
 
-/* Game over / winner screen */
+/* Like / dislike bar — top-right of the canvas */
+#likeDislikeBar{position:absolute;top:1.2cqw;right:1.2cqw;z-index:16;display:none;gap:.6cqw;}
+#likeDislikeBar button{font-size:1rem;background:rgba(255,255,255,.92);border:2px solid #ccc;border-radius:10px;
+  padding:.3cqw .7cqw;cursor:pointer;font-weight:800;display:flex;align-items:center;gap:4px;}
+#likeDislikeBar button:hover{background:#f0f0f0;}
+#likeDislikeBar button.voted{opacity:.55;cursor:default;}
+#likeBtn.voted{border-color:#1a7a1a;background:#eafbea;}
+#dislikeBtn.voted{border-color:#c00;background:#ffeaea;}
+
+/* Turn-end results popup — 5 seconds between turns */
+#turnEndPopup{position:absolute;inset:0;z-index:35;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);}
+.turn-end-box{background:#fff;border-radius:16px;padding:20px 26px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.35);max-width:88%;max-height:80%;overflow-y:auto;}
+#turnEndTitle{font-family:'Fredoka One',cursive;color:var(--accent-dark);font-size:1.1rem;margin-bottom:6px;}
+#turnEndWord{font-size:.85rem;color:#555;margin-bottom:12px;font-style:italic;}
+#turnEndResults{display:flex;flex-direction:column;gap:4px;}
+.turn-end-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:4px 12px;
+  border-radius:8px;font-size:.78rem;font-weight:700;}
+.turn-end-row.guessed{background:#eafbea;color:#157A38;}
+.turn-end-row.missed{background:#f2f2f2;color:#888;}
+
+/* Game over / final ranking screen */
 #gameOverOverlay{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);}
-.winner-box{background:#fff;border-radius:18px;padding:22px 30px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4);max-width:90%;}
-.winner-avatar-wrap{display:flex;justify-content:center;margin-bottom:6px;}
-#winnerText{font-family:'Fredoka One',cursive;color:var(--accent-dark);font-size:1.3rem;margin-bottom:10px;}
-#finalScoreboard{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;max-height:180px;overflow-y:auto;}
-.final-score-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 10px;
-  border-radius:8px;background:var(--bg-hdr);font-size:.78rem;font-weight:700;}
-.final-score-row.is-winner{background:#FFF4CC;border:1.5px solid #E8B830;}
+.game-over-box{background:#fff;border-radius:18px;padding:20px 26px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4);max-width:92%;max-height:90%;overflow-y:auto;}
+.game-over-box h2{font-family:'Fredoka One',cursive;color:var(--accent-dark);font-size:1.3rem;margin-bottom:12px;}
+#rankingList{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.rank-row{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:10px;background:var(--bg-hdr);}
+.rank-row canvas{flex-shrink:0;}
+.rank-row .rank-info{display:flex;flex-direction:column;align-items:flex-start;flex:1;text-align:left;}
+.rank-row .rank-place{font-family:'Fredoka One',cursive;font-size:.8rem;color:var(--text-muted);width:2.2em;text-align:center;flex-shrink:0;}
+.rank-row .rank-name{font-weight:800;font-size:.8rem;}
+.rank-row .rank-score{font-weight:700;font-size:.72rem;color:var(--accent-text);}
+.rank-row.top3{background:#FFF4CC;border:2px solid #E8B830;padding:10px 14px;animation:rankBounce 1s ease-in-out infinite;}
+.rank-row.top3 .rank-place{font-size:1.1rem;color:#B8860B;}
+.rank-row.top3 .rank-name{font-size:1rem;}
+.rank-row.top3 canvas{width:56px;height:67px;}
+.rank-row.place-1{animation-delay:0s;}
+.rank-row.place-2{animation-delay:.15s;}
+.rank-row.place-3{animation-delay:.3s;}
+@keyframes rankBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
 .next-game-txt{font-size:.68rem;color:var(--text-muted);font-style:italic;}
 
 /* Player list: score + status badges */
 .p-score{font-size:.62rem;font-weight:800;color:var(--accent-text);display:block;}
-.p-drawer-icon{font-size:.7rem;margin-left:2px;}
+.p-drawer-icon{font-size:.7rem;margin-left:2px;display:inline-block;animation:pencilWiggle 0.9s ease-in-out infinite;transform-origin:70% 70%;}
+@keyframes pencilWiggle{
+  0%,100%{transform:rotate(0deg);}
+  25%{transform:rotate(-18deg);}
+  75%{transform:rotate(18deg);}
+}
+.p-place{font-size:.58rem;font-weight:800;color:var(--text-muted);margin-right:1px;}
 .p-guessed-check{color:#1a7a1a;font-size:.65rem;margin-left:2px;}
 .p-entry.has-guessed{background:#c8f0c8!important;}
 
@@ -589,6 +631,12 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
         <canvas id="drawCanvas"></canvas>
       </div>
 
+      <!-- Like / dislike the current drawing — top-right of the canvas -->
+      <div id="likeDislikeBar">
+        <button id="likeBtn" title="Like this drawing">👍 <span id="likeCount">0</span></button>
+        <button id="dislikeBtn" title="Dislike this drawing">👎 <span id="dislikeCount">0</span></button>
+      </div>
+
       <!-- Word blanks / hint display, overlaid at the top of the board -->
       <div id="wordHintDisplay"></div>
       <div id="drawerWordDisplay"></div>
@@ -609,7 +657,16 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 
       <!-- Shown to guessers while the drawer is picking a word -->
       <div id="pickingOverlay">
-        <p><span id="pickingDrawerName">Someone</span> is choosing a word...</p>
+        <p><span id="pickingDrawerName">Someone</span> is picking a word...</p>
+      </div>
+
+      <!-- Shown for 5 seconds between turns: who guessed, who didn't -->
+      <div id="turnEndPopup">
+        <div class="turn-end-box">
+          <h3 id="turnEndTitle">Time's up!</h3>
+          <div id="turnEndWord"></div>
+          <div id="turnEndResults"></div>
+        </div>
       </div>
 
       <!-- Drawing toolbar — visible ONLY to the current drawer -->
@@ -623,10 +680,10 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
           <button class="size-btn" data-size="34" title="X-Large"><span style="width:34px;height:34px;"></span></button>
         </div>
         <div id="toolButtons">
-          <button id="eraserToolBtn" title="Eraser">🧼</button>
-          <button id="fillToolBtn" title="Fill">🪣</button>
-          <button id="undoToolBtn" title="Undo">↩️</button>
-          <button id="clearToolBtn" title="Clear All">🗑️</button>
+          <button id="eraserToolBtn" title="Eraser (or press E)">🧼</button>
+          <button id="fillToolBtn" title="Fill (or press F)">🪣</button>
+          <button id="undoToolBtn" title="Undo (or press U)">↩️</button>
+          <button id="clearToolBtn" title="Clear All (or press C)">🗑️</button>
         </div>
       </div>
 
@@ -642,13 +699,12 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
         </div>
       </div>
 
-      <!-- Game over / winner screen -->
+      <!-- Game over / final ranking screen -->
       <div id="gameOverOverlay">
-        <div class="winner-box">
-          <div class="winner-avatar-wrap"><canvas id="winnerAvatarCanvas" width="180" height="216"></canvas></div>
-          <h2 id="winnerText">Player Won!</h2>
-          <div id="finalScoreboard"></div>
-          <p class="next-game-txt">Next game starting soon...</p>
+        <div class="game-over-box">
+          <h2>🏆 Final Results!</h2>
+          <div id="rankingList"></div>
+          <p class="next-game-txt">Next game starts in <span id="nextGameCountdown">20</span>s</p>
         </div>
       </div>
      </div>
@@ -658,7 +714,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
     <div class="chat-title">Guess the word!</div>
     <div id="chatMsgs"></div>
     <div id="chatInpRow">
-      <input id="chatInp" type="text" placeholder="Type your guess..." maxlength="100">
+      <input id="chatInp" type="text" placeholder="Type your guess..." maxlength="150">
       <button id="chatSend">➤</button>
     </div>
   </div>
@@ -1662,7 +1718,10 @@ function stopDrawTimerCountdown(){
 socket.on('gameState',(data)=>{
   gameState=Object.assign(gameState,data);
   isDrawer=(gameState.drawerId===myId);
-  if(data.turnStartAt&&data.drawTimeMs) startDrawTimerCountdown(data.turnStartAt,data.drawTimeMs);
+  if(data.turnStartAt&&data.drawTimeMs){
+    startDrawTimerCountdown(data.turnStartAt,data.drawTimeMs);
+    resetLikeDislikeUI(); // fresh vote state for the new drawing that just started
+  }
   updateGameUI();
 });
 
@@ -1674,6 +1733,7 @@ function updateGameUI(){
   const drawToolbar=document.getElementById('drawToolbar');
   const wordHintDisplay=document.getElementById('wordHintDisplay');
   const drawerWordDisplay=document.getElementById('drawerWordDisplay');
+  const likeDislikeBar=document.getElementById('likeDislikeBar');
   const canvas=document.getElementById('drawCanvas');
   if(!roundBadge)return;
 
@@ -1685,6 +1745,7 @@ function updateGameUI(){
     drawToolbar.style.display='none';
     wordHintDisplay.style.display='none';
     drawerWordDisplay.style.display='none';
+    likeDislikeBar.style.display='none';
     stopDrawTimerCountdown();
     if(canvas)canvas.classList.add('not-my-turn');
     renderList();
@@ -1706,6 +1767,7 @@ function updateGameUI(){
     drawToolbar.style.display='none';
     wordHintDisplay.style.display='none';
     drawerWordDisplay.style.display='none';
+    likeDislikeBar.style.display='none';
     stopDrawTimerCountdown();
   } else {
     pickingOverlay.style.display='none';
@@ -1714,10 +1776,12 @@ function updateGameUI(){
       drawToolbar.style.display='flex';
       if(canvas)canvas.classList.remove('not-my-turn');
       wordHintDisplay.style.display='none';
+      likeDislikeBar.style.display='none';
     } else {
       drawToolbar.style.display='none';
       if(canvas)canvas.classList.add('not-my-turn');
       drawerWordDisplay.style.display='none';
+      likeDislikeBar.style.display='flex';
       if(gameState.wordRevealed){
         wordHintDisplay.style.display='block';
         wordHintDisplay.textContent=gameState.wordRevealed.split('').join(' ');
@@ -1778,30 +1842,115 @@ socket.on('guessResult',({correct,points})=>{
   }
 });
 
-socket.on('turnEnd',({scores})=>{
+socket.on('turnEnd',({word,scores,reason,guessedList,didNotGuessNames})=>{
   gameState.scores=scores;
   renderList();
+  stopDrawTimerCountdown();
+
+  const popup=document.getElementById('turnEndPopup');
+  const title=document.getElementById('turnEndTitle');
+  const wordEl=document.getElementById('turnEndWord');
+  const results=document.getElementById('turnEndResults');
+
+  if(reason==='everyoneGuessed') title.textContent="Time's up! Everyone guessed it!";
+  else if(reason==='noOneGuessed') title.textContent="Time's up! No one got it.";
+  else title.textContent="Time's up!";
+  wordEl.textContent=\`The word was: \${word}\`;
+
+  results.innerHTML='';
+  (guessedList||[]).forEach((g,i)=>{
+    const row=document.createElement('div');
+    row.className='turn-end-row guessed';
+    row.innerHTML=\`<span>#\${i+1} \${X(g.name)}</span><span>+\${g.points} pts</span>\`;
+    results.appendChild(row);
+  });
+  (didNotGuessNames||[]).forEach(name=>{
+    const row=document.createElement('div');
+    row.className='turn-end-row missed';
+    row.innerHTML=\`<span>\${X(name)}</span><span>No guess</span>\`;
+    results.appendChild(row);
+  });
+
+  forceShow(popup,'flex');
+  setTimeout(()=>{ forceHide(popup); },5000);
 });
+
+socket.on('likeUpdate',({likes,dislikes})=>{
+  const lc=document.getElementById('likeCount'),dc=document.getElementById('dislikeCount');
+  if(lc)lc.textContent=likes;
+  if(dc)dc.textContent=dislikes;
+});
+
+// Like/dislike buttons — one vote per person per drawing. The server
+// already rejects a drawer's vote on their own drawing and any second
+// vote from the same person, but we also disable/hide client-side for
+// a clean, unambiguous experience rather than relying on silent rejection.
+let hasVotedThisTurn=false;
+(function(){
+  const likeBtn=document.getElementById('likeBtn'),dislikeBtn=document.getElementById('dislikeBtn');
+  if(!likeBtn||!dislikeBtn)return;
+  likeBtn.addEventListener('click',()=>{
+    if(hasVotedThisTurn||isDrawer)return;
+    hasVotedThisTurn=true;
+    likeBtn.classList.add('voted');
+    socket.emit('likeDislike',{like:true});
+  });
+  dislikeBtn.addEventListener('click',()=>{
+    if(hasVotedThisTurn||isDrawer)return;
+    hasVotedThisTurn=true;
+    dislikeBtn.classList.add('voted');
+    socket.emit('likeDislike',{like:false});
+  });
+})();
+function resetLikeDislikeUI(){
+  hasVotedThisTurn=false;
+  const likeBtn=document.getElementById('likeBtn'),dislikeBtn=document.getElementById('dislikeBtn');
+  const bar=document.getElementById('likeDislikeBar');
+  if(likeBtn)likeBtn.classList.remove('voted');
+  if(dislikeBtn)dislikeBtn.classList.remove('voted');
+  const lc=document.getElementById('likeCount'),dc=document.getElementById('dislikeCount');
+  if(lc)lc.textContent='0';
+  if(dc)dc.textContent='0';
+  // Drawers can't rate their own drawing, so the whole bar is hidden for them
+  if(bar)bar.style.display=isDrawer?'none':'flex';
+}
 
 socket.on('gameOver',({ranked,winner})=>{
   const overlay=document.getElementById('gameOverOverlay');
-  const board=document.getElementById('finalScoreboard');
-  board.innerHTML='';
-  ranked.forEach((p,i)=>{
+  const list=document.getElementById('rankingList');
+  list.innerHTML='';
+  ranked.forEach(p=>{
     const row=document.createElement('div');
-    row.className='final-score-row'+(i===0?' is-winner':'');
-    row.innerHTML=\`<span>#\${i+1} \${X(p.name)}</span><span>\${p.score} pts</span>\`;
-    board.appendChild(row);
+    const isTop3=p.place<=3;
+    row.className='rank-row'+(isTop3?' top3':'')+(p.place>=1&&p.place<=3?' place-'+p.place:'');
+    const cvs=document.createElement('canvas');
+    const sz=isTop3?56:40;
+    cvs.width=sz;cvs.height=Math.round(sz*1.2);
+    cvs.style.cssText=\`width:\${sz}px;height:\${Math.round(sz*1.2)}px;\`;
+    drawAV(cvs.getContext('2d'),p.avatar||{},cvs.width/2,cvs.height*.46,cvs.width*.36);
+    const placeLabel=p.place===1?'🥇 1st':p.place===2?'🥈 2nd':p.place===3?'🥉 3rd':\`#\${p.place}\`;
+    const info=document.createElement('div');
+    info.className='rank-info';
+    info.innerHTML=\`<span class="rank-name">\${X(p.name)}</span><span class="rank-score">\${p.score} pts</span>\`;
+    const placeEl=document.createElement('div');
+    placeEl.className='rank-place';
+    placeEl.textContent=placeLabel;
+    row.appendChild(placeEl);
+    row.appendChild(cvs);
+    row.appendChild(info);
+    list.appendChild(row);
   });
-  if(winner){
-    document.getElementById('winnerText').textContent=\`🏆 \${winner.name} Won!\`;
-    const cvs=document.getElementById('winnerAvatarCanvas');
-    const ctx=cvs.getContext('2d');
-    ctx.clearRect(0,0,cvs.width,cvs.height);
-    drawAV(ctx,winner.avatar||{},cvs.width/2,cvs.height*.46,cvs.width*.32);
-  }
+
   forceShow(overlay,'flex');
-  setTimeout(()=>{ forceHide(overlay); },9000);
+  let secs=20;
+  const cd=document.getElementById('nextGameCountdown');
+  if(cd)cd.textContent=secs;
+  const cdInt=setInterval(()=>{
+    secs--;
+    if(cd)cd.textContent=Math.max(0,secs);
+    if(secs<=0)clearInterval(cdInt);
+  },1000);
+  setTimeout(()=>{ forceHide(overlay); clearInterval(cdInt); },20000);
 });
 
 // ═══════════════════════════════════════
@@ -1858,8 +2007,19 @@ function renderList(){
   const inGame=(typeof gameState!=='undefined')&&gameState.state&&gameState.state!=='waiting';
 
   let list_players=Object.values(players);
+  // Live placement (#1, #2, ...) with the same tie-handling as the final
+  // ranking screen: equal scores share a place, and the next distinct
+  // score resumes at the correct position (two people tied for 1st means
+  // the next person is 3rd, not 2nd).
+  const placeById={};
   if(inGame){
-    list_players=list_players.slice().sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
+    const sorted=list_players.slice().sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
+    let place=1;
+    for(let i=0;i<sorted.length;i++){
+      if(i>0&&(scores[sorted[i].id]||0)<(scores[sorted[i-1].id]||0)) place=i+1;
+      placeById[sorted[i].id]=place;
+    }
+    list_players=sorted;
   }
 
   list_players.forEach(p=>{
@@ -1871,6 +2031,7 @@ function renderList(){
     drawAV(cvs.getContext('2d'),p.avatar||{},20,48*.46,13);
     const nw=document.createElement('div');nw.className='p-name-wrap';nw.style.position='relative';
     const nmRow=document.createElement('div');nmRow.style.cssText='display:flex;align-items:center;gap:2px;';
+    if(inGame&&placeById[p.id]){const pl=document.createElement('span');pl.className='p-place';pl.textContent='#'+placeById[p.id];nmRow.appendChild(pl);}
     const nm=document.createElement('div');nm.className='p-name';nm.textContent=p.name;
     nmRow.appendChild(nm);
     if(isDrawerP){const d=document.createElement('span');d.className='p-drawer-icon';d.textContent='✏️';nmRow.appendChild(d);}
@@ -1933,7 +2094,7 @@ document.addEventListener('keydown',e=>{
     }
   }
 });
-function sendChat(){const i=document.getElementById('chatInp');const m=i.value.trim().substring(0,100);if(!m)return;socket.emit('chat',{message:m});i.value='';}
+function sendChat(){const i=document.getElementById('chatInp');const m=i.value.trim().substring(0,150);if(!m)return;socket.emit('chat',{message:m});i.value='';}
 
 // Bubble chat now appears right next to the player's name in the
 // player list (there is no more seated-in-room avatar to float above)
@@ -1943,9 +2104,16 @@ function showBubble(playerId,text){
   if(!entry)return;
   if(bubbles[playerId]){clearTimeout(bubbles[playerId].t);bubbles[playerId].el.remove();}
   const b=document.createElement('div');b.className='name-bubble';
-  b.textContent=text.length>23?text.substring(0,23)+'…':text;
-  entry.style.position='relative';
-  entry.appendChild(b);
+  b.textContent=text.length>20?text.substring(0,20)+'…':text;
+  // Fixed-position, attached to <body> — NOT a child of the player entry —
+  // so it can visually float freely over the canvas instead of being
+  // clipped by the player panel's overflow:hidden. Position is computed
+  // from the entry's live on-screen location each time it's shown.
+  const r=entry.getBoundingClientRect();
+  b.style.position='fixed';
+  b.style.left=(r.left+44)+'px';
+  b.style.top=(r.top-4)+'px';
+  document.body.appendChild(b);
   const t=setTimeout(()=>{ try{b.remove();}catch(e){} delete bubbles[playerId]; },3000);
   bubbles[playerId]={el:b,t};
 }
@@ -1994,7 +2162,9 @@ socket.on('chat',({senderId,senderName,message})=>{
 });
 
 socket.on('systemMessage',({text,type})=>{
-  const m={join:'sys-join',leave:'sys-leave',kick:'sys-kick',vote:'sys-vote'};
+  const m={join:'sys-join',leave:'sys-leave',kick:'sys-kick',vote:'sys-vote',
+    picking:'sys-picking',drawing:'sys-drawing',correct:'sys-correct',
+    like:'sys-like',dislike:'sys-dislike',reveal:'sys-reveal',close:'sys-vote'};
   addMsg(X(text),m[type]||'');
 });
 
@@ -2421,12 +2591,12 @@ const DRAW_WORDS = ["dog", "cat", "fish", "bird", "horse", "cow", "pig", "sheep"
 
 const GAME_CONFIG = {
   TOTAL_ROUNDS: 3,
-  WORD_OPTIONS_COUNT: 4,     // site owner's explicit spec (Skribbl.io's own default is 3)
-  PICK_TIME_MS: 15 * 1000,   // site owner's explicit spec (also Skribbl.io's own confirmed default)
-  DRAW_TIME_MS: 80 * 1000,   // Skribbl.io's confirmed default
-  MIN_PLAYERS: 2,            // confirmed: game starts/continues with 2+ players
-  ROUND_END_DELAY_MS: 5000,  // pause between turns so the "word was X" message is readable
-  GAME_END_DELAY_MS: 10000,  // how long the winner screen stays up before a fresh game starts
+  WORD_OPTIONS_COUNT: 4,
+  PICK_TIME_MS: 15 * 1000,
+  DRAW_TIME_MS: 80 * 1000,
+  MIN_PLAYERS: 2,
+  TURN_END_POPUP_MS: 5000,   // "time's up" / results popup shown for 5 seconds between turns
+  GAME_END_DELAY_MS: 20000,  // ranking screen shown for 20 seconds before a fresh game starts
 };
 
 function pickRandomWords(count, exclude){
@@ -2441,11 +2611,8 @@ function pickRandomWords(count, exclude){
 }
 
 // Levenshtein edit distance — used for the "close!" guess hint
-// (Skribbl.io: a guess exactly one letter off from the correct word,
-// only for words 3+ letters long, shows a "close!" hint visible only
-// to that guesser).
 function editDistance(a, b){
-  if(Math.abs(a.length - b.length) > 1) return 99; // fast reject, saves work
+  if(Math.abs(a.length - b.length) > 1) return 99;
   const dp = Array.from({length:a.length+1}, (_,i)=>Array(b.length+1).fill(0));
   for(let i=0;i<=a.length;i++) dp[i][0]=i;
   for(let j=0;j<=b.length;j++) dp[0][j]=j;
@@ -2463,30 +2630,28 @@ function normalizeGuess(s){
 }
 
 function initGame(lobby){
-  const ids = Object.keys(lobby.players);
   lobby.game = {
     active: true,
-    state: 'picking',          // 'picking' | 'drawing' | 'turnEnd' | 'gameEnd'
+    state: 'picking',           // 'picking' | 'drawing' | 'turnEnd' | 'gameEnd'
     round: 1,
     totalRounds: GAME_CONFIG.TOTAL_ROUNDS,
-    turnOrder: ids.slice(),    // fixed for this game; late joiners are added to NEXT game
-    turnIndex: -1,             // advanceTurn() increments this first
+    hasDrawnThisRound: new Set(), // who has already drawn in the CURRENT round — reset each round
     drawerId: null,
     wordOptions: [],
     word: null,
-    wordRevealed: null,        // underscore/letter display sent to guessers
+    wordRevealed: null,
     hintsRevealed: 0,
     guessedIds: new Set(),
+    guessOrder: [],              // [{id,name,points,elapsedMs}] in the order they guessed correctly
+    likes: new Set(),
+    dislikes: new Set(),
     scores: {},
-    turnAwards: [],            // [{id,name,points}] for this turn's end summary
-    strokes: [],               // canvas history for this turn, replayed for late joiners
+    turnAwards: [],
+    strokes: [],
     turnStartAt: 0,
-    pickTimer: null,
-    drawTimer: null,
-    hintTimer: null,
-    transitionTimer: null,
+    pickTimer: null, drawTimer: null, hintTimer: null, transitionTimer: null, endTurnGraceTimer: null,
   };
-  ids.forEach(id => lobby.game.scores[id] = 0);
+  Object.keys(lobby.players).forEach(id => lobby.game.scores[id] = 0);
   return lobby.game;
 }
 
@@ -2494,7 +2659,7 @@ function endGameSession(lobby){
   const g = lobby.game;
   if(!g) return;
   clearTimeout(g.pickTimer); clearTimeout(g.drawTimer);
-  clearTimeout(g.hintTimer); clearTimeout(g.transitionTimer);
+  clearTimeout(g.hintTimer); clearTimeout(g.transitionTimer); clearTimeout(g.endTurnGraceTimer);
   lobby.game = null;
 }
 
@@ -2513,39 +2678,51 @@ function broadcastGameState(io, lobby, extra){
   }, extra||{}));
 }
 
+// Picks the next drawer using LIVE lobby membership, going from the
+// BOTTOM of the player-join-order list to the TOP, per the site owner's
+// exact spec. Returns null if every currently-present player has
+// already drawn this round (meaning the round is complete).
+function pickNextDrawer(lobby){
+  const g = lobby.game;
+  const liveOrder = lobby.playerOrder.filter(id => lobby.players[id]);
+  const bottomToTop = liveOrder.slice().reverse();
+  for(const id of bottomToTop){
+    if(!g.hasDrawnThisRound.has(id)) return id;
+  }
+  return null;
+}
+
 function startTurn(io, lobby){
   const g = lobby.game;
   clearTimeout(g.pickTimer); clearTimeout(g.drawTimer); clearTimeout(g.hintTimer); clearTimeout(g.endTurnGraceTimer);
   g.strokes = [];
   g.guessedIds = new Set();
+  g.guessOrder = [];
+  g.likes = new Set();
+  g.dislikes = new Set();
   g.turnAwards = [];
   g.word = null;
   g.wordRevealed = null;
-  // Tell every connected client to wipe their canvas NOW — clearing only the
-  // server's own record isn't enough, each browser was still showing the
-  // previous turn's drawing until something new got drawn on top of it.
+  // Tell every connected client to wipe their canvas NOW.
   io.to(lobby.code).emit('drawStroke', { type: 'clear' });
 
-  // Advance to the next drawer; skip anyone who has left mid-game
-  let attempts = 0;
-  do{
-    g.turnIndex++;
-    if(g.turnIndex >= g.turnOrder.length){
-      g.turnIndex = 0;
-      g.round++;
+  let nextDrawer = pickNextDrawer(lobby);
+  if(nextDrawer === null){
+    // Everyone currently present has drawn once this round — the round
+    // is complete. Start the next one (or end the game at round 3).
+    g.round++;
+    g.hasDrawnThisRound = new Set();
+    if(g.round > g.totalRounds){
+      return endGame(io, lobby);
     }
-    attempts++;
-  } while(!lobby.players[g.turnOrder[g.turnIndex]] && attempts <= g.turnOrder.length);
-
-  if(g.round > g.totalRounds){
-    return endGame(io, lobby);
-  }
-  if(!lobby.players[g.turnOrder[g.turnIndex]]){
-    // Nobody left eligible to draw — end the session gracefully
-    return endGame(io, lobby);
+    nextDrawer = pickNextDrawer(lobby);
+    if(nextDrawer === null){
+      return pauseGameForPlayers(io, lobby); // nobody left at all
+    }
   }
 
-  g.drawerId = g.turnOrder[g.turnIndex];
+  g.drawerId = nextDrawer;
+  g.hasDrawnThisRound.add(nextDrawer);
   g.state = 'picking';
   const drawerName = lobby.players[g.drawerId]?.name || 'Someone';
   g.wordOptions = pickRandomWords(GAME_CONFIG.WORD_OPTIONS_COUNT);
@@ -2553,11 +2730,10 @@ function startTurn(io, lobby){
   const drawerSock = io.sockets.sockets.get(g.drawerId);
   if(drawerSock) drawerSock.emit('chooseWord', { options: g.wordOptions, pickTimeMs: GAME_CONFIG.PICK_TIME_MS });
 
-  io.to(lobby.code).emit('systemMessage', { text: `${drawerName} is choosing a word...`, type: 'turn' });
+  io.to(lobby.code).emit('systemMessage', { text: `${drawerName} is picking a word...`, type: 'picking' });
   broadcastGameState(io, lobby, { drawerName, picking: true });
 
   g.pickTimer = setTimeout(() => {
-    // Auto-pick if the drawer didn't choose in time (confirmed Skribbl.io behavior)
     const word = g.wordOptions[Math.floor(Math.random()*g.wordOptions.length)];
     beginDrawing(io, lobby, word);
   }, GAME_CONFIG.PICK_TIME_MS);
@@ -2575,20 +2751,13 @@ function beginDrawing(io, lobby, word){
   g.wordRevealed = letters.map(ch => ch===' ' ? ' ' : '_').join('');
 
   const drawerName = lobby.players[g.drawerId]?.name || 'Someone';
-  io.to(lobby.code).emit('systemMessage', { text: `${drawerName} is drawing now!`, type: 'turn' });
+  io.to(lobby.code).emit('systemMessage', { text: `${drawerName} is drawing now!`, type: 'drawing' });
 
   const drawerSock = io.sockets.sockets.get(g.drawerId);
   if(drawerSock) drawerSock.emit('yourWord', { word });
 
   broadcastGameState(io, lobby, { picking: false, turnStartAt: g.turnStartAt, drawTimeMs: GAME_CONFIG.DRAW_TIME_MS });
 
-  // ── Hint reveal schedule ──
-  // Reveal one additional letter at evenly-spaced points through the
-  // timer, capping at roughly 40% of the word's letters revealed so
-  // there's always something left to guess. Skribbl.io does not
-  // publish its exact schedule/percentage, so this is a reasonable,
-  // clearly-documented approximation of the same qualitative behavior
-  // ("hints appear as time passes").
   const revealable = letters.filter(c => c!==' ').length;
   const maxHints = Math.max(0, Math.floor(revealable * 0.4));
   if(maxHints > 0 && word.length >= 4){
@@ -2617,15 +2786,10 @@ function beginDrawing(io, lobby, word){
 }
 
 function computeGuessPoints(elapsedMs, guessOrderIndex){
-  // Faster + earlier guesses score more, consistently decreasing —
-  // matches the confirmed qualitative rule ("earn more points for
-  // guessing faster and/or before other players"). Exact numbers are
-  // this implementation's own reasonable curve since Skribbl.io does
-  // not publish its internal formula.
   const timeFraction = Math.min(1, elapsedMs / GAME_CONFIG.DRAW_TIME_MS);
-  const timeScore = Math.round(100 - timeFraction * 60);       // 100 → 40 over the full timer
-  const orderPenalty = guessOrderIndex * 8;                     // each subsequent guesser scores a bit less
-  return Math.max(10, timeScore - orderPenalty);                // floor of 10 points for any correct guess
+  const timeScore = Math.round(100 - timeFraction * 60);
+  const orderPenalty = guessOrderIndex * 8;
+  return Math.max(10, timeScore - orderPenalty);
 }
 
 function endTurn(io, lobby, reason){
@@ -2636,8 +2800,6 @@ function endTurn(io, lobby, reason){
   const word = g.word || (g.wordOptions && g.wordOptions[0]) || '';
   g.state = 'turnEnd';
 
-  // Drawer bonus: rewarded for how many players understood their
-  // drawing enough to guess it correctly (confirmed qualitative rule).
   const guesserCount = g.guessedIds.size;
   if(guesserCount > 0 && g.drawerId){
     const bonus = guesserCount * 10;
@@ -2646,11 +2808,19 @@ function endTurn(io, lobby, reason){
   }
 
   io.to(lobby.code).emit('systemMessage', { text: `The word was "${word}"`, type: 'reveal' });
+
+  // Build the end-of-turn popup: who guessed (fastest first) and who
+  // didn't, so it can show exactly what the site owner described —
+  // "time ended" plus the full breakdown, whichever way the turn ended.
+  const allNonDrawer = Object.keys(lobby.players).filter(id => id !== g.drawerId);
+  const didNotGuessNames = allNonDrawer.filter(id => !g.guessedIds.has(id)).map(id => lobby.players[id]?.name).filter(Boolean);
+  const guessedList = g.guessOrder.map(entry => ({ name: entry.name, points: entry.points }));
+  let popupReason = 'timeUp';
+  if(reason === 'allGuessed') popupReason = 'everyoneGuessed';
+  else if(guesserCount === 0) popupReason = 'noOneGuessed';
+
   io.to(lobby.code).emit('turnEnd', {
-    word,
-    scores: g.scores,
-    turnAwards: g.turnAwards,
-    reason,
+    word, scores: g.scores, reason: popupReason, guessedList, didNotGuessNames,
   });
   broadcastGameState(io, lobby, { picking:false, turnOver:true });
 
@@ -2662,20 +2832,30 @@ function endTurn(io, lobby, reason){
       return;
     }
     startTurn(io, lobby);
-  }, GAME_CONFIG.ROUND_END_DELAY_MS);
+  }, GAME_CONFIG.TURN_END_POPUP_MS);
 }
 
 function endGame(io, lobby){
   const g = lobby.game;
   if(!g) return;
   clearTimeout(g.pickTimer); clearTimeout(g.drawTimer);
-  clearTimeout(g.hintTimer); clearTimeout(g.transitionTimer);
+  clearTimeout(g.hintTimer); clearTimeout(g.transitionTimer); clearTimeout(g.endTurnGraceTimer);
   g.state = 'gameEnd';
 
-  const ranked = Object.entries(g.scores)
+  const sorted = Object.entries(g.scores)
     .map(([id,score]) => ({ id, score, name: lobby.players[id]?.name||'', avatar: lobby.players[id]?.avatar||{} }))
     .filter(p => p.name)
     .sort((a,b) => b.score - a.score);
+
+  // Assign places with proper tie handling: equal scores share the same
+  // place, and the next distinct score resumes at the correct position
+  // (e.g. two people tied for 1st means the next person is 3rd, not 2nd).
+  const ranked = [];
+  let place = 1;
+  for(let i=0;i<sorted.length;i++){
+    if(i>0 && sorted[i].score < sorted[i-1].score) place = i+1;
+    ranked.push(Object.assign({}, sorted[i], { place }));
+  }
 
   io.to(lobby.code).emit('gameOver', { ranked, winner: ranked[0]||null });
   broadcastGameState(io, lobby, { gameOver:true });
@@ -2683,7 +2863,7 @@ function endGame(io, lobby){
   g.transitionTimer = setTimeout(() => {
     if(!lobby.players || Object.keys(lobby.players).length < GAME_CONFIG.MIN_PLAYERS){
       endGameSession(lobby);
-      io.to(lobby.code).emit('systemMessage', { text:'Waiting for more players to start a new game...', type:'turn' });
+      io.to(lobby.code).emit('systemMessage', { text:'Waiting for more players to start a new game...', type:'picking' });
       return;
     }
     initGame(lobby);
@@ -2693,7 +2873,7 @@ function endGame(io, lobby){
 
 function pauseGameForPlayers(io, lobby){
   endGameSession(lobby);
-  io.to(lobby.code).emit('systemMessage', { text: 'Not enough players — waiting for more to join...', type:'turn' });
+  io.to(lobby.code).emit('systemMessage', { text: 'Not enough players — waiting for more to join...', type:'picking' });
   io.to(lobby.code).emit('gameState', { state:'waiting' });
 }
 
@@ -2704,16 +2884,13 @@ function maybeStartGame(io, lobby){
   startTurn(io, lobby);
 }
 
-// ── Guess routing ──────────────────────────────────────────────────
-// Returns { handled: bool, broadcastTo: 'all'|'guessers'|'graduated'|null,
-//           systemText, isCorrect, isClose }
 function routeGuess(lobby, socket, rawMsg){
   const g = lobby.game;
-  if(!g || g.state !== 'drawing') return null; // not in an active drawing turn — normal chat
+  if(!g || g.state !== 'drawing') return null;
 
   const senderId = socket.id;
   const isDrawer = senderId === g.drawerId;
-  if(isDrawer) return { visibility: 'all' }; // drawer's own messages are always visible to everyone
+  if(isDrawer) return { visibility: 'all' };
 
   const alreadyGuessed = g.guessedIds.has(senderId);
   const norm = normalizeGuess(rawMsg);
@@ -2724,11 +2901,11 @@ function routeGuess(lobby, socket, rawMsg){
       return { visibility: 'correct', word: g.word };
     }
     if(target.length >= 3 && editDistance(norm, target) === 1){
-      return { visibility: 'closeOnly' }; // private "close!" — only to the guesser
+      return { visibility: 'closeOnly' };
     }
-    return { visibility: 'guessers' }; // normal wrong guess, visible to drawer + not-yet-guessed
+    return { visibility: 'guessers' };
   }
-  return { visibility: 'graduated' }; // already guessed — talk only with drawer + other graduates
+  return { visibility: 'graduated' };
 }
 
 function applyCorrectGuess(io, lobby, socket){
@@ -2740,24 +2917,39 @@ function applyCorrectGuess(io, lobby, socket){
   g.guessedIds.add(socket.id);
   g.scores[socket.id] = (g.scores[socket.id]||0) + points;
   g.turnAwards.push({ id: socket.id, name, points, role: 'guesser' });
+  g.guessOrder.push({ id: socket.id, name, points, elapsedMs: elapsed });
 
-  io.to(lobby.code).emit('systemMessage', { text: `${name} guessed the word!`, type: 'correct' });
+  io.to(lobby.code).emit('systemMessage', { text: `${name} guessed correctly!`, type: 'correct' });
   io.to(lobby.code).emit('scoreUpdate', { scores: g.scores, guessedIds: Array.from(g.guessedIds) });
   socket.emit('guessResult', { correct: true, points });
 
-  // Turn ends once every eligible guesser has guessed — but NOT synchronously
-  // the instant the last one comes in. If two people type the right answer
-  // within the same moment, the second one's message could otherwise arrive
-  // a few milliseconds after the turn had already flipped out of 'drawing'
-  // state, causing their correct guess to fall through as plain chat with
-  // no credit. A short grace window lets any other near-simultaneous
-  // correct guess still be processed and scored before the turn actually ends.
-  const eligibleGuessers = g.turnOrder.filter(id => lobby.players[id] && id !== g.drawerId);
+  // Eligible guessers are computed from CURRENT lobby membership, not a
+  // stale snapshot — this is what guarantees a player who joins mid-game
+  // is always included and always gets a fair chance to guess before
+  // the turn can end. Since Node processes events one at a time, the
+  // state can only ever flip to 'turnEnd' on the genuinely last correct
+  // guess — every earlier one (including near-simultaneous ones) is
+  // still evaluated while state is 'drawing', so no grace-window delay
+  // is needed: once everyone has guessed, the turn ends immediately.
+  const eligibleGuessers = Object.keys(lobby.players).filter(id => id !== g.drawerId);
   const allGuessed = eligibleGuessers.length > 0 && eligibleGuessers.every(id => g.guessedIds.has(id));
-  if(allGuessed){
-    clearTimeout(g.endTurnGraceTimer);
-    g.endTurnGraceTimer = setTimeout(() => endTurn(io, lobby, 'allGuessed'), 400);
+  if(allGuessed) endTurn(io, lobby, 'allGuessed');
+}
+
+function applyLikeDislike(io, lobby, socket, isLike){
+  const g = lobby.game;
+  if(!g || g.state !== 'drawing') return;
+  if(socket.id === g.drawerId) return; // can't like/dislike your own drawing
+  if(g.likes.has(socket.id) || g.dislikes.has(socket.id)) return; // one vote per person per drawing
+  const name = lobby.players[socket.id]?.name || 'Someone';
+  if(isLike){
+    g.likes.add(socket.id);
+    io.to(lobby.code).emit('systemMessage', { text: `${name} liked the drawing!`, type: 'like' });
+  }else{
+    g.dislikes.add(socket.id);
+    io.to(lobby.code).emit('systemMessage', { text: `${name} disliked the drawing.`, type: 'dislike' });
   }
+  io.to(lobby.code).emit('likeUpdate', { likes: g.likes.size, dislikes: g.dislikes.size });
 }
 
 const lobbies = {};
@@ -2770,7 +2962,7 @@ function generateCode(){
 
 function createLobby(){
   const code=generateCode();
-  lobbies[code]={code,players:{},seats:new Array(8).fill(null),votes:{},voteTimers:{},createdAt:Date.now()};
+  lobbies[code]={code,players:{},seats:new Array(8).fill(null),votes:{},voteTimers:{},createdAt:Date.now(),playerOrder:[]};
   return lobbies[code];
 }
 
@@ -2903,6 +3095,8 @@ io.on('connection',(socket)=>{
     curLobby=lobby; curPlayer={id:socket.id,name:cleanName,avatar:avatar||{},seat};
     lobby.players[socket.id]=curPlayer;
     lobby.seats[seat]=socket.id;
+    if(!lobby.playerOrder) lobby.playerOrder=[];
+    lobby.playerOrder.push(socket.id);
     socket.join(lobby.code);
 
     socket.emit('joined',{playerId:socket.id,seat,lobbyState:getLobbyState(lobby),code:lobby.code});
@@ -2916,6 +3110,9 @@ io.on('connection',(socket)=>{
     // sync their canvas to the current drawing so it looks identical to
     // everyone else's screen immediately (confirmed requirement: canvas
     // must be identical on every viewer's screen at all times).
+    if(lobby.game && lobby.game.active){
+      if(lobby.game.scores[socket.id]===undefined) lobby.game.scores[socket.id]=0;
+    }
     if(lobby.game && lobby.game.active && lobby.game.state==='drawing'){
       socket.emit('canvasSync',{strokes:lobby.game.strokes});
       socket.emit('gameState',{
@@ -2943,7 +3140,7 @@ io.on('connection',(socket)=>{
 
   socket.on('chat',({message})=>{
     if(!curLobby||!curPlayer)return;
-    const msg=(message||'').trim().substring(0,100);
+    const msg=(message||'').trim().substring(0,150);
     if(!msg)return;
     // Spam check
     const now=Date.now();
@@ -3198,6 +3395,12 @@ io.on('connection',(socket)=>{
     socket.to(curLobby.code).emit('drawStroke',data);
   });
 
+  // ── DRAWING GAME: like / dislike the current drawing ──
+  socket.on('likeDislike',({like})=>{
+    if(!curLobby||!curPlayer)return;
+    applyLikeDislike(io,curLobby,socket,!!like);
+  });
+
 
   socket.on('voteKick',({targetId})=>{
     if(!curLobby||!curPlayer)return;
@@ -3311,6 +3514,7 @@ io.on('connection',(socket)=>{
     const name=player.name;
     if(player.seat!==undefined) lobby.seats[player.seat]=null;
     delete lobby.players[playerId];
+    if(lobby.playerOrder) lobby.playerOrder=lobby.playerOrder.filter(id=>id!==playerId);
     // Cancel the 2-min reset timer for votes against this player (they're gone)
     if(lobby.voteTimers&&lobby.voteTimers[playerId]){
       clearTimeout(lobby.voteTimers[playerId]);
@@ -3336,10 +3540,12 @@ io.on('connection',(socket)=>{
         // normal timeout — then play continues to the next drawer.
         endTurn(io,lobby,'drawerLeft');
       }else if(lobby.game.state==='drawing'){
-        // A guesser left — if everyone ELSE remaining has already
-        // guessed, that now completes the turn early.
+        // A guesser left — if everyone else CURRENTLY present has
+        // already guessed, that now completes the turn early. Based on
+        // live membership (not a stale snapshot), matching the rest of
+        // the engine.
         const g=lobby.game;
-        const eligible=g.turnOrder.filter(id=>lobby.players[id]&&id!==g.drawerId);
+        const eligible=Object.keys(lobby.players).filter(id=>id!==g.drawerId);
         const allGuessed=eligible.length>0&&eligible.every(id=>g.guessedIds.has(id));
         if(allGuessed) endTurn(io,lobby,'allGuessed');
       }
