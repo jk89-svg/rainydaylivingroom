@@ -837,17 +837,22 @@ function applyFill(ctx,av,clip,x,y,w,h){
 // is mathematically identical for every player at every instant — the
 // same synced-clock technique used for the cat — with zero per-player
 // state, zero randomness, and negligible CPU cost (one sine call).
-function getAvWobble(){
-  return Math.sin(Date.now()/1000*5); // ~0.8s per cycle — small & fast
+// ── Tiny continuous avatar animation ──────────────────────────────
+// A discrete, instant "blink" — NOT a smooth/sliding animation. Every
+// avatar's eyes snap fully closed for a brief instant, then snap back
+// open, with zero interpolation in between (like a classic 2-frame
+// sprite swap, not a tween). Driven purely by Date.now(), so it is
+// mathematically identical for every player at every instant — same
+// synced-clock technique as the cat — with zero per-player state.
+function getBlinkOn(){
+  return (Date.now()%2500)<150; // closed for 150ms, open for the rest of a 2.5s cycle
 }
 function drawAV(ctx,av,cx,cy,R){
-  const w=getAvWobble();
-  ctx.save();
-  ctx.translate(cx,cy);
-  ctx.scale(1-w*0.018, 1+w*0.025); // subtle inverse squash/stretch
-  ctx.translate(-cx,-cy);
+  const blink=getBlinkOn();
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-  const LW=Math.max(1.2,R*.07);
+  // Outline also snaps (not slides) slightly thicker during the same
+  // instant the eyes are closed — a hard pixel-style pop, not a slide.
+  const LW=Math.max(1.2,R*.07)*(blink?1.25:1);
   // Body
   const bW=R*1.08,bH=R*.95,bX=cx-bW/2,bY=cy+R*.4;
   applyFill(ctx,av,()=>rrect(ctx,bX,bY,bW,bH,R*.22),bX,bY,bW,bH);
@@ -856,17 +861,16 @@ function drawAV(ctx,av,cx,cy,R){
   applyFill(ctx,av,()=>{ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);},cx-R,cy-R,R*2,R*2);
   ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
   // No ears — clean round head
-  drawEyes(ctx,av.eyes||'Round',cx,cy,R,LW);
+  drawEyes(ctx,av.eyes||'Round',cx,cy,R,LW,blink);
   drawMouth(ctx,av.mouth||'Smile',cx,cy,R,LW);
   drawHat(ctx,av.hat||'None',cx,cy,R,LW);
-  ctx.restore();
 }
 
-function drawEyes(ctx,style,cx,cy,R,LW){
+function drawEyes(ctx,style,cx,cy,R,LW,blink){
   const ey=cy-R*.1,exL=cx-R*.3,exR=cx+R*.3;
   ctx.save();
   const eye1=(x,wink)=>{
-    if(wink){ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-R*.14,ey);ctx.quadraticCurveTo(x,ey+R*.12,x+R*.14,ey);ctx.stroke();return;}
+    if(wink||blink){ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-R*.14,ey);ctx.quadraticCurveTo(x,ey+R*.12,x+R*.14,ey);ctx.stroke();return;}
     switch(style){
       case'Round':default:
         ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey,R*.12,R*.16,0,0,Math.PI*2);ctx.fill();
