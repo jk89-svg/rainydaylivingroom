@@ -11,6 +11,21 @@ const server = http.createServer(app);
 // fires 'disconnect' immediately on its own; this bounds the unclean cases.
 const io = new Server(server, { cors:{origin:'*'}, pingTimeout:8000, pingInterval:8000 });
 
+// ── Crash prevention ──────────────────────────────────────────────
+// Without this, a single unexpected error ANYWHERE in the game logic
+// (a null reference during an unusual join/leave/turn-transition
+// sequence, etc.) would crash the entire Node process — instantly
+// disconnecting every player in every lobby at once, which looks like
+// a random mass-disconnect from the outside. These two handlers catch
+// anything that slips through and log it instead of taking the whole
+// server down, so a bug in one lobby's game can never affect anyone else.
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException — server stayed up]', err);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('[unhandledRejection — server stayed up]', err);
+});
+
 const INDEX_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -343,6 +358,10 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
   font-family:'Fredoka One',cursive;font-size:2.6cqw;letter-spacing:.5cqw;color:#222;
   background:rgba(255,255,255,.88);border-radius:1cqw;padding:.4cqw 1.4cqw;
   box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;white-space:nowrap;pointer-events:none;}
+#drawerWordDisplay{position:absolute;top:1.5cqw;left:50%;transform:translateX(-50%);z-index:15;
+  font-family:'Fredoka One',cursive;font-size:1.9cqw;color:#157A38;
+  background:#eafbea;border:.15cqw solid #1E9E4A;border-radius:1cqw;padding:.35cqw 1.4cqw;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;white-space:nowrap;pointer-events:none;}
 
 /* Waiting-for-players / picking overlays */
 #waitingOverlay,#pickingOverlay{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
@@ -363,19 +382,19 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 /* Drawing toolbar — only the drawer sees this, bottom of the board */
 #drawToolbar{position:absolute;bottom:0;left:0;right:0;z-index:15;display:none;
   background:rgba(255,255,255,.95);border-top:2px solid var(--border-soft);
-  padding:.6cqw 1cqw;align-items:center;gap:1cqw;flex-wrap:wrap;}
-#colorSwatches{display:flex;gap:.35cqw;flex-wrap:wrap;max-width:40%;}
-.color-swatch{width:1.8cqw;height:1.8cqw;min-width:16px;min-height:16px;border-radius:50%;cursor:pointer;
+  padding:1cqw 1.4cqw;align-items:center;gap:1.4cqw;flex-wrap:wrap;}
+#colorSwatches{display:flex;gap:.5cqw;flex-wrap:wrap;max-width:42%;}
+.color-swatch{width:2.8cqw;height:2.8cqw;min-width:24px;min-height:24px;border-radius:50%;cursor:pointer;
   border:2px solid rgba(0,0,0,.15);flex-shrink:0;}
 .color-swatch.active{border-color:#222;box-shadow:0 0 0 2px #fff,0 0 0 4px #222;}
-#sizeOptions{display:flex;gap:.3cqw;align-items:center;}
-.size-btn{width:2.2cqw;height:2.2cqw;min-width:22px;min-height:22px;border-radius:50%;border:2px solid #ccc;
+#sizeOptions{display:flex;gap:.5cqw;align-items:center;}
+.size-btn{width:3.4cqw;height:3.4cqw;min-width:32px;min-height:32px;border-radius:50%;border:2px solid #ccc;
   background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .size-btn span{background:#222;border-radius:50%;display:block;}
 .size-btn.active{border-color:var(--accent);background:var(--accent-subtle);}
-#toolButtons{display:flex;gap:.3cqw;margin-left:auto;}
-#toolButtons button{font-size:1.1rem;background:#fff;border:2px solid #ccc;border-radius:8px;
-  width:2.4cqw;height:2.4cqw;min-width:28px;min-height:28px;cursor:pointer;flex-shrink:0;}
+#toolButtons{display:flex;gap:.5cqw;margin-left:auto;}
+#toolButtons button{font-size:1.5rem;background:#fff;border:2px solid #ccc;border-radius:9px;
+  width:3.6cqw;height:3.6cqw;min-width:40px;min-height:40px;cursor:pointer;flex-shrink:0;}
 #toolButtons button.active{border-color:var(--accent);background:var(--accent-subtle);}
 #toolButtons button:hover{background:#f0f0f0;}
 
@@ -392,16 +411,17 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 
 /* Player list: score + status badges */
 .p-score{font-size:.62rem;font-weight:800;color:var(--accent-text);display:block;}
-.p-entry.is-drawer{background:var(--accent-subtle)!important;}
 .p-drawer-icon{font-size:.7rem;margin-left:2px;}
 .p-guessed-check{color:#1a7a1a;font-size:.65rem;margin-left:2px;}
+.p-entry.has-guessed{background:#c8f0c8!important;}
 
 @supports not (container-type:inline-size){
   #wordHintDisplay{font-size:1.3rem;letter-spacing:6px;padding:5px 14px;}
+  #drawerWordDisplay{font-size:1rem;padding:5px 14px;}
   #waitingOverlay p,#pickingOverlay p{font-size:1rem;}
-  .color-swatch{width:16px;height:16px;}
-  .size-btn{width:22px;height:22px;}
-  #toolButtons button{width:28px;height:28px;}
+  .color-swatch{width:26px;height:26px;}
+  .size-btn{width:34px;height:34px;}
+  #toolButtons button{width:40px;height:40px;font-size:1.3rem;}
 }
 
 </style>
@@ -571,6 +591,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 
       <!-- Word blanks / hint display, overlaid at the top of the board -->
       <div id="wordHintDisplay"></div>
+      <div id="drawerWordDisplay"></div>
 
       <!-- Shown to everyone before a game starts, and between turns -->
       <div id="waitingOverlay">
@@ -1467,7 +1488,15 @@ function floodFillCanvas(canvas,ctx,startX,startY,fillColorHex){
   const fr=parseInt(fillColorHex.slice(1,3),16),fg=parseInt(fillColorHex.slice(3,5),16),fb=parseInt(fillColorHex.slice(5,7),16);
   if(startR===fr&&startG===fg&&startB===fb)return;
 
-  const matches=(i)=>Math.abs(data[i]-startR)<=24&&Math.abs(data[i+1]-startG)<=24&&Math.abs(data[i+2]-startB)<=24&&Math.abs(data[i+3]-startA)<=24;
+  // Canvas always anti-aliases stroke/path edges (there's no way to turn
+  // this off for drawn lines) — a low tolerance here would treat those
+  // partially-blended edge pixels as "not background" and skip them,
+  // leaving a thin ring of white streaks right along every line. A much
+  // higher tolerance sweeps up that anti-aliased blend zone while still
+  // stopping cleanly at any solidly-colored line (black vs white is a
+  // difference of 255, far beyond this tolerance either way).
+  const TOL=100;
+  const matches=(i)=>Math.abs(data[i]-startR)<=TOL&&Math.abs(data[i+1]-startG)<=TOL&&Math.abs(data[i+2]-startB)<=TOL&&Math.abs(data[i+3]-startA)<=TOL;
 
   const stack=[[startX,startY]];
   const visited=new Uint8Array(w*h);
@@ -1554,17 +1583,45 @@ function buildToolbar(){
   });
   const eraserBtn=document.getElementById('eraserToolBtn');
   const fillBtn=document.getElementById('fillToolBtn');
-  eraserBtn.onclick=()=>{ currentTool='eraser'; eraserBtn.classList.add('active'); fillBtn.classList.remove('active'); };
-  fillBtn.onclick=()=>{ currentTool='fill'; fillBtn.classList.add('active'); eraserBtn.classList.remove('active'); };
-  document.getElementById('undoToolBtn').onclick=()=>{
-    strokeHistory.pop();redrawCanvasFromHistory();
-    socket.emit('drawStroke',{type:'undo'});
-  };
-  document.getElementById('clearToolBtn').onclick=()=>{
-    strokeHistory=[];initDrawCanvas();
-    socket.emit('drawStroke',{type:'clear'});
-  };
+  eraserBtn.onclick=()=>{ currentTool='eraser'; eraserBtn.classList.add('active'); fillBtn.classList.remove('active'); document.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('active')); };
+  fillBtn.onclick=()=>{ currentTool='fill'; fillBtn.classList.add('active'); eraserBtn.classList.remove('active'); document.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('active')); };
+  document.getElementById('undoToolBtn').onclick=doUndo;
+  document.getElementById('clearToolBtn').onclick=doClear;
 }
+function doUndo(){
+  strokeHistory.pop();redrawCanvasFromHistory();
+  socket.emit('drawStroke',{type:'undo'});
+}
+function doClear(){
+  strokeHistory=[];initDrawCanvas();
+  socket.emit('drawStroke',{type:'clear'});
+}
+function selectBrushTool(){
+  currentTool='pen';
+  const eraserBtn=document.getElementById('eraserToolBtn'),fillBtn=document.getElementById('fillToolBtn');
+  if(eraserBtn)eraserBtn.classList.remove('active');
+  if(fillBtn)fillBtn.classList.remove('active');
+}
+function selectFillTool(){
+  currentTool='fill';
+  const eraserBtn=document.getElementById('eraserToolBtn'),fillBtn=document.getElementById('fillToolBtn');
+  if(eraserBtn)eraserBtn.classList.remove('active');
+  if(fillBtn)fillBtn.classList.add('active');
+  document.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('active'));
+}
+// Keyboard shortcuts for the drawer: B=brush, F=fill, U=undo, C=clear.
+// Ignored while typing in the guess box (or any text field) so letters
+// meant for a guess never accidentally swap tools.
+document.addEventListener('keydown',(e)=>{
+  if(!isDrawer)return;
+  const tag=(document.activeElement&&document.activeElement.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA')return;
+  const k=e.key.toLowerCase();
+  if(k==='b'){ selectBrushTool(); }
+  else if(k==='f'){ selectFillTool(); }
+  else if(k==='u'){ doUndo(); }
+  else if(k==='c'){ doClear(); }
+});
 
 socket.on('drawStroke',(op)=>{
   if(op.type==='clear'){ strokeHistory=[]; initDrawCanvas(); return; }
@@ -1580,10 +1637,32 @@ socket.on('canvasSync',({strokes})=>{
 //  GAME STATE
 // ═══════════════════════════════════════
 let gameState={state:'waiting',round:1,totalRounds:3,drawerId:null,drawerName:'',scores:{},guessedIds:[],wordRevealed:null,picking:false};
+let drawTimerInterval=null;
+
+function startDrawTimerCountdown(turnStartAt,drawTimeMs){
+  clearInterval(drawTimerInterval);
+  const badge=document.getElementById('turnTimerBadge');
+  const num=document.getElementById('turnTimerNum');
+  if(!badge||!num)return;
+  badge.style.display='inline-block';
+  const tick=()=>{
+    const remain=Math.max(0,Math.ceil((turnStartAt+drawTimeMs-Date.now())/1000));
+    num.textContent=remain;
+    if(remain<=0)clearInterval(drawTimerInterval);
+  };
+  tick();
+  drawTimerInterval=setInterval(tick,250);
+}
+function stopDrawTimerCountdown(){
+  clearInterval(drawTimerInterval);
+  const badge=document.getElementById('turnTimerBadge');
+  if(badge)badge.style.display='none';
+}
 
 socket.on('gameState',(data)=>{
   gameState=Object.assign(gameState,data);
   isDrawer=(gameState.drawerId===myId);
+  if(data.turnStartAt&&data.drawTimeMs) startDrawTimerCountdown(data.turnStartAt,data.drawTimeMs);
   updateGameUI();
 });
 
@@ -1594,6 +1673,7 @@ function updateGameUI(){
   const wordChoiceModal=document.getElementById('wordChoiceModal');
   const drawToolbar=document.getElementById('drawToolbar');
   const wordHintDisplay=document.getElementById('wordHintDisplay');
+  const drawerWordDisplay=document.getElementById('drawerWordDisplay');
   const canvas=document.getElementById('drawCanvas');
   if(!roundBadge)return;
 
@@ -1604,6 +1684,8 @@ function updateGameUI(){
     wordChoiceModal.style.display='none';
     drawToolbar.style.display='none';
     wordHintDisplay.style.display='none';
+    drawerWordDisplay.style.display='none';
+    stopDrawTimerCountdown();
     if(canvas)canvas.classList.add('not-my-turn');
     renderList();
     return;
@@ -1623,19 +1705,23 @@ function updateGameUI(){
     }
     drawToolbar.style.display='none';
     wordHintDisplay.style.display='none';
+    drawerWordDisplay.style.display='none';
+    stopDrawTimerCountdown();
   } else {
     pickingOverlay.style.display='none';
     wordChoiceModal.style.display='none';
     if(isDrawer){
       drawToolbar.style.display='flex';
       if(canvas)canvas.classList.remove('not-my-turn');
+      wordHintDisplay.style.display='none';
     } else {
       drawToolbar.style.display='none';
       if(canvas)canvas.classList.add('not-my-turn');
-    }
-    if(gameState.wordRevealed){
-      wordHintDisplay.style.display='block';
-      wordHintDisplay.textContent=gameState.wordRevealed.split('').join(' ');
+      drawerWordDisplay.style.display='none';
+      if(gameState.wordRevealed){
+        wordHintDisplay.style.display='block';
+        wordHintDisplay.textContent=gameState.wordRevealed.split('').join(' ');
+      }
     }
   }
   renderList();
@@ -1662,12 +1748,16 @@ socket.on('chooseWord',({options,pickTimeMs})=>{
   });
 });
 
-socket.on('yourWord',()=>{
+socket.on('yourWord',({word})=>{
   document.getElementById('wordChoiceModal').style.display='none';
   strokeHistory=[];
   initDrawCanvas();
   buildToolbar();
   setupCanvasEvents();
+  // Show the drawer's own chosen word at the top of the canvas — only
+  // they see this, so they always know exactly what they picked to draw.
+  const dwd=document.getElementById('drawerWordDisplay');
+  if(dwd){ dwd.textContent=\`Draw: \${word}\`; dwd.style.display='block'; }
 });
 
 socket.on('wordHint',({wordRevealed})=>{
@@ -1775,7 +1865,7 @@ function renderList(){
   list_players.forEach(p=>{
     const isMe=p.id===myId,isMuted=muted.has(p.id),isDrawerP=p.id===drawerId,hasGuessed=guessedIds.includes(p.id);
     const div=document.createElement('div');
-    div.className='p-entry'+(isMuted?' muted':'')+(isDrawerP?' is-drawer':'');
+    div.className='p-entry'+(isMuted?' muted':'')+(hasGuessed?' has-guessed':'');
     div.dataset.pid=p.id;
     const cvs=document.createElement('canvas');cvs.width=40;cvs.height=48;cvs.style.cssText='width:40px;height:48px;display:block;flex-shrink:0;';
     drawAV(cvs.getContext('2d'),p.avatar||{},20,48*.46,13);
@@ -2332,7 +2422,7 @@ const DRAW_WORDS = ["dog", "cat", "fish", "bird", "horse", "cow", "pig", "sheep"
 const GAME_CONFIG = {
   TOTAL_ROUNDS: 3,
   WORD_OPTIONS_COUNT: 4,     // site owner's explicit spec (Skribbl.io's own default is 3)
-  PICK_TIME_MS: 20 * 1000,   // site owner's explicit spec
+  PICK_TIME_MS: 15 * 1000,   // site owner's explicit spec (also Skribbl.io's own confirmed default)
   DRAW_TIME_MS: 80 * 1000,   // Skribbl.io's confirmed default
   MIN_PLAYERS: 2,            // confirmed: game starts/continues with 2+ players
   ROUND_END_DELAY_MS: 5000,  // pause between turns so the "word was X" message is readable
@@ -2425,12 +2515,16 @@ function broadcastGameState(io, lobby, extra){
 
 function startTurn(io, lobby){
   const g = lobby.game;
-  clearTimeout(g.pickTimer); clearTimeout(g.drawTimer); clearTimeout(g.hintTimer);
+  clearTimeout(g.pickTimer); clearTimeout(g.drawTimer); clearTimeout(g.hintTimer); clearTimeout(g.endTurnGraceTimer);
   g.strokes = [];
   g.guessedIds = new Set();
   g.turnAwards = [];
   g.word = null;
   g.wordRevealed = null;
+  // Tell every connected client to wipe their canvas NOW — clearing only the
+  // server's own record isn't enough, each browser was still showing the
+  // previous turn's drawing until something new got drawn on top of it.
+  io.to(lobby.code).emit('drawStroke', { type: 'clear' });
 
   // Advance to the next drawer; skip anyone who has left mid-game
   let attempts = 0;
@@ -2486,7 +2580,7 @@ function beginDrawing(io, lobby, word){
   const drawerSock = io.sockets.sockets.get(g.drawerId);
   if(drawerSock) drawerSock.emit('yourWord', { word });
 
-  broadcastGameState(io, lobby, { picking: false });
+  broadcastGameState(io, lobby, { picking: false, turnStartAt: g.turnStartAt, drawTimeMs: GAME_CONFIG.DRAW_TIME_MS });
 
   // ── Hint reveal schedule ──
   // Reveal one additional letter at evenly-spaced points through the
@@ -2537,7 +2631,7 @@ function computeGuessPoints(elapsedMs, guessOrderIndex){
 function endTurn(io, lobby, reason){
   const g = lobby.game;
   if(!g || (g.state !== 'drawing' && g.state !== 'picking')) return;
-  clearTimeout(g.pickTimer); clearTimeout(g.drawTimer); clearTimeout(g.hintTimer);
+  clearTimeout(g.pickTimer); clearTimeout(g.drawTimer); clearTimeout(g.hintTimer); clearTimeout(g.endTurnGraceTimer);
 
   const word = g.word || (g.wordOptions && g.wordOptions[0]) || '';
   g.state = 'turnEnd';
@@ -2651,10 +2745,19 @@ function applyCorrectGuess(io, lobby, socket){
   io.to(lobby.code).emit('scoreUpdate', { scores: g.scores, guessedIds: Array.from(g.guessedIds) });
   socket.emit('guessResult', { correct: true, points });
 
-  // Turn ends the instant every eligible guesser has guessed — confirmed rule
+  // Turn ends once every eligible guesser has guessed — but NOT synchronously
+  // the instant the last one comes in. If two people type the right answer
+  // within the same moment, the second one's message could otherwise arrive
+  // a few milliseconds after the turn had already flipped out of 'drawing'
+  // state, causing their correct guess to fall through as plain chat with
+  // no credit. A short grace window lets any other near-simultaneous
+  // correct guess still be processed and scored before the turn actually ends.
   const eligibleGuessers = g.turnOrder.filter(id => lobby.players[id] && id !== g.drawerId);
   const allGuessed = eligibleGuessers.length > 0 && eligibleGuessers.every(id => g.guessedIds.has(id));
-  if(allGuessed) endTurn(io, lobby, 'allGuessed');
+  if(allGuessed){
+    clearTimeout(g.endTurnGraceTimer);
+    g.endTurnGraceTimer = setTimeout(() => endTurn(io, lobby, 'allGuessed'), 400);
+  }
 }
 
 const lobbies = {};
