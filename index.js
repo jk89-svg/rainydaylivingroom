@@ -831,46 +831,76 @@ function applyFill(ctx,av,clip,x,y,w,h){
   else{ctx.fillStyle=av.skin||'#F5C28A';ctx.fill();}
   ctx.restore();
 }
-// ── Tiny continuous avatar animation ──────────────────────────────
-// A very small, fast "breathing" squash/stretch applied to the whole
-// character every time it's drawn. Driven purely by Date.now(), so it
-// is mathematically identical for every player at every instant — the
-// same synced-clock technique used for the cat — with zero per-player
-// state, zero randomness, and negligible CPU cost (one sine call).
-// ── Tiny continuous avatar animation ──────────────────────────────
-// A discrete, instant "blink" — NOT a smooth/sliding animation. Every
-// avatar's eyes snap fully closed for a brief instant, then snap back
-// open, with zero interpolation in between (like a classic 2-frame
-// sprite swap, not a tween). Driven purely by Date.now(), so it is
-// mathematically identical for every player at every instant — same
-// synced-clock technique as the cat — with zero per-player state.
-function getBlinkOn(){
-  return (Date.now()%2500)<150; // closed for 150ms, open for the rest of a 2.5s cycle
+// ── Tiny continuous avatar animation: "black line boil" ────────────
+// Every part of the character is drawn completely normally first (all
+// fills, colors, and black outlines/details exactly as before, zero
+// visual change to shapes or colors). Then, as a post-process step, any
+// pixel that is black (the outline traces, black pupils, black hat
+// details, etc.) is picked out and redrawn at a tiny 1px offset that
+// snaps between a small set of positions — a classic hand-drawn "line
+// boil" effect. Colored fills never move; only the black linework
+// jitters, discretely (no smooth sliding), synced for every player via
+// wall-clock time so it's identical for everyone at every instant.
+const _JITTER_STEPS=[[0,0],[1,0],[0,1],[-1,0],[0,-1]];
+function getJitterOffset(){
+  const idx=Math.floor(Date.now()/130)%_JITTER_STEPS.length;
+  return _JITTER_STEPS[idx];
 }
+let _avScratchA=null,_avScratchB=null;
 function drawAV(ctx,av,cx,cy,R){
-  const blink=getBlinkOn();
-  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-  // Outline also snaps (not slides) slightly thicker during the same
-  // instant the eyes are closed — a hard pixel-style pop, not a slide.
-  const LW=Math.max(1.2,R*.07)*(blink?1.25:1);
+  const w=ctx.canvas.width,h=ctx.canvas.height;
+  if(!_avScratchA){_avScratchA=document.createElement('canvas');_avScratchB=document.createElement('canvas');}
+  if(_avScratchA.width!==w||_avScratchA.height!==h){
+    _avScratchA.width=w;_avScratchA.height=h;_avScratchB.width=w;_avScratchB.height=h;
+  }
+  const octx=_avScratchA.getContext('2d');
+  octx.clearRect(0,0,w,h);
+  octx.imageSmoothingEnabled=true;octx.imageSmoothingQuality='high';
+  const LW=Math.max(1.2,R*.07);
   // Body
   const bW=R*1.08,bH=R*.95,bX=cx-bW/2,bY=cy+R*.4;
-  applyFill(ctx,av,()=>rrect(ctx,bX,bY,bW,bH,R*.22),bX,bY,bW,bH);
-  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;rrect(ctx,bX,bY,bW,bH,R*.22);ctx.stroke();
+  applyFill(octx,av,()=>rrect(octx,bX,bY,bW,bH,R*.22),bX,bY,bW,bH);
+  octx.strokeStyle='#1a1a1a';octx.lineWidth=LW;rrect(octx,bX,bY,bW,bH,R*.22);octx.stroke();
   // Head
-  applyFill(ctx,av,()=>{ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);},cx-R,cy-R,R*2,R*2);
-  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  applyFill(octx,av,()=>{octx.beginPath();octx.arc(cx,cy,R,0,Math.PI*2);},cx-R,cy-R,R*2,R*2);
+  octx.strokeStyle='#1a1a1a';octx.lineWidth=LW;octx.beginPath();octx.arc(cx,cy,R,0,Math.PI*2);octx.stroke();
   // No ears — clean round head
-  drawEyes(ctx,av.eyes||'Round',cx,cy,R,LW,blink);
-  drawMouth(ctx,av.mouth||'Smile',cx,cy,R,LW);
-  drawHat(ctx,av.hat||'None',cx,cy,R,LW);
+  drawEyes(octx,av.eyes||'Round',cx,cy,R,LW);
+  drawMouth(octx,av.mouth||'Smile',cx,cy,R,LW);
+  drawHat(octx,av.hat||'None',cx,cy,R,LW);
+
+  // ── Split black pixels from everything else ──
+  let imgData;
+  try{ imgData=octx.getImageData(0,0,w,h); }
+  catch(e){ ctx.clearRect(0,0,w,h); ctx.drawImage(_avScratchA,0,0); return; } // safety fallback, never breaks rendering
+  const d=imgData.data;
+  const bctx=_avScratchB.getContext('2d');
+  bctx.clearRect(0,0,w,h);
+  const blackImg=bctx.createImageData(w,h);
+  const bd=blackImg.data;
+  let hasBlack=false;
+  for(let i=0;i<d.length;i+=4){
+    if(d[i+3]>0&&d[i]<70&&d[i+1]<70&&d[i+2]<70){
+      bd[i]=d[i];bd[i+1]=d[i+1];bd[i+2]=d[i+2];bd[i+3]=d[i+3];
+      d[i+3]=0; // remove from the base (colored) layer
+      hasBlack=true;
+    }
+  }
+  octx.putImageData(imgData,0,0);
+  ctx.clearRect(0,0,w,h);
+  ctx.drawImage(_avScratchA,0,0); // colored base — never moves
+  if(hasBlack){
+    bctx.putImageData(blackImg,0,0);
+    const[jx,jy]=getJitterOffset();
+    ctx.drawImage(_avScratchB,jx,jy); // black linework only — tiny discrete jitter
+  }
 }
 
-function drawEyes(ctx,style,cx,cy,R,LW,blink){
+function drawEyes(ctx,style,cx,cy,R,LW){
   const ey=cy-R*.1,exL=cx-R*.3,exR=cx+R*.3;
   ctx.save();
   const eye1=(x,wink)=>{
-    if(wink||blink){ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-R*.14,ey);ctx.quadraticCurveTo(x,ey+R*.12,x+R*.14,ey);ctx.stroke();return;}
+    if(wink){ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-R*.14,ey);ctx.quadraticCurveTo(x,ey+R*.12,x+R*.14,ey);ctx.stroke();return;}
     switch(style){
       case'Round':default:
         ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey,R*.12,R*.16,0,0,Math.PI*2);ctx.fill();
@@ -1205,11 +1235,11 @@ function drawHat(ctx,style,cx,cy,R,LW){
   ctx.restore();
 }
 
-// ── Lightweight continuous repaint for the avatar wobble ──────────
-// Repaints EXISTING canvas pixels only — never touches the DOM
-// structure, never recreates elements — so this is extremely cheap
-// even with 8 players animating at once. Throttled to ~12fps, which
-// is plenty smooth for a small, fast pulse and far lighter than 60fps.
+// ── Lightweight continuous repaint for the black-line jitter ──────
+// Repaints EXISTING canvas pixels only — never touches DOM structure,
+// never recreates elements — so this is cheap even with 8 players
+// animating at once. Throttled to ~10fps, plenty for a small discrete
+// jitter and far lighter than 60fps.
 let _animatedAvatars=[];
 function registerAvatarCanvas(cvs,av,cx,cy,R){
   drawAV(cvs.getContext('2d'),av,cx,cy,R);
@@ -1222,12 +1252,10 @@ setInterval(()=>{
   _animatedAvatars.forEach(a=>{
     try{
       if(!document.body.contains(a.cvs))return;
-      const ctx=a.cvs.getContext('2d');
-      ctx.clearRect(0,0,a.cvs.width,a.cvs.height);
-      drawAV(ctx,a.av,a.cx,a.cy,a.R);
+      drawAV(a.cvs.getContext('2d'),a.av,a.cx,a.cy,a.R);
     }catch(e){}
   });
-},80);
+},100);
 
 function drawOnCanvas(canvas,av,R){
   const ctx=canvas.getContext('2d');
@@ -2105,7 +2133,7 @@ const VOTE_KICK_COOLDOWN_MS = 3*60*1000; // 3 minutes
 const WORD_LIST = [
   'AppleSauce','BagelBoy','CinnamonRoll','DonutDude','EggRoll','FrenchFry','GummiBear','HotDog',
   'IceCream','JellyBean','KiwiSlice','LemonDrop','MapleSyrup','NoodleSoup','OrangePeel','PizzaSlice',
-  'QuailEgg','RamenBowl','SushiRoll','TacoBell','UdonNoodle','VanillaPuff','WaffleStack','XtraCheese',
+  'QuailEgg','RamenBowl','SushiRoll','TacoTruck','UdonNoodle','VanillaPuff','WaffleStack','XtraCheese',
   'YogurtCup','ZestyLime','AlmondMilk','BubbleTea','CaramelPop','DumplingKing','EspressoShot','FudgeCake',
   'GarlicBread','HoneyBee','IrishStew','JamToast','KetchupBot','LollipopKid','MuffinTop','NachoCheese',
   'OnionRing','PretzelTwist','QuickOats','RootBeerFloat','SnickDoodle','ToasterWaffle','UmeboshiPit',
@@ -2130,7 +2158,118 @@ const WORD_LIST = [
   'StargazerX','NebulaPilot','CosmicDrifter','OrbitRider','GalaxyBounce','PlasmaPuff','NovaSurfer',
   'QuasarKid','PulsarPal','VoidWalker','DarkMatterM','LightspeedL','AstroSnack','MoonRocker','SunDrifter',
   'CometChaser','MeteorMunch','StellarSurge','NeutronNap','WarpZoneW','BlackHoleB','CrystalComet',
-  'RocketRamen','SpaceNoodle','ZeroGRamen','OrbitalOats','TwilightTaco','EventHorizon','SingularSnack'
+  'RocketRamen','SpaceNoodle','ZeroGRamen','OrbitalOats','TwilightTaco','EventHorizon','SingularSnack',
+  'PretzelRod','ChipDipper','SaltyCracker','CheesePuff','PopcornBag',
+  'GummyWorm','TrailMixer','RiceCake','CornChip','TortillaTwist',
+  'PitaPocket','HummusDip','SaladBar','SoupSpoon','BreadBasket',
+  'ButterKnife','JamJar','PeanutButter','GrilledCheese','ClubSandwich',
+  'WrapMaster','BurritoRoll','QuesoDip','SalsaMix','GuacBowl',
+  'ChiliBean','CornBread','BiscuitTop','GravyBoat','MashedPotato',
+  'FrenchOnion','BakedBean','ColeslawMix','PicklePatch','RelishJar',
+  'MustardSeed','MayoSwirl','KetchupSquirt','HotSauce','BbqSauce',
+  'TeriyakiGlaze','SoySauceDrop','CurryPot','RicePilaf','FriedRice',
+  'StirFryPan','DumplingSteam','SpringRoll','EggDrop','WontonSoup',
+  'PhoBowl','RamenNoodle','UdonBowl','MisoSoup','TempuraCrisp',
+  'SushiRoller','PokeBowl','BentoBox','OnigiriShape','MochiBite',
+  'DangoStick','TaiyakiFish','MelonPan','CroissantFlake','BaguetteLoaf',
+  'SourdoughSlice','RyeBread','WheatToast','EnglishMuffin','BagelHole',
+  'PopTart','CerealBowl','GranolaCrunch','OatmealBowl','PorridgeSpoon',
+  'GrahamCracker','SaltineStack','RitzCracker','WheatThinner','GoldfishSnack',
+  'AnimalCracker','FigBar','FruitLeather','FruitSnack','JuiceBoxKid',
+  'LemonadeStand','LimeadeSip','FruitPunch','GrapeJuice','AppleJuice',
+  'OrangeJuice','MilkCarton','ChocMilk','StrawberryMilk','SmoothieCup',
+  'MilkshakeSwirl','FloatFizz','SodaPop','RootBeerFizz','GingerAle',
+  'LemonLime','ColaCan','SparklingWater','CoconutWater','AloeDrink',
+  'HotCocoa','MarshmallowTop','CocoaPuff','WhippedTop','CaramelDrizzle',
+  'ChocoDrizzle','SprinkleTop','FrostingSwirl','IcingDrip','CandyCorn',
+  'GummyBear','SourPatch','JellyBelly','LicoriceTwist','ButterscotchDrop',
+  'TaffyPull','FudgeSquare','ToffeeBit','PraliteCrunch','BrittlePeanut',
+  'NougatCenter','MarzipanShape','TruffleBite','BonBonBox','PralinePiece',
+  'CandyCane','PeppermintSwirl','WintergreenMint','SpearmintGum','BubbleGumPop',
+  'CottonCandy','KettleCorn','CaramelCorn','CheeseCorn','ButterCorn',
+  'NachoChip','TortillaChip','PitaChip','VeggieChip','SweetPotatoChip',
+  'PlantainChip','AppleChip','KaleChip','BeetChip',
+  'CarrotStick','CeleryStalk','CucumberSlice','RadishRound','TomatoSlice',
+  'BellPepper','JalapenoRing','GarlicClove','GingerRoot',
+  'ShallotBit','LeekStalk','ScallionTip','ChiveSnip','ParsleySprig',
+  'CilantroLeaf','BasilLeaf','MintSprig','RosemarySprig','ThymeLeaf',
+  'OreganoBit','SageLeaf','DillWeed','FennelBulb','ArtichokeHeart',
+  'AsparagusSpear','BroccoliFloret','CauliflowerBit','BrusselSprout','CabbageLeaf',
+  'KaleLeaf','SpinachLeaf','LettuceLeaf','ArugulaSprig','EndiveTip',
+  'RadicchioLeaf','WatercressBit','BokChoyLeaf','SwissChard','CollardGreen',
+  'MustardGreen','TurnipTop','BeetGreen','SquashBlossom','ZucchiniSlice',
+  'EggplantSlice','PumpkinSeed','SunflowerSeed','PepitaSnack','ChiaSeed',
+  'FlaxSeed','HempSeed','SesameSeed','PoppySeed','QuinoaBowl',
+  'CouscousCup','BulgurWheat','BarleyBowl','FarroGrain','MilletSeed',
+  'BuckwheatBowl','PolentaScoop','GritsBowl','HominyCorn','MasaCake',
+  'TamaleWrap','EmpanadaPocket','SamosaTriangle','PakoraBite','FalafelBall',
+  'GyroWrap','ShawarmaSpin','KebabSkewer','SatayStick','DimSumBasket',
+  'BaoBun','CharSiu','PekingRoll','EggFooYoung','GeneralTso',
+  'KungPao','MooShu','LoMein','ChowMein','FriedWonton',
+  'CrabRangoon','SpringOnion','FortuneCookie','CupcakeTop','BrownieBite',
+  'BlondieBar','CookieDough','ChocChip','OatmealCookie','SugarCookie',
+  'SnickerSpin','ShortbreadCrumb','MacaronShell','MeringueKiss','EclairFill',
+  'ProfiteroleCream','TiramisuLayer','CheesecakeSlice','PoundCakeSlice','AngelFoodBite',
+  'BundtCake','LayerCake','SheetCake','CarrotCake','RedVelvet',
+  'LemonBar','KeyLimePie','PecanPie','ApplePie','CherryPie',
+  'BlueberryPie','PumpkinPie','SweetPotatoPie','BananaCream','CoconutCream',
+  'ChocolateMousse','ButterCream','CreamPuff','BerryShortcake','PeachCobbler',
+  'AppleCrisp','BerryCrumble','FruitTart','JamTart','CustardCup',
+  'FlanSlice','PannaCotta','RicePudding','BreadPudding','TapiocaPearl',
+  'GelatoScoop','SorbetSwirl','SherbertScoop','FrozenYogurt','IceCreamCone',
+  'SundaeTop','BananaSplit','ParfaitLayer','PopsicleStick','FudgesicleBar',
+  'SnowCone','ShavedIce','WaffleCone','SugarCone','IceCreamSandwich',
+  'AppleCore','BananaPeel','CherryPit','GrapeVine','MelonRind',
+  'PeachFuzz','PearStem','PlumSkin','ApricotHalf','NectarineSlice',
+  'PersimmonSlice','PomegranateSeed','FigSlice','DateFruit','RaisinBox',
+  'PruneBite','CranberrySauce','BlueberryPop','RaspberryJam','BlackberryBush',
+  'StrawberryTop','GooseberryTart','ElderberrySyrup','MulberryBush','BoysenberryJam',
+  'LingonberryJam','KiwiFuzz','PapayaSlice','GuavaSlice','LycheeShell',
+  'RambutanSpike','DragonFruit','PassionFruit','StarFruit','JackFruit',
+  'DurianSpike','PlantainPeel','CoconutHusk','AvocadoPit','OliveBranch',
+  'CapersJar','CuriousCat','SleepyPup','GigglyFrog','WobbleWorm',
+  'ChirpyBird','HoppyBunny','SnuggleBear','PouncyKitten','FloppyEar',
+  'WaddleDuck','QuackyDuckling','PeepChick','ClusterHen','CrowingRooster',
+  'GrazingGoat','WoollySheep','MooCow','OinkPig','NeighHorse',
+  'TrotPony','BrayDonkey','GallopColt','StompElephant','SwingMonkey',
+  'ChatterChimp','SwayGiraffe','StripeZebra','RoarLion','GrowlTiger',
+  'SpotLeopard','PounceCheetah','ProwlPanther','SneakFox','HowlWolf',
+  'DigBadger','ClimbSquirrel','GatherChipmunk','GnawBeaver','ScurryMouse',
+  'NibbleRat','BurrowMole','SnoutMole','FlutterMoth','BuzzBee',
+  'HumHornet','CrawlAnt','SpinSpider','GlowFirefly','ChirpCricket',
+  'HopGrasshopper','FlyDragonfly','MunchCaterpillar','FloatJellyfish','ScuttleCrab',
+  'ClickShrimp','WaveOctopus','GlideSeahorse','SwimGoldfish','DartMinnow',
+  'LurkCatfish','SplashSalmon','LeapTrout','DrumBassFish','HoverHummingbird',
+  'SoarHawk','GlideEagle','PerchSparrow','SingCanary','WhistleFinch',
+  'PeckWoodpecker','HootOwl','CallLoon','WadeHeron','StalkCrane',
+  'DiveKingfisher','SkimSwallow','FlockStarling','DriftAsteroid','SpinPlanet',
+  'GlowMoonbeam','ShootingStar','TwinkleStarlet','FlareSolar','DustCosmic',
+  'RingSaturn','SpotJupiter','HaloNebula','TailComet','BeltAsteroid',
+  'CraterMoon','RiseSunrise','SetSunset','GlowTwilight','StreakMeteor',
+  'WhirlGalaxy','BurstSupernova','DriftSatellite','OrbitStation','RainDrop',
+  'PuddleJump','SplashPuddle','MistyMorning','FoggyWindow','CloudyDay',
+  'DrizzleDrop','ThunderClap','LightningBolt','RainbowArc','StormCloud',
+  'BreezeWhisper','GustWind','SnowFlake','FrostWindow','IcicleDrip',
+  'SleetMix','HailStone','SunnySpell','ClearSkies','OvercastGray',
+  'CozySock','WoolBlanket','FuzzyRobe','SlipperShuffle','PillowFort',
+  'CandleGlow','FirewoodCrackle','MugSteam','TeaKettle','CocoaCup',
+  'BookNook','ReadingLamp','ArmchairSpot','WindowSeat','CurtainDraw',
+  'RugPattern','ClockTick','ShelfBook','FramePicture','VaseFlower',
+  'LampShade','CushionFluff','ThrowBlanket','KnitSweater','ScarfWrap',
+  'MittenPair','BeanieCap','HoodiePocket','SlipperSock','BathrobeTie',
+  'SlumberParty','NapTime','SnoozeButton','YawnStretch','DreamCatcher',
+  'BubbleWrap','ConfettiPop','BalloonFloat','StreamerTwirl','PartyHat',
+  'GiftBow','RibbonCurl','PuzzlePiece','DominoRow','MarbleRoll',
+  'YoYoSpin','KiteFly','BubbleBlow','PinwheelSpin','JumpRope',
+  'HopscotchSquare','SidewalkChalk','SandCastle','BeachBall','SnowGlobe',
+  'MusicBox','WindChime','LavaLamp','DiscoBall','PaperPlane',
+  'OrigamiCrane','StickerSheet','CrayonBox','PaintBrush','GlitterGlue',
+  'PlayDoughSquish','LegoBrick','JigsawPiece','RubiksTwist','ChessKnight',
+  'CheckerHop','CardShuffle','DiceRoll','SpinnerFlick','TopSpin',
+  'KaleidoTwist','TelescopeView','MagnifyGlass','CompassSpin','MapUnfold',
+  'TreasureChest','PirateMap','MermaidTail','UnicornHorn','DragonScale',
+  'WizardHat','FairyWing','RobotBeep','AlienGlow','GhostFloat',
+  'PumpkinGrin'
 ];
 
 const lobbies = {};
