@@ -783,7 +783,7 @@ const SKINS=[
 ];
 let skinIdx=1;
 
-const EYES_LIST=['Round','Wide','Dot','Star','Shut','Wink','Anime','Tired','Angry','Happy','Heart','Spiral','Sunglasses','Squint','Cyclops','Dizzy','Sparkle','Cute','Pixel','Hollow','Cross','Sleepy'];
+const EYES_LIST=['Round','Wide','Dot','Star','Shut','Wink','Anime','Tired','Angry','Happy','Heart','Spiral','Sunglasses','Squint','Cyclops','Dizzy','Sparkle','Cute','Pixel','Hollow','Cross','Sleepy','Chevron'];
 const MOUTH_LIST=['Smile','Grin','Flat','Sad','Wow','Tongue','Smirk','Teeth','Kiss','Wavy','Oof','Beam','Fangs','Whistle','Drool','BigSmile','Grimace','Pout','Zipper','Cat','Beak','Derp'];
 const HAT_LIST=['None','Cap','TopHat','Beanie','Crown','Bow','Halo','Party','Cowboy','Helmet','Witch','Flower','Glasses','Headband','Chef','Antlers','Viking','Ninja','Propeller','Tiara','Beret','Pirate','Santa','Fedora','Bucket','Fez','Hardhat','Mohawk','Bunny','Dragon','Space Helm'];
 
@@ -856,7 +856,7 @@ function drawAV(ctx,av,cx,cy,R){
   const octx=_avScratchA.getContext('2d');
   octx.clearRect(0,0,w,h);
   octx.imageSmoothingEnabled=true;octx.imageSmoothingQuality='high';
-  const LW=Math.max(1.2,R*.07);
+  const LW=Math.max(2,R*.15);
   // Body
   const bW=R*1.08,bH=R*.95,bX=cx-bW/2,bY=cy+R*.4;
   applyFill(octx,av,()=>rrect(octx,bX,bY,bW,bH,R*.22),bX,bY,bW,bH);
@@ -931,6 +931,11 @@ function drawEyes(ctx,style,cx,cy,R,LW){
       case'Happy':
         ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';
         ctx.beginPath();ctx.moveTo(x-R*.13,ey+R*.04);ctx.quadraticCurveTo(x,ey-R*.13,x+R*.13,ey+R*.04);ctx.stroke();break;
+      case'Chevron':
+        // Sharp angular "^" caret — two straight strokes meeting at a point,
+        // not a smooth curve, for a bolder, more graphic look.
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.15;ctx.lineCap='round';ctx.lineJoin='round';
+        ctx.beginPath();ctx.moveTo(x-R*.16,ey+R*.06);ctx.lineTo(x,ey-R*.14);ctx.lineTo(x+R*.16,ey+R*.06);ctx.stroke();break;
       case'Heart':
         ctx.save();ctx.translate(x,ey-.5);ctx.scale(R*.09,R*.09);ctx.fillStyle='#FF3366';
         ctx.beginPath();ctx.moveTo(0,1);ctx.bezierCurveTo(-1,-.5,-2.5,.5,-1.5,2);ctx.bezierCurveTo(-1,3,0,3.8,0,4);
@@ -2269,7 +2274,56 @@ const WORD_LIST = [
   'KaleidoTwist','TelescopeView','MagnifyGlass','CompassSpin','MapUnfold',
   'TreasureChest','PirateMap','MermaidTail','UnicornHorn','DragonScale',
   'WizardHat','FairyWing','RobotBeep','AlienGlow','GhostFloat',
-  'PumpkinGrin'
+  'PumpkinGrin',
+  'ToastCrumb','WaffleGrid','PancakeStack','CrepeFold','BlintzRoll',
+  'ScrambledEgg','PoachedEgg','DeviledEgg','OmeletFold','FrittataSlice',
+  'QuicheCrust','StrataLayer','HashBrown','HomeFries','BreakfastBurrito',
+  'BiscuitGravy','SausageLink','BaconStrip','HamSlice','TurkeyLeg',
+  'ChickenWing','DrumstickBite','MeatballRoll','SliderBun','HotDogBun',
+  'CornDogStick','SloppyJoe','PulledPork','BrisketSlice','RibEye',
+  'PorkChop','LambSkewer','FishStick','ShrimpCocktail','CalamariRing',
+  'ClamChowder','LobsterTail','CrabCake','ScallopBite','MusselShell',
+  'OysterShuck','CaviarSpoon','SteakSauce','GravyLadle','StuffingScoop',
+  'CranberryRelish','GreenBeanBake','SweetCorn','CornOnCob','RoastedVeg',
+  'GrilledVeg','SteamedVeg','SauteedGreens','BraisedGreens','PickledVeg',
+  'FermentedKraut','KimchiJar','SauerkrautBite','CoconutFlake','AlmondSliver',
+  'WalnutHalf','PecanHalf','CashewCluster','PistachioShell','HazelnutSpread',
+  'MacadamiaBite','BrazilNut','PineNutSprinkle','ChestnutRoast','RainyWindow',
+  'PuddleSplash','UmbrellaOpen','RaincoatHood','GalochesStep','ThunderRumble',
+  'LightningFlash','CloudBurst','DrizzleMist','StormyNight','CozyBlanket',
+  'WarmSocks','HotTea','SteamMug','FireplaceCrackle','BookByFire',
+  'RainySunday','LazyAfternoon','NapOnCouch','MovieMarathon','PopcornBowl',
+  'BoardGameNight','PuzzleTime','KnittingNeedle','CrochetHook','QuiltPatch',
+  'JournalPage','SketchPad','HammockSway','PorchSwing','RockingChair',
+  'WindowSill','DoorMat','WelcomeSign','KeyHook','CoatRack',
+  'ShoeRack','UmbrellaStand','Bookshelf','MagazineRack','RecordPlayer',
+  'VinylSpin','CassetteTape','RadioDial','Television','RemoteControl',
+  'CouchCushion','FootStool','OttomanTop','RecliningChair','LoveSeat',
+  'Sectional','CoffeeTable','SideTable','EndTable','ConsoleTable',
+  'BashfulBunny','JumpyFrog','SlinkySnake','WiggleWorm','FloppyFish',
+  'BouncyBird','SnuggleSloth','PerkyPuppy','ZoomyZebra','GentleGiraffe',
+  'ProudPeacock','ShySeahorse','BraveBadger','CleverCrow','WiseOwl',
+  'SwiftSwallow','GracefulGazelle','SturdyOx','LoyalLab','PlayfulPoodle',
+  'CheerfulChihua','ScruffyTerrier','FluffyPomeranian','GoldenRetriever','SpottedDalmatian',
+  'StripedTabby','BlackPanther','WhiteSwan','GrayWolf','BrownBear',
+  'RedFox','OrangeTabby','YellowCanary','GreenLizard','BlueJay',
+  'PurpleMartin','PinkFlamingo','TurquoiseFinch','SilverFox','GoldenEagle',
+  'BronzeBeetle','MorningDew','EveningGlow','MiddayShine','MidnightStar',
+  'DawnBreak','DuskFall','NoonLight','AutumnLeaf','WinterFrost',
+  'SpringBloom','SummerBreeze','HarvestMoon','FullMoonGlow','CrescentMoon',
+  'ShootingComet','NorthernLight','SouthernCross','MilkyWay','PolarStar',
+  'ConstellationMap','ZodiacSign','DonutHole','ChurroStick','BeignetPuff',
+  'FunnelCake','ElephantEar','CronutTwist','MonkeyBread','StickyBun',
+  'CinnamonTwist','SugarPlum','GingerSnap','MolassesCookie','SpiceCake',
+  'FruitCake','HoneyCake','WalnutCake','AppleCake','CarrotMuffin',
+  'BlueberryMuffin','BananaMuffin','CornMuffin','ZucchiniBread','PumpkinBread',
+  'BananaBread','MonkeyBars','ChocoBar','GranolaBar','ProteinBar',
+  'EnergyBite','TrailSnack','FruitRollUp','GummyShark','SourWorm',
+  'JawBreaker','BubbleGumBall','IceTeaGlass','SweetTea','MintTea',
+  'ChamomileTea','GreenTeaCup','BlackTeaBag','HerbalInfusion','ChaiSpice',
+  'MatchaWhisk','EspressoBean','LatteFoam','CappuccinoSwirl','MochaDrizzle',
+  'AmericanoShot','ColdBrewJar','FrappeBlend','MilkFroth','CreamTop',
+  'SugarCube','HoneyDrizzle'
 ];
 
 const lobbies = {};
@@ -2310,12 +2364,40 @@ function assignSeat(lobby){
   return -1;
 }
 
-function randomName(){ return WORD_LIST[Math.floor(Math.random()*WORD_LIST.length)]; }
+function randomName(lobby){
+  // Avoid any name currently used by another active player in this lobby.
+  // With 1000 names and a max of 8 players, a collision is already rare —
+  // this loop makes it a hard guarantee rather than just "unlikely".
+  const used=lobby?new Set(Object.values(lobby.players).map(p=>p.name)):new Set();
+  let attempts=0,name;
+  do{
+    name=WORD_LIST[Math.floor(Math.random()*WORD_LIST.length)];
+    attempts++;
+  }while(used.has(name)&&attempts<80);
+  return name;
+}
 
-function sanitizeName(name){
-  if(!name||!name.trim()) return randomName();
-  let n=name.trim().replace(/[<>&"']/g,'').substring(0,16);
-  return n||randomName();
+function sanitizeName(name,lobby){
+  let n;
+  if(!name||!name.trim()) n=randomName(lobby);
+  else n=name.trim().replace(/[<>&"']/g,'').substring(0,16)||randomName(lobby);
+
+  // Hard guarantee: no two active players in the SAME lobby ever end up
+  // with an identical displayed name — covers auto-generated names AND
+  // names someone typed by hand that happen to match another player.
+  if(lobby){
+    const used=new Set(Object.values(lobby.players).map(p=>p.name));
+    if(used.has(n)){
+      const base=n.substring(0,14); // leave room for a numeric suffix within the 16-char limit
+      let suffix=2,candidate=n;
+      while(used.has(candidate)&&suffix<100){
+        candidate=base+suffix;
+        suffix++;
+      }
+      n=candidate;
+    }
+  }
+  return n;
 }
 
 function getLobbyState(lobby){
@@ -2380,7 +2462,7 @@ io.on('connection',(socket)=>{
     // Already in a lobby? leave first silently
     if(curLobby&&curPlayer) doRemove(socket.id,curLobby,'left',true);
 
-    const cleanName=sanitizeName(name);
+    const cleanName=sanitizeName(name,lobby);
     const seat=assignSeat(lobby);
     if(seat===-1){socket.emit('joinError',{message:'No seats available.'});return;}
 
