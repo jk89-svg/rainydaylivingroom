@@ -831,7 +831,21 @@ function applyFill(ctx,av,clip,x,y,w,h){
   else{ctx.fillStyle=av.skin||'#F5C28A';ctx.fill();}
   ctx.restore();
 }
+// ── Tiny continuous avatar animation ──────────────────────────────
+// A very small, fast "breathing" squash/stretch applied to the whole
+// character every time it's drawn. Driven purely by Date.now(), so it
+// is mathematically identical for every player at every instant — the
+// same synced-clock technique used for the cat — with zero per-player
+// state, zero randomness, and negligible CPU cost (one sine call).
+function getAvWobble(){
+  return Math.sin(Date.now()/1000*5); // ~0.8s per cycle — small & fast
+}
 function drawAV(ctx,av,cx,cy,R){
+  const w=getAvWobble();
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.scale(1-w*0.018, 1+w*0.025); // subtle inverse squash/stretch
+  ctx.translate(-cx,-cy);
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   const LW=Math.max(1.2,R*.07);
   // Body
@@ -845,6 +859,7 @@ function drawAV(ctx,av,cx,cy,R){
   drawEyes(ctx,av.eyes||'Round',cx,cy,R,LW);
   drawMouth(ctx,av.mouth||'Smile',cx,cy,R,LW);
   drawHat(ctx,av.hat||'None',cx,cy,R,LW);
+  ctx.restore();
 }
 
 function drawEyes(ctx,style,cx,cy,R,LW){
@@ -1186,10 +1201,34 @@ function drawHat(ctx,style,cx,cy,R,LW){
   ctx.restore();
 }
 
+// ── Lightweight continuous repaint for the avatar wobble ──────────
+// Repaints EXISTING canvas pixels only — never touches the DOM
+// structure, never recreates elements — so this is extremely cheap
+// even with 8 players animating at once. Throttled to ~12fps, which
+// is plenty smooth for a small, fast pulse and far lighter than 60fps.
+let _animatedAvatars=[];
+function registerAvatarCanvas(cvs,av,cx,cy,R){
+  drawAV(cvs.getContext('2d'),av,cx,cy,R);
+  const existing=_animatedAvatars.find(a=>a.cvs===cvs);
+  if(existing){existing.av=av;existing.cx=cx;existing.cy=cy;existing.R=R;}
+  else{_animatedAvatars.push({cvs,av,cx,cy,R});}
+}
+setInterval(()=>{
+  if(!_animatedAvatars.length)return;
+  _animatedAvatars.forEach(a=>{
+    try{
+      if(!document.body.contains(a.cvs))return;
+      const ctx=a.cvs.getContext('2d');
+      ctx.clearRect(0,0,a.cvs.width,a.cvs.height);
+      drawAV(ctx,a.av,a.cx,a.cy,a.R);
+    }catch(e){}
+  });
+},80);
+
 function drawOnCanvas(canvas,av,R){
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  drawAV(ctx,av,canvas.width/2,canvas.height*.46,R||canvas.width*.3);
+  registerAvatarCanvas(canvas,av,canvas.width/2,canvas.height*.46,R||canvas.width*.3);
 }
 function drawHome(){drawOnCanvas(document.getElementById('avCanvas'),AV,32);}
 
@@ -1682,6 +1721,8 @@ function renderPlayers(){
   const layer=document.getElementById('avatarLayer');
   if(!layer)return;
   layer.innerHTML='';
+  // Prune entries whose canvas just got removed from the DOM above
+  _animatedAvatars=_animatedAvatars.filter(a=>document.body.contains(a.cvs));
   Object.values(players).forEach(p=>{
     if(p.seat===undefined||p.seat<0||p.seat>=8)return;
     placeChar(layer,p,SEATS[p.seat].cx,SEATS[p.seat].sy);
@@ -1704,7 +1745,7 @@ function placeChar(layer,player,cx,sy){
   const PX=3; // internal render resolution multiplier, for crisp avatars at any room size
   const cvs=document.createElement('canvas');
   cvs.width=dim*PX;cvs.height=(dim+12)*PX;
-  drawAV(cvs.getContext('2d'),player.avatar||{},cvs.width/2,cvs.height*.55,R*PX*.85);
+  registerAvatarCanvas(cvs,player.avatar||{},cvs.width/2,cvs.height*.55,R*PX*.85);
   wrap.appendChild(cvs);
 
   const isMe=player.id===myId;
@@ -1718,11 +1759,13 @@ function placeChar(layer,player,cx,sy){
 
 function renderList(){
   const list=document.getElementById('playerList');list.innerHTML='';
+  // Prune entries whose canvas just got removed from the DOM above
+  _animatedAvatars=_animatedAvatars.filter(a=>document.body.contains(a.cvs));
   Object.values(players).forEach(p=>{
     const isMe=p.id===myId,isMuted=muted.has(p.id);
     const div=document.createElement('div');div.className='p-entry'+(isMuted?' muted':'');div.dataset.pid=p.id;
     const cvs=document.createElement('canvas');cvs.width=40;cvs.height=48;cvs.style.cssText='width:40px;height:48px;display:block;flex-shrink:0;';
-    drawAV(cvs.getContext('2d'),p.avatar||{},20,48*.46,13);
+    registerAvatarCanvas(cvs,p.avatar||{},20,48*.46,13);
     const nw=document.createElement('div');nw.className='p-name-wrap';
     const nm=document.createElement('div');nm.className='p-name';nm.textContent=p.name;
     nw.appendChild(nm);
