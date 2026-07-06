@@ -16,9 +16,9 @@ const INDEX_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>Rainy Day Living Room 🌧️</title>
+<title>Doodly.io 🎨</title>
 <meta name="google-adsense-account" content="ca-pub-2352009046427964">
-<meta name="description" content="Rainy Day Living Room — a free multiplayer hangout game. Socialize, relax, and have fun in a cozy rainy living room.">
+<meta name="description" content="Doodly.io — a free multiplayer drawing and guessing game. Take turns sketching a secret word while everyone else races to guess it in the chat!">
 <!-- GOOGLE ADSENSE — replace ca-pub-2352009046427964 with your publisher ID from adsense.google.com -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2352009046427964" crossorigin="anonymous" onerror="this.setAttribute('data-blocked','1')"></script>
 <script src="/socket.io/socket.io.js"></script>
@@ -193,11 +193,8 @@ body.dark .p-entry:hover{background:#3a3a50;}
    not custom JS arithmetic that can drift or bug out per-browser. */
 #roomBox{position:relative;border-radius:10px;background:#2a3a6a;container-type:inline-size;container-name:room;flex-shrink:0;}
 #roomClip{position:absolute;inset:0;overflow:hidden;border-radius:10px;}
-#roomSvg{width:100%;height:100%;display:block;}
-#rainCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
 /* Avatar overlay sits OUTSIDE the clipped layer so nametags for edge
    seats are never chopped off by the room's rounded-corner clipping. */
-#avatarLayer{position:absolute;inset:0;pointer-events:none;z-index:6;}
 .avatar-wrap{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);}
 .avatar-wrap canvas{width:9.4cqw;height:11.25cqw;display:block;}
 .avatar-nametag{margin-top:.3cqw;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.5cqw;line-height:1.3;white-space:nowrap;background:rgba(255,255,255,.95);border-radius:.8cqw;padding:.35cqw 1cqw;border:.18cqw solid #bbb;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.15);}
@@ -257,7 +254,9 @@ body.dark .sys-vote{color:#F0C040;}
 .ctx-item:hover{background:var(--accent-subtle);}.ctx-danger{color:#c00;}.ctx-danger:hover{background:#ffe0e0;}
 body.dark .ctx-item:hover{background:#3a3a50;}
 
-.bubble{position:absolute;background:rgba(255,255,255,.97);border:.4cqw solid var(--accent);border-radius:1.6cqw;padding:.7cqw 1.4cqw;font-size:1.55cqw;font-weight:800;color:#111;max-width:22cqw;word-break:break-word;text-align:center;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:20;transform:translate(-50%,-100%);}
+.name-bubble{position:absolute;top:-6px;left:44px;background:#fff;border:2px solid var(--accent);
+  border-radius:8px;padding:2px 7px;font-size:.62rem;font-weight:800;color:#222;white-space:nowrap;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:5;max-width:140px;overflow:hidden;text-overflow:ellipsis;}
 
 to{transform:translateX(-50%) scale(1);opacity:1;}}
 
@@ -326,6 +325,85 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 #adsense-ingame{width:100%;min-height:50px;flex-shrink:0;text-align:center;overflow:hidden;background:transparent;}
 /* ── Home top ad slot ── */
 #adsense-home-top{width:100%;max-width:728px;max-height:90px;min-height:0;overflow:hidden;flex-shrink:0;text-align:center;margin-bottom:4px;}
+
+/* ═══════════════════════════════════════
+   DOODLY.IO — DRAWING GAME UI
+   ═══════════════════════════════════════ */
+
+/* Round + timer badges in the header, next to the room code badge */
+.round-badge,.turn-timer-badge{font-size:.6rem;font-weight:700;color:var(--text-sub);background:var(--bg-hdr);border-radius:6px;padding:2px 6px;border:1px solid var(--border-soft);white-space:nowrap;}
+.turn-timer-badge{color:#c00;}
+
+/* The drawing canvas itself — plain white board */
+#drawCanvas{position:absolute;inset:0;width:100%;height:100%;background:#fff;touch-action:none;cursor:crosshair;}
+#drawCanvas.not-my-turn{cursor:default;}
+
+/* Word blanks display, floating centered at the top of the board */
+#wordHintDisplay{position:absolute;top:1.5cqw;left:50%;transform:translateX(-50%);z-index:15;
+  font-family:'Fredoka One',cursive;font-size:2.6cqw;letter-spacing:.5cqw;color:#222;
+  background:rgba(255,255,255,.88);border-radius:1cqw;padding:.4cqw 1.4cqw;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;white-space:nowrap;pointer-events:none;}
+
+/* Waiting-for-players / picking overlays */
+#waitingOverlay,#pickingOverlay{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.92);text-align:center;}
+#waitingOverlay p,#pickingOverlay p{font-family:'Fredoka One',cursive;font-size:1.6cqw;color:var(--accent-dark);padding:0 10%;}
+
+/* Word choice modal — only the drawer sees this */
+#wordChoiceModal{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);}
+.word-choice-box{background:#fff;border-radius:16px;padding:20px 26px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.35);max-width:88%;}
+.word-choice-box h3{font-family:'Fredoka One',cursive;color:var(--accent-dark);font-size:1.05rem;margin-bottom:14px;}
+#wordChoiceButtons{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;}
+.word-choice-btn{background:#1E9E4A;color:#fff;border:none;border-radius:9px;font-family:'Fredoka One',cursive;
+  font-size:.85rem;padding:10px 18px;cursor:pointer;transition:transform .1s;}
+.word-choice-btn:hover{background:#157A38;transform:translateY(-1px);}
+.wc-timer-wrap{width:100%;height:6px;background:#eee;border-radius:3px;overflow:hidden;}
+.wc-timer-fill{height:100%;background:#1E9E4A;width:100%;transition:width 1s linear;}
+
+/* Drawing toolbar — only the drawer sees this, bottom of the board */
+#drawToolbar{position:absolute;bottom:0;left:0;right:0;z-index:15;display:none;
+  background:rgba(255,255,255,.95);border-top:2px solid var(--border-soft);
+  padding:.6cqw 1cqw;align-items:center;gap:1cqw;flex-wrap:wrap;}
+#colorSwatches{display:flex;gap:.35cqw;flex-wrap:wrap;max-width:40%;}
+.color-swatch{width:1.8cqw;height:1.8cqw;min-width:16px;min-height:16px;border-radius:50%;cursor:pointer;
+  border:2px solid rgba(0,0,0,.15);flex-shrink:0;}
+.color-swatch.active{border-color:#222;box-shadow:0 0 0 2px #fff,0 0 0 4px #222;}
+#sizeOptions{display:flex;gap:.3cqw;align-items:center;}
+.size-btn{width:2.2cqw;height:2.2cqw;min-width:22px;min-height:22px;border-radius:50%;border:2px solid #ccc;
+  background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.size-btn span{background:#222;border-radius:50%;display:block;}
+.size-btn.active{border-color:var(--accent);background:var(--accent-subtle);}
+#toolButtons{display:flex;gap:.3cqw;margin-left:auto;}
+#toolButtons button{font-size:1.1rem;background:#fff;border:2px solid #ccc;border-radius:8px;
+  width:2.4cqw;height:2.4cqw;min-width:28px;min-height:28px;cursor:pointer;flex-shrink:0;}
+#toolButtons button.active{border-color:var(--accent);background:var(--accent-subtle);}
+#toolButtons button:hover{background:#f0f0f0;}
+
+/* Game over / winner screen */
+#gameOverOverlay{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);}
+.winner-box{background:#fff;border-radius:18px;padding:22px 30px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4);max-width:90%;}
+.winner-avatar-wrap{display:flex;justify-content:center;margin-bottom:6px;}
+#winnerText{font-family:'Fredoka One',cursive;color:var(--accent-dark);font-size:1.3rem;margin-bottom:10px;}
+#finalScoreboard{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;max-height:180px;overflow-y:auto;}
+.final-score-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 10px;
+  border-radius:8px;background:var(--bg-hdr);font-size:.78rem;font-weight:700;}
+.final-score-row.is-winner{background:#FFF4CC;border:1.5px solid #E8B830;}
+.next-game-txt{font-size:.68rem;color:var(--text-muted);font-style:italic;}
+
+/* Player list: score + status badges */
+.p-score{font-size:.62rem;font-weight:800;color:var(--accent-text);display:block;}
+.p-entry.is-drawer{background:var(--accent-subtle)!important;}
+.p-drawer-icon{font-size:.7rem;margin-left:2px;}
+.p-guessed-check{color:#1a7a1a;font-size:.65rem;margin-left:2px;}
+
+@supports not (container-type:inline-size){
+  #wordHintDisplay{font-size:1.3rem;letter-spacing:6px;padding:5px 14px;}
+  #waitingOverlay p,#pickingOverlay p{font-size:1rem;}
+  .color-swatch{width:16px;height:16px;}
+  .size-btn{width:22px;height:22px;}
+  #toolButtons button{width:28px;height:28px;}
+}
+
 </style>
 </head>
 <body>
@@ -334,13 +412,13 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 <div id="rotateMsg">
   <div class="r-icon">📱</div>
   <h2>Rotate Your Device!</h2>
-  <p>Rainy Day Living Room is designed for landscape mode.<br>Please rotate your phone or tablet sideways to play.</p>
+  <p>Doodly.io is designed for landscape mode.<br>Please rotate your phone or tablet sideways to play.</p>
 </div>
 
 <!-- HOME -->
 <div id="homePage">
   <div class="home-topbar">
-    <div class="logo">🌧️ Rainy Day Living Room</div>
+    <div class="logo">🎨 Doodly.io</div>
     <div class="home-dm-wrap">
       <span class="dm-ing-lbl" style="color:rgba(255,255,255,.85);font-size:.55rem;font-weight:700;">☀</span>
       <label class="dm-switch"><input type="checkbox" id="dmToggleHome" onchange="toggleDark(this.checked)"><span class="dm-slider"></span></label>
@@ -361,10 +439,11 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
           <p>✅ No spam, flooding, or repetitive messages.</p>
           <p>✅ No impersonation of other players or staff.</p>
           <p>✅ No threats, violence, self-harm references, or dangerous content.</p>
+          <p>✅ Keep drawings family-friendly — no violent, sexual, hateful, or otherwise inappropriate imagery.</p>
           <p>✅ Use vote kick fairly — abusing it may result in your own removal.</p>
           <p>✅ No advertising other websites, games, or services in chat.</p>
           <p style="font-weight:800;color:var(--text-main);margin-top:5px;margin-bottom:3px;">Legal & Privacy</p>
-          <p>✅ Rainy Day Living Room is a free, independent hobby project with no commercial affiliation.</p>
+          <p>✅ Doodly.io is a free, independent hobby project with no commercial affiliation.</p>
           <p>✅ No real money, purchases, gambling, loot boxes, or microtransactions of any kind exist in this game.</p>
           <p>✅ No personal data is collected, stored, or sold. Your username and avatar only exist for the duration of your session and are deleted when you leave.</p>
           <p>✅ No cookies, tracking pixels, analytics, or advertising of any kind are used.</p>
@@ -379,7 +458,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
           <p>✅ By playing you agree to these rules. Violations may result in removal from the game session.</p>
           <p>✅ This service is provided as-is with no guarantee of availability, uptime, or data retention.</p>
           <p>✅ The operator reserves the right to shut down, modify, or restrict access to this service at any time without notice.</p>
-          <p style="margin-top:5px;color:var(--text-muted);font-size:.55rem;">© 2026 Rainy Day Living Room. All rights reserved. Independent project — not affiliated with any company or brand. For concerns contact the operator directly.</p>
+          <p style="margin-top:5px;color:var(--text-muted);font-size:.55rem;">© 2026 Doodly.io. All rights reserved. Independent project — not affiliated with any company or brand. For concerns contact the operator directly.</p>
         </div>
       </div>
     </div>
@@ -426,7 +505,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
           <input id="codeInp" class="code-inp" type="text" placeholder="ROOM CODE" maxlength="5">
           <button class="code-btn" onclick="playCode()">Join</button>
         </div>
-        <p class="tagline-txt">Bored? Join this game to socialize and relax! It's a rainy day in the living room, so use your imagination and find something creative to do. Keep things fun, engaging, and entertaining for everyone.</p>
+        <p class="tagline-txt">Take turns drawing a secret word while everyone else races to guess it in the chat! 3 rounds, everyone draws once per round — fastest correct guesses score the most points.</p>
         <p class="tagline-txt" style="margin-top:5px;">👆 Tap any player's name on the player list to mute or vote kick them.</p>
         
       </div>
@@ -472,6 +551,8 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
       <div style="display:flex;align-items:center;gap:8px;">
         <div><div style="font-size:.52rem;color:var(--text-muted);font-weight:700;">ROOM</div><div class="rc-display" id="rcDisp">-----</div></div>
         <div class="lobby-count-badge" id="lobbyCnt">1/8</div>
+        <div class="round-badge" id="roundBadge" style="display:none;">Round <span id="roundNum">1</span>/<span id="roundTotal">3</span></div>
+        <div class="turn-timer-badge" id="turnTimerBadge" style="display:none;">⏱ <span id="turnTimerNum">80</span>s</div>
       </div>
       <div style="display:flex;gap:5px;align-items:center;margin-left:auto;">
         <span class="dm-ing-lbl" style="color:var(--text-muted);">☀</span>
@@ -485,18 +566,49 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
     <div id="livingRoom">
      <div id="roomBox">
       <div id="roomClip">
-        <canvas id="rainCanvas"></canvas>
-        <svg id="roomSvg" viewBox="0 0 640 400" xmlns="http://www.w3.org/2000/svg"></svg>
+        <canvas id="drawCanvas"></canvas>
       </div>
-      <!-- Avatars + nametags: plain HTML overlay, percentage-positioned.
-           This is the fix for players appearing to "float off the couch"
-           on Safari/iOS — the old approach drew avatars via SVG
-           <foreignObject> wrapping an HTML <canvas>, which Safari/WebKit
-           has long-standing bugs scaling correctly. Percentage-based CSS
-           positioning of plain HTML elements has zero such bugs on any
-           browser, so avatars are now guaranteed to land on the couch
-           the same way everywhere. -->
-      <div id="avatarLayer"></div>
+
+      <!-- Word blanks / hint display, overlaid at the top of the board -->
+      <div id="wordHintDisplay"></div>
+
+      <!-- Shown to everyone before a game starts, and between turns -->
+      <div id="waitingOverlay">
+        <p id="waitingText">Waiting for more players to join...</p>
+      </div>
+
+      <!-- Word choice modal — visible ONLY to the current drawer -->
+      <div id="wordChoiceModal">
+        <div class="word-choice-box">
+          <h3>Choose a word to draw!</h3>
+          <div id="wordChoiceButtons"></div>
+          <div class="wc-timer-wrap"><div class="wc-timer-fill" id="wcTimerFill"></div></div>
+        </div>
+      </div>
+
+      <!-- Shown to guessers while the drawer is picking a word -->
+      <div id="pickingOverlay">
+        <p><span id="pickingDrawerName">Someone</span> is choosing a word...</p>
+      </div>
+
+      <!-- Drawing toolbar — visible ONLY to the current drawer -->
+      <div id="drawToolbar">
+        <div id="colorSwatches"></div>
+        <div id="sizeOptions">
+          <button class="size-btn" data-size="4" title="Thin"><span style="width:4px;height:4px;"></span></button>
+          <button class="size-btn" data-size="8" title="Small"><span style="width:8px;height:8px;"></span></button>
+          <button class="size-btn active" data-size="14" title="Medium"><span style="width:14px;height:14px;"></span></button>
+          <button class="size-btn" data-size="22" title="Large"><span style="width:22px;height:22px;"></span></button>
+          <button class="size-btn" data-size="34" title="X-Large"><span style="width:34px;height:34px;"></span></button>
+        </div>
+        <div id="toolButtons">
+          <button id="eraserToolBtn" title="Eraser">🧼</button>
+          <button id="fillToolBtn" title="Fill">🪣</button>
+          <button id="undoToolBtn" title="Undo">↩️</button>
+          <button id="clearToolBtn" title="Clear All">🗑️</button>
+        </div>
+      </div>
+
       <!-- Leave confirm overlay -->
       <div id="leaveConfirm">
         <div class="lc-box">
@@ -509,21 +621,23 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
         </div>
       </div>
 
+      <!-- Game over / winner screen -->
+      <div id="gameOverOverlay">
+        <div class="winner-box">
+          <div class="winner-avatar-wrap"><canvas id="winnerAvatarCanvas" width="180" height="216"></canvas></div>
+          <h2 id="winnerText">Player Won!</h2>
+          <div id="finalScoreboard"></div>
+          <p class="next-game-txt">Next game starting soon...</p>
+        </div>
+      </div>
      </div>
     </div>
   </div>
   <div id="chatPanel">
-    <div class="chat-title">Chat</div>
+    <div class="chat-title">Guess the word!</div>
     <div id="chatMsgs"></div>
-    <div id="adsense-chat" style="width:100%;flex-shrink:0;overflow:hidden;min-height:0;max-height:0;text-align:center;">
-      <ins class="adsbygoogle" style="display:block;width:100%;"
-           data-ad-client="ca-pub-2352009046427964"
-           data-ad-slot="YOUR_CHAT_SLOT_ID"
-           data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
-    </div>
     <div id="chatInpRow">
-      <input id="chatInp" type="text" placeholder="Type..." maxlength="100">
+      <input id="chatInp" type="text" placeholder="Type your guess..." maxlength="100">
       <button id="chatSend">➤</button>
     </div>
   </div>
@@ -538,11 +652,11 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 <!-- Age gate + cookie consent — shown once on first visit -->
 <div id="ageGate" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:28px 30px;max-width:360px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.35);">
-    <div style="font-size:2rem;margin-bottom:10px;">🛋️</div>
-    <h2 style="font-family:'Fredoka One',cursive;color:var(--accent-dark);font-size:1.2rem;margin-bottom:8px;">Welcome to Rainy Day Living Room</h2>
+    <div style="font-size:2rem;margin-bottom:10px;">🎨</div>
+    <h2 style="font-family:'Fredoka One',cursive;color:var(--accent-dark);font-size:1.2rem;margin-bottom:8px;">Welcome to Doodly.io</h2>
     <p style="font-size:.78rem;color:#444;line-height:1.55;margin-bottom:12px;">This site displays ads via <strong>Google AdSense</strong> (cookies used for ad personalization). Chat is automatically filtered. No personal data is collected or stored. Children should have parental awareness when using chat features.</p>
     <p style="font-size:.68rem;color:#888;margin-bottom:16px;">See our <strong>Rules &amp; Legal</strong> section on the home page for our full privacy policy and terms.</p>
-    <button onclick="acceptAgeGate()" style="background:var(--accent);color:#fff;border:none;border-radius:9px;font-family:'Fredoka One',cursive;font-size:1rem;padding:10px 28px;cursor:pointer;width:100%;">Enter the Living Room →</button>
+    <button onclick="acceptAgeGate()" style="background:var(--accent);color:#fff;border:none;border-radius:9px;font-family:'Fredoka One',cursive;font-size:1rem;padding:10px 28px;cursor:pointer;width:100%;">Enter Doodly.io →</button>
   </div>
 </div>
 
@@ -709,48 +823,6 @@ function acceptAgeGate(){
     if(km) km.textContent = 'You were kicked from this lobby. You cannot rejoin it for 10 minutes — but you can join any other lobby.';
     if(kn) kn.style.display = 'flex';
   }catch(e){}
-})();
-
-// ═══════════════════════════════════════
-//  ROOM SIZING
-// ═══════════════════════════════════════
-const ROOM_RATIO=640/400;
-const ROOM_MAX_W=780, ROOM_MAX_H=488;
-function sizeRoom(){
-  const gp=document.getElementById('gamePage');
-  if(!gp||gp.style.display==='none')return;
-  const pp=document.getElementById('playerPanel'),cp=document.getElementById('chatPanel');
-  const rw=document.getElementById('roomWrap'),rh=document.getElementById('roomHdr');
-  const box=document.getElementById('roomBox');
-  if(!box)return;
-  const ppW=pp?pp.offsetWidth||138:138,cpW=cp?cp.offsetWidth||175:175;
-  const HDR=rh?rh.offsetHeight||32:32,VGAP=3,HGAPS=6,PAD=16;
-  const availW=window.innerWidth,availH=window.innerHeight;
-  let rW=Math.min(ROOM_MAX_W,availW-ppW-cpW-HGAPS-PAD);
-  let rH=rW/ROOM_RATIO;
-  const maxH=Math.min(ROOM_MAX_H,availH-HDR-VGAP-PAD);
-  if(rH>maxH){rH=maxH;rW=rH*ROOM_RATIO;}
-  rW=Math.round(rW);rH=Math.round(rH);
-  box.style.width=rW+'px';box.style.height=rH+'px';
-  if(rw)rw.style.width=rW+'px';
-  const totalH=HDR+VGAP+rH;
-  if(pp){pp.style.height=totalH+'px';pp.style.maxHeight=totalH+'px';}
-  if(cp){cp.style.height=totalH+'px';cp.style.maxHeight=totalH+'px';}
-  const canvas=document.getElementById('rainCanvas');
-  if(canvas&&(canvas.width!==rW||canvas.height!==rH)){canvas.width=rW;canvas.height=rH;}
-}
-window.addEventListener('resize',sizeRoom);
-window.addEventListener('orientationchange',()=>setTimeout(sizeRoom,60));
-(function(){
-  if(typeof ResizeObserver==='undefined')return;
-  const box=document.getElementById('roomBox');
-  if(!box)return;
-  new ResizeObserver(entries=>{
-    const e=entries[0]; if(!e) return;
-    const w=Math.round(e.contentRect.width), h=Math.round(e.contentRect.height);
-    const canvas=document.getElementById('rainCanvas');
-    if(canvas&&w>0&&h>0&&(canvas.width!==w||canvas.height!==h)){canvas.width=w;canvas.height=h;}
-  }).observe(box);
 })();
 
 // ═══════════════════════════════════════
@@ -1221,221 +1293,19 @@ function loadP(){
 loadP();
 document.getElementById('nameInp').addEventListener('input',saveP);
 
-// ═══════════════════════════════════════
-//  LIVING ROOM — viewBox 640×400
-// ═══════════════════════════════════════
-const SEATS=[
-  {cx:64,sy:292},{cx:108,sy:292},
-  {cx:196,sy:285},{cx:260,sy:285},{cx:324,sy:285},{cx:388,sy:285},
-  {cx:528,sy:292},{cx:572,sy:292},
-];
-
-function buildRoom(){
-  const svg=document.getElementById('roomSvg');
-  svg.innerHTML=\`
-<defs></defs>
-<rect x="0" y="316" width="640" height="84" fill="#5C3A14"/>
-<line x1="0" y1="330" x2="640" y2="330" stroke="#3E2408" stroke-width="1" opacity=".35"/>
-<line x1="0" y1="348" x2="640" y2="348" stroke="#3E2408" stroke-width="1" opacity=".25"/>
-<rect x="0" y="0" width="640" height="320" fill="#32612D"/>
-<rect x="0" y="310" width="640" height="10" fill="#234620"/>
-<!-- Window -->
-<rect x="32" y="34" width="126" height="168" rx="5" fill="#0D1A2E" stroke="#6B4C1E" stroke-width="5"/>
-<line x1="95" y1="36" x2="95" y2="200" stroke="#6B4C1E" stroke-width="4"/>
-<line x1="34" y1="117" x2="156" y2="117" stroke="#6B4C1E" stroke-width="4"/>
-<rect x="35" y="37" width="58" height="78" fill="#0E1E38" rx="2"/>
-<rect x="97" y="37" width="57" height="78" fill="#0E1E38" rx="2"/>
-<rect x="35" y="119" width="58" height="81" fill="#0E1E38" rx="2"/>
-<rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2"/>
-<rect id="lFlash" x="35" y="37" width="117" height="161" fill="white" opacity="0" rx="2"/>
-<!-- Wall decor: Kelly Green frame, 2 cats -->
-<rect x="193" y="41" width="56" height="64" rx="3" fill="#4CB817" stroke="#3A9010" stroke-width="2.5"/>
-<rect x="199" y="47" width="44" height="52" rx="2" fill="#EDE0C8"/>
-<!-- Cat 1 orange -->
-<polygon points="207,62 210,56 213,62" fill="#E8813A" stroke="#C86020" stroke-width=".8"/>
-<polygon points="211,62 214,56 217,62" fill="#E8813A" stroke="#C86020" stroke-width=".8"/>
-<circle cx="212" cy="67" r="7" fill="#E8813A" stroke="#C86020" stroke-width=".8"/>
-<circle cx="210" cy="66.5" r="1.3" fill="#1a1a1a"/>
-<circle cx="214" cy="66.5" r="1.3" fill="#1a1a1a"/>
-<path d="M210,70 Q212,72 214,70" stroke="#555" stroke-width=".7" fill="none"/>
-<line x1="205" y1="69" x2="202" y2="68.5" stroke="#666" stroke-width=".6"/>
-<line x1="205" y1="70.5" x2="202" y2="70.5" stroke="#666" stroke-width=".6"/>
-<line x1="219" y1="69" x2="222" y2="68.5" stroke="#666" stroke-width=".6"/>
-<line x1="219" y1="70.5" x2="222" y2="70.5" stroke="#666" stroke-width=".6"/>
-<!-- Cat 2 purple -->
-<polygon points="225,62 228,56 231,62" fill="#9B5DE5" stroke="#7B3DC5" stroke-width=".8"/>
-<polygon points="229,62 232,56 235,62" fill="#9B5DE5" stroke="#7B3DC5" stroke-width=".8"/>
-<circle cx="230" cy="67" r="7" fill="#9B5DE5" stroke="#7B3DC5" stroke-width=".8"/>
-<circle cx="228" cy="66.5" r="1.3" fill="#1a1a1a"/>
-<circle cx="232" cy="66.5" r="1.3" fill="#1a1a1a"/>
-<path d="M228,70 Q230,72 232,70" stroke="#555" stroke-width=".7" fill="none"/>
-<line x1="223" y1="69" x2="220" y2="68.5" stroke="#666" stroke-width=".6"/>
-<line x1="223" y1="70.5" x2="220" y2="70.5" stroke="#666" stroke-width=".6"/>
-<line x1="237" y1="69" x2="240" y2="68.5" stroke="#666" stroke-width=".6"/>
-<line x1="237" y1="70.5" x2="240" y2="70.5" stroke="#666" stroke-width=".6"/>
-<line x1="201" y1="79" x2="241" y2="79" stroke="#B09060" stroke-width=".8" opacity=".5"/>
-<!-- Fireplace -->
-<rect x="216" y="200" width="128" height="14" rx="3" fill="#7A3E10"/>
-<rect x="206" y="214" width="148" height="88" rx="5" fill="#5A2E0A"/>
-<rect x="224" y="220" width="112" height="78" rx="4" fill="#160800"/>
-<circle cx="280" cy="195" r="16" fill="#F0D8A0" stroke="#7A3E10" stroke-width="2"/>
-<circle cx="280" cy="195" r="11" fill="#FFF8E0"/>
-<line x1="280" y1="195" x2="280" y2="187" stroke="#333" stroke-width="1.5"/>
-<line x1="280" y1="195" x2="286" y2="198" stroke="#333" stroke-width="1.5"/>
-<circle cx="280" cy="195" r="1.5" fill="#333"/>
-<rect x="248" y="186" width="7" height="24" rx="2" fill="#FFFFE0" stroke="#DDD" stroke-width="1"/>
-<ellipse cx="251.5" cy="185" rx="2" ry="3" fill="#FFD700"/>
-<!-- Flower pot with 2 yellow flowers -->
-<rect x="325" y="197" width="16" height="13" rx="3" fill="#B56A2A" stroke="#7A4010" stroke-width=".8"/>
-<rect x="323" y="195" width="20" height="4" rx="2" fill="#C87830"/>
-<ellipse cx="333" cy="211" rx="10" ry="2.5" fill="#7A4010" opacity=".5"/>
-<line x1="330" y1="195" x2="327" y2="185" stroke="#2E7D22" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="336" y1="195" x2="339" y2="185" stroke="#2E7D22" stroke-width="1.8" stroke-linecap="round"/>
-<circle cx="325" cy="183" r="4" fill="#FFD700"/>
-<circle cx="329" cy="183" r="4" fill="#FFD700"/>
-<circle cx="327" cy="180" r="4" fill="#FFD700"/>
-<circle cx="327" cy="186" r="4" fill="#FFD700"/>
-<circle cx="327" cy="183" r="2.8" fill="#FF9900"/>
-<circle cx="337" cy="183" r="4" fill="#FFD700"/>
-<circle cx="341" cy="183" r="4" fill="#FFD700"/>
-<circle cx="339" cy="180" r="4" fill="#FFD700"/>
-<circle cx="339" cy="186" r="4" fill="#FFD700"/>
-<circle cx="339" cy="183" r="2.8" fill="#FF9900"/>
-<!-- Fire -->
-<g id="fireG" transform="translate(280,290) scale(1,1)">
-  <ellipse cx="0" cy="6" rx="26" ry="10" fill="#FF3300" opacity=".9"/>
-  <ellipse cx="0" cy="-3" rx="18" ry="18" fill="#FF5500"/>
-  <ellipse cx="0" cy="-12" rx="12" ry="15" fill="#FF8800"/>
-  <ellipse cx="0" cy="-18" rx="7" ry="10" fill="#FFCC00"/>
-  <ellipse cx="0" cy="-22" rx="4" ry="7" fill="#FFF8CC"/>
-  <ellipse cx="-12" cy="0" rx="7" ry="11" fill="#FF4400" opacity=".6"/>
-  <ellipse cx="12" cy="0" rx="7" ry="11" fill="#FF4400" opacity=".6"/>
-</g>
-<ellipse cx="280" cy="297" rx="28" ry="4" fill="#FF1100" opacity=".2"/>
-<!-- TV desk/stand -->
-<rect x="466" y="244" width="162" height="14" rx="4" fill="#7A5E30"/>
-<rect x="476" y="258" width="9" height="58" rx="2" fill="#5A4020"/>
-<rect x="610" y="258" width="9" height="58" rx="2" fill="#5A4020"/>
-<!-- Realistic flat-screen TV: black frame, blue screen with light streaks -->
-<rect x="478" y="138" width="150" height="96" rx="8" fill="#111111"/>
-<rect x="485" y="144" width="136" height="82" rx="4" fill="#87CEEB"/>
-<!-- Screen light streaks (identical to before) -->
-<polygon points="485,144 512,144 490,226 485,226" fill="rgba(255,255,255,.22)"/>
-<polygon points="524,144 562,144 540,226 502,226" fill="rgba(255,255,255,.15)"/>
-<polygon points="578,144 621,144 621,196 603,226 582,226" fill="rgba(255,255,255,.20)"/>
-<!-- Grey tint overlay on top, screen content underneath stays identical -->
-<rect x="485" y="144" width="136" height="82" rx="4" fill="#808080" opacity=".35"/>
-<!-- TV stand center foot -->
-<rect x="541" y="234" width="24" height="10" rx="2" fill="#222"/>
-<rect x="528" y="242" width="50" height="4" rx="2" fill="#333"/>
-<!-- Lamp (keep) -->
-<rect x="473" y="228" width="5" height="18" rx="2" fill="#999"/>
-<line x1="475" y1="228" x2="468" y2="210" stroke="#888" stroke-width="2.5"/>
-<ellipse cx="466" cy="208" rx="16" ry="6" fill="#FFD870" opacity=".85"/>
-<ellipse cx="466" cy="206" rx="11" ry="4" fill="#FFEEAA"/>
-<!-- Plant (keep) -->
-<rect x="614" y="232" width="14" height="14" rx="3" fill="#8B5E3C" stroke="#6B3E1C" stroke-width="1"/>
-<ellipse cx="621" cy="226" rx="12" ry="9" fill="#228B22"/>
-<ellipse cx="615" cy="222" rx="8" ry="7" fill="#2EAA2E"/>
-<ellipse cx="626" cy="223" rx="7" ry="6" fill="#1A8A1A"/>
-<!-- Rug -->
-<ellipse cx="307" cy="326" rx="210" ry="22" fill="#4A4A4A"/>
-<ellipse cx="307" cy="326" rx="196" ry="17" fill="#5E5E5E"/>
-<ellipse cx="307" cy="326" rx="175" ry="12" fill="#727272" opacity=".8"/>
-<!-- Left chair -->
-<rect x="38" y="250" width="100" height="50" rx="9" fill="#C3B1E1" stroke="#6E5896" stroke-width="2.5"/>
-<rect x="34" y="278" width="108" height="40" rx="7" fill="#D8CCEE" stroke="#6E5896" stroke-width="2"/>
-<rect x="30" y="260" width="13" height="53" rx="6" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<rect x="133" y="260" width="13" height="53" rx="6" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<line x1="87" y1="280" x2="87" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
-<!-- Main couch -->
-<rect x="154" y="242" width="308" height="56" rx="11" fill="#C3B1E1" stroke="#6E5896" stroke-width="2.5"/>
-<rect x="150" y="272" width="316" height="46" rx="9" fill="#D8CCEE" stroke="#6E5896" stroke-width="2"/>
-<rect x="143" y="252" width="15" height="62" rx="7" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<rect x="458" y="252" width="15" height="62" rx="7" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<line x1="229" y1="274" x2="229" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
-<line x1="308" y1="274" x2="308" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
-<line x1="387" y1="274" x2="387" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
-<line x1="229" y1="244" x2="229" y2="270" stroke="#6E5896" stroke-width="1" opacity=".3"/>
-<line x1="308" y1="244" x2="308" y2="270" stroke="#6E5896" stroke-width="1" opacity=".3"/>
-<line x1="387" y1="244" x2="387" y2="270" stroke="#6E5896" stroke-width="1" opacity=".3"/>
-<!-- Right chair -->
-<rect x="504" y="250" width="100" height="50" rx="9" fill="#C3B1E1" stroke="#6E5896" stroke-width="2.5"/>
-<rect x="500" y="278" width="108" height="40" rx="7" fill="#D8CCEE" stroke="#6E5896" stroke-width="2"/>
-<rect x="496" y="260" width="13" height="53" rx="6" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<rect x="599" y="260" width="13" height="53" rx="6" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<line x1="551" y1="280" x2="551" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
-<!-- Coffee table -->
-<rect x="174" y="328" width="268" height="30" rx="8" fill="#5A3008" stroke="#3A1E04" stroke-width="2"/>
-<rect x="180" y="331" width="256" height="22" rx="6" fill="#7A5028"/>
-<rect x="186" y="357" width="9" height="12" rx="3" fill="#4A2006"/>
-<rect x="429" y="357" width="9" height="12" rx="3" fill="#4A2006"/>
-<g id="catG"></g>\`;
-}
-
-let fT=0;
-function animFire(){
-  fT+=.032;const sc=1+Math.sin(fT)*.03+Math.cos(fT*2.1)*.012;
-  document.getElementById('fireG')?.setAttribute('transform',\`translate(280,290) scale(1,\${sc})\`);
-  requestAnimationFrame(animFire);
-}
-function flash(){
-  const el=document.getElementById('lFlash');if(!el)return;
-  el.setAttribute('opacity','.8');setTimeout(()=>el.setAttribute('opacity','0'),70);
-  setTimeout(()=>{el.setAttribute('opacity','.45');setTimeout(()=>el.setAttribute('opacity','0'),55);},140);
-}
+// Socket connection — declared here (moved up from its original spot
+// later in the script) because the drawing-game engine below needs to
+// register its socket.on(...) listeners immediately, and doing that
+// before this const existed caused a temporal-dead-zone ReferenceError.
+const socket=io({transports:['websocket']});
 
 // ═══════════════════════════════════════
-//  RAIN — strictly inside window
+//  MINIMAL AUDIO ENGINE
+//  Just enough for UI feedback sounds (join/leave/correct-guess/chat
+//  tick) — the old rain/cat ambience system is gone along with the
+//  living room, so this is deliberately smaller than before.
 // ═══════════════════════════════════════
-// SVG glass panes: top panes y37-115, bottom panes y119-199, x35-153
-const WIN={x1:36,y1:38,x2:153,y2:199};
-let rDrops=[],rCtx=null,rAF=null;
-function initRain(){
-  const c=document.getElementById('rainCanvas'),room=document.getElementById('livingRoom');
-  c.width=room.clientWidth;c.height=room.clientHeight;
-  rCtx=c.getContext('2d');rDrops=[];
-  for(let i=0;i<65;i++) rDrops.push({xf:Math.random(),yf:Math.random()-.1,sp:.006+Math.random()*.009,len:.055+Math.random()*.07,op:.35+Math.random()*.5});
-  if(rAF)cancelAnimationFrame(rAF);rainLoop();
-}
-function svgToPx(sx,sy){
-  // preserveAspectRatio="none" means SVG fills the container exactly.
-  // Simple linear mapping — no letterboxing offset needed.
-  const c=document.getElementById('rainCanvas');
-  return{x:sx/640*c.width, y:sy/400*c.height};
-}
-function rainLoop(){
-  if(!rCtx)return;
-  const c=document.getElementById('rainCanvas');if(!c)return;
-  const tl=svgToPx(WIN.x1,WIN.y1),br=svgToPx(WIN.x2,WIN.y2);
-  const wW=br.x-tl.x,wH=br.y-tl.y;
-  rCtx.clearRect(0,0,c.width,c.height);
-  rCtx.save();
-  // Hard clip to the exact glass pane area only
-  rCtx.beginPath();rCtx.rect(tl.x,tl.y,wW,wH);rCtx.clip();
-  rDrops.forEach(d=>{
-    const x=tl.x+d.xf*wW,y=tl.y+d.yf*wH;
-    rCtx.save();rCtx.globalAlpha=d.op;rCtx.strokeStyle='#88BBFF';rCtx.lineWidth=1.1;
-    rCtx.beginPath();rCtx.moveTo(x,y);rCtx.lineTo(x-wW*.022,y+d.len*wH);rCtx.stroke();
-    rCtx.restore();
-    d.yf+=d.sp;if(d.yf>1+d.len){d.yf=-(d.len+Math.random()*.08);d.xf=Math.random();}
-  });
-  rCtx.restore();rAF=requestAnimationFrame(rainLoop);
-}
-window.addEventListener('resize',()=>{
-  checkOrientation();
-  if(document.getElementById('gamePage').style.display!=='none'){
-    const c=document.getElementById('rainCanvas'),r=document.getElementById('livingRoom');
-    c.width=r.clientWidth;c.height=r.clientHeight;
-  }
-});
-
-// ═══════════════════════════════════════
-//  SOUND
-// ═══════════════════════════════════════
-let AC=null,sndMuted=false,rainNode=null,thunderInt=null,masterGain=null;
-// Master volume (0–1) — drives the slider next to the dark/light switch and
-// controls ALL audio on this tab: notification dings, rain, and thunder.
+let AC=null,sndMuted=false,masterGain=null;
 let volumeLevel=.7;
 (function(){
   const v=localStorage.getItem('cg_vol');
@@ -1448,10 +1318,6 @@ function setVolume(v){
   localStorage.setItem('cg_vol',String(Math.round(volumeLevel*100)));
   const sl=document.getElementById('volSlider');if(sl&&Number(sl.value)!==Math.round(volumeLevel*100))sl.value=Math.round(volumeLevel*100);
   const mb=document.getElementById('volMuteBtn');if(mb)mb.textContent=volumeLevel>0?'🔈':'🔇';
-  // also pause/resume ambience when muting in-game
-  if(document.getElementById('gamePage')&&document.getElementById('gamePage').style.display!=='none'){
-    if(sndMuted)stopAmbience(); else if(!sndMuted&&!thunderInt)startAmbience();
-  }
 }
 let _preMuteVol=0.7;
 function toggleVolMute(){
@@ -1477,165 +1343,376 @@ function playTone(f1,f2,dur,vol){
     g.gain.setValueAtTime(vol||.14,ac.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);
     o.start();o.stop(ac.currentTime+dur);}catch(e){}
 }
-function makeNoise(dur,lpHz,vol){
-  if(sndMuted)return null;
-  try{const ac=getAC(),buf=ac.createBuffer(1,ac.sampleRate*dur,ac.sampleRate),d=buf.getChannelData(0);
-    for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
-    const src=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();
-    f.type='bandpass';f.frequency.value=lpHz;f.Q.value=.5;
-    src.buffer=buf;src.loop=true;src.connect(f);f.connect(g);g.connect(masterGain);
-    g.gain.setValueAtTime(.0001,ac.currentTime);g.gain.linearRampToValueAtTime(vol,ac.currentTime+.6);
-    src.start();return{src,gain:g,ac};}catch(e){return null;}
-}
-function stopNode(n){if(!n)return;try{n.gain.gain.linearRampToValueAtTime(.0001,n.ac.currentTime+.4);setTimeout(()=>{try{n.src.stop();}catch(e){}},500);}catch(e){}}
-function playThunder(){
-  if(sndMuted)return;
-  try{const ac=getAC(),dur=2.2,buf=ac.createBuffer(1,ac.sampleRate*dur,ac.sampleRate),d=buf.getChannelData(0);
-    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(Math.max(0,1-i/(d.length*.65)),1.5);
-    const src=ac.createBufferSource(),lp=ac.createBiquadFilter(),g=ac.createGain();
-    lp.type='lowpass';lp.frequency.value=190;src.buffer=buf;src.connect(lp);lp.connect(g);g.connect(masterGain);
-    g.gain.setValueAtTime(.0001,ac.currentTime);g.gain.linearRampToValueAtTime(.5,ac.currentTime+.06);
-    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);src.start();}catch(e){}
-}
-function startAmbience(){
-  stopAmbience();rainNode=makeNoise(4,2600,.055);
-  thunderInt=setInterval(()=>{if(Math.random()<.55){const dl=Math.random()*1800;setTimeout(()=>{flash();setTimeout(playThunder,90+Math.random()*180);},dl);}},3000);
-}
-function stopAmbience(){clearInterval(thunderInt);thunderInt=null;stopNode(rainNode);rainNode=null;}
-// muting now via toggleVolMute()+volMuteBtn in header
-(function(){const vs=document.getElementById('volSlider');if(vs)vs.value=Math.round(volumeLevel*100);})();
 
 // ═══════════════════════════════════════
-//  CAT
+//  DOODLY.IO — ROOM SIZING (canvas board)
 // ═══════════════════════════════════════
-const SURFS=[[0,640,314],[174,442,326],[150,466,270],[30,143,276],[496,612,276],[216,350,198],[466,628,242]];
-const JUMPS=[[1,2,3,4],[0,2],[0,1,3,4],[0,2],[0,2],[0],[0]];
-let cat={x:150,y:SURFS[0][2],surf:0,vx:0,state:'idle',timer:60,dir:1,frame:0,ft:0,jp:0,jfx:0,jfy:0,jtx:0,jty:0,vis:true,offTimer:0};
-
-function catNameBlock(x,y){
-  for(const s of SEATS){if(Math.abs(x-s.cx)<30&&y>s.sy&&y<s.sy+22)return true;}return false;
-}
-function catTick(){
-  // Deterministic position from UTC time: identical on ALL clients simultaneously
-  const PERIOD=24000,t=Date.now()%PERIOD;
-  const X1=168,X2=456;
-  cat.surf=0;cat.y=SURFS[0][2];cat.vis=true;
-  cat.ft++;if(cat.ft>6){cat.ft=0;cat.frame=(cat.frame+1)%4;}
-  if(t<10000){
-    cat.x=X1+(t/10000)*(X2-X1);cat.dir=1;cat.state='walk';
-  }else if(t<13000){
-    cat.x=X2;cat.dir=-1;cat.state='idle';cat.frame=0;cat.ft=0;
-  }else if(t<23000){
-    cat.x=X2-((t-13000)/10000)*(X2-X1);cat.dir=-1;cat.state='walk';
-  }else{
-    cat.x=X1;cat.dir=1;cat.state='idle';cat.frame=0;cat.ft=0;
+const ROOM_RATIO=640/400;
+const ROOM_MAX_W=780, ROOM_MAX_H=488;
+function sizeRoom(){
+  const gp=document.getElementById('gamePage');
+  if(!gp||gp.style.display==='none')return;
+  const pp=document.getElementById('playerPanel'),cp=document.getElementById('chatPanel');
+  const rw=document.getElementById('roomWrap'),rh=document.getElementById('roomHdr');
+  const box=document.getElementById('roomBox');
+  if(!box)return;
+  const ppW=pp?pp.offsetWidth||138:138,cpW=cp?cp.offsetWidth||175:175;
+  const HDR=rh?rh.offsetHeight||32:32,VGAP=3,HGAPS=6,PAD=16;
+  const availW=window.innerWidth,availH=window.innerHeight;
+  let rW=Math.min(ROOM_MAX_W,availW-ppW-cpW-HGAPS-PAD);
+  let rH=rW/ROOM_RATIO;
+  const maxH=Math.min(ROOM_MAX_H,availH-HDR-VGAP-PAD);
+  if(rH>maxH){rH=maxH;rW=rH*ROOM_RATIO;}
+  rW=Math.round(rW);rH=Math.round(rH);
+  box.style.width=rW+'px';box.style.height=rH+'px';
+  if(rw)rw.style.width=rW+'px';
+  const totalH=HDR+VGAP+rH;
+  if(pp){pp.style.height=totalH+'px';pp.style.maxHeight=totalH+'px';}
+  if(cp){cp.style.height=totalH+'px';cp.style.maxHeight=totalH+'px';}
+  const canvas=document.getElementById('drawCanvas');
+  if(canvas&&(canvas.width!==rW||canvas.height!==rH)){
+    canvas.width=rW;canvas.height=rH;
+    redrawCanvasFromHistory();
   }
 }
-function catDecide(){
-  const surf=SURFS[cat.surf],r=Math.random();
-  if(r<.1&&JUMPS[cat.surf].length){
-    const ti=JUMPS[cat.surf][Math.floor(Math.random()*JUMPS[cat.surf].length)];
-    const ts=SURFS[ti];
-    let tx=ts[0]+(ts[1]-ts[0])*(.2+Math.random()*.6);
-    if(catNameBlock(tx,ts[2]))tx+=(tx>320?30:-30);
-    tx=Math.max(ts[0]+26,Math.min(ts[1]-26,tx));
-    cat.jfx=cat.x;cat.jfy=cat.y;cat.jtx=tx;cat.jty=ts[2];cat.jp=0;
-    cat.surf=ti;cat.dir=tx>cat.x?1:-1;cat.state='jump';cat.timer=30;
-  } else if(r<.3){cat.state='idle';cat.timer=40+Math.floor(Math.random()*100);cat.vx=0;}
-  else{cat.dir=Math.random()<.5?1:-1;cat.vx=cat.dir*(0.7+Math.random()*.9);cat.state='walk';cat.timer=30+Math.floor(Math.random()*70);}
-}
-function drawCat(){
-  const g=document.getElementById('catG');if(!g)return;g.innerHTML='';if(!cat.vis)return;
-  const x=Math.round(cat.x),y=Math.round(cat.y),sc=cat.dir;
-  const walk=cat.state==='walk'||cat.state==='jump';
-  const lsw=walk?Math.sin(cat.frame*Math.PI/2)*4:0;
-  const mk=(tag,attrs)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,v);g.appendChild(el);return el;};
-  // Tail
-  const curl=Math.sin(cat.ft*.5)*5;
-  mk('path',{d:\`M\${x-sc*13},\${y-8} Q\${x-sc*20},\${y-18+curl} \${x-sc*14},\${y-26}\`,fill:'none',stroke:'#D4722A','stroke-width':'3.5','stroke-linecap':'round'});
-  // Legs
-  [[x-8+lsw,y],[x-3-lsw,y],[x+3+lsw,y],[x+8-lsw,y]].forEach(([lx,ly])=>{
-    mk('line',{x1:lx,y1:ly-2,x2:lx,y2:ly+7,stroke:'#9B5520','stroke-width':'3','stroke-linecap':'round'});
-    mk('ellipse',{cx:lx,cy:ly+7,rx:'3',ry:'2',fill:'#C06020'});
-  });
-  // Body
-  mk('ellipse',{cx:x,cy:y-9,rx:'13',ry:'9',fill:'#E8813A',stroke:'#9B5520','stroke-width':'1.5'});
-  // Body stripes
-  [{x1:x-4,y1:y-16,x2:x-4,y2:y-12},{x1:x,y1:y-17,x2:x,y2:y-13},{x1:x+4,y1:y-16,x2:x+4,y2:y-12}].forEach(a=>mk('line',{...a,stroke:'#C06830','stroke-width':'1.5','stroke-linecap':'round'}));
-  // Head
-  const hx=x+sc*9,hy=y-16;
-  mk('ellipse',{cx:hx,cy:hy,rx:'9',ry:'8.5',fill:'#E8813A',stroke:'#9B5520','stroke-width':'1.5'});
-  // Ears — two triangles on top of head, close together, centered on head
-  // Head center is hx,hy. Ear bases sit on top of head at hy-8.
-  // Left ear (from viewer): slightly left of head center
-  // Right ear: slightly right of head center
-  // Independent of sc (direction) so they always look correct
-  const earCy=hy-8;
-  const ear1x=hx-4, ear2x=hx+4; // base centers, 8px apart
-  [[ear1x],[ear2x]].forEach(([ecx])=>{
-    mk('polygon',{
-      points:\`\${ecx-4},\${earCy} \${ecx},\${earCy-10} \${ecx+4},\${earCy}\`,
-      fill:'#E8813A',stroke:'#9B5520','stroke-width':'1.2'
-    });
-    mk('polygon',{
-      points:\`\${ecx-2.5},\${earCy-.5} \${ecx},\${earCy-7.5} \${ecx+2.5},\${earCy-.5}\`,
-      fill:'#FFB0A0'
-    });
-  });
-  // Eyes with irises
-  const ex1=hx+sc*3.5,ex2=hx-sc*2,ey3=hy-2;
-  [ex1,ex2].forEach(ex=>{
-    mk('ellipse',{cx:ex,cy:ey3,rx:'2.5',ry:'3',fill:'#fff'});
-    mk('ellipse',{cx:ex,cy:ey3+.5,rx:'1.6',ry:'2',fill:'#55AA22'});
-    mk('ellipse',{cx:ex,cy:ey3+.5,rx:'.9',ry:'1.4',fill:'#111'});
-    mk('circle',{cx:ex+.8,cy:ey3-.8,r:'0.8',fill:'#fff'});
-    mk('ellipse',{cx:ex,cy:ey3,rx:'2.5',ry:'3',fill:'none',stroke:'#1a1a1a','stroke-width':'1'});
-  });
-  // Nose
-  mk('polygon',{points:\`\${hx+sc*6},\${hy+1.5} \${hx+sc*7.5},\${hy+4} \${hx+sc*4.5},\${hy+4}\`,fill:'#FF9999',stroke:'#DD6666','stroke-width':'.6'});
-  // Mouth
-  mk('path',{d:\`M\${hx+sc*6},\${hy+4} Q\${hx+sc*5},\${hy+6.5} \${hx+sc*3.5},\${hy+5.5}\`,fill:'none',stroke:'#9B5520','stroke-width':'1','stroke-linecap':'round'});
-  mk('path',{d:\`M\${hx+sc*6},\${hy+4} Q\${hx+sc*7},\${hy+6.5} \${hx+sc*8.5},\${hy+5.5}\`,fill:'none',stroke:'#9B5520','stroke-width':'1','stroke-linecap':'round'});
-  // Whiskers
-  [[hx+sc*5,hy+3,sc*9,-1],[hx+sc*5,hy+5,sc*9,1]].forEach(([wx,wy,dx,dy])=>{
-    mk('line',{x1:wx,y1:wy,x2:wx+dx,y2:wy+dy,stroke:'#fff','stroke-width':'.9',opacity:'.85'});
-    mk('line',{x1:wx,y1:wy,x2:wx-dx*.55,y2:wy+dy,stroke:'#fff','stroke-width':'.9',opacity:'.85'});
-  });
-}
-let catInt=null;
-// ── Light cat meow sounds while the cat is active ──
-let _catMeowTimer=null;
-function playCatMeow(){
-  if(sndMuted) return;
-  try{
-    const ac=getAC();
-    const osc=ac.createOscillator(),fil=ac.createBiquadFilter(),g=ac.createGain();
-    fil.type='bandpass';fil.frequency.value=900;fil.Q.value=2.5;
-    osc.connect(fil);fil.connect(g);g.connect(masterGain);
-    osc.frequency.setValueAtTime(550,ac.currentTime);
-    osc.frequency.linearRampToValueAtTime(1100,ac.currentTime+.18);
-    osc.frequency.linearRampToValueAtTime(750,ac.currentTime+.45);
-    g.gain.setValueAtTime(0,ac.currentTime);
-    g.gain.linearRampToValueAtTime(.11,ac.currentTime+.06);
-    g.gain.setValueAtTime(.11,ac.currentTime+.38);
-    g.gain.linearRampToValueAtTime(0,ac.currentTime+.55);
-    osc.start(ac.currentTime);osc.stop(ac.currentTime+.6);
-  }catch(e){}
-}
-function startCatMeows(){
-  stopCatMeows();
-  const next=()=>{ _catMeowTimer=setTimeout(()=>{ playCatMeow(); next(); },15000+Math.random()*35000); };
-  next();
-}
-function stopCatMeows(){ if(_catMeowTimer){clearTimeout(_catMeowTimer);_catMeowTimer=null;} }
+window.addEventListener('resize',sizeRoom);
+window.addEventListener('orientationchange',()=>setTimeout(sizeRoom,60));
+(function(){
+  if(typeof ResizeObserver==='undefined')return;
+  const box=document.getElementById('roomBox');
+  if(!box)return;
+  new ResizeObserver(entries=>{
+    const e=entries[0]; if(!e) return;
+    const w=Math.round(e.contentRect.width), h=Math.round(e.contentRect.height);
+    const canvas=document.getElementById('drawCanvas');
+    if(canvas&&w>0&&h>0&&(canvas.width!==w||canvas.height!==h)){
+      canvas.width=w;canvas.height=h;
+      redrawCanvasFromHistory();
+    }
+  }).observe(box);
+})();
 
-function startCat(){
-  try{startCatMeows();}catch(e){}
-  if(catInt)clearInterval(catInt);
-  cat={x:150,y:SURFS[0][2],surf:0,vx:0,state:'idle',timer:60,dir:1,frame:0,ft:0,jp:0,jfx:0,jfy:0,jtx:0,jty:0,vis:true,offTimer:0};
-  catInt=setInterval(()=>{ try{catTick();drawCat();}catch(e){} },50);
+// ═══════════════════════════════════════
+//  DRAWING CANVAS ENGINE
+//  Coordinates are sent/stored NORMALIZED (0–1) so the exact same
+//  drawing renders identically regardless of each viewer's canvas
+//  pixel size — this is what guarantees the board looks the same on
+//  every device and browser.
+// ═══════════════════════════════════════
+let strokeHistory=[];
+let isDrawer=false;
+let currentColor='#000000';
+let currentSize=14;
+let currentTool='pen'; // 'pen' | 'eraser' | 'fill'
+let isDrawingNow=false;
+let lastX=0,lastY=0;
+
+const DRAW_COLORS=[
+  '#000000','#7F7F7F','#880015','#B97A57','#ED1C24','#FF7F27','#FFF200','#22B14C',
+  '#00A2E8','#3F48CC','#A349A4','#FFFFFF','#C3C3C3','#FFAEC9','#FFC90E','#EFE4B0',
+  '#B5E61D','#99D9EA','#7092BE','#C8BFE7','#ED9AA3','#7A6A53','#FFCB8F','#5C4033',
+  '#008080','#800080',
+];
+
+function initDrawCanvas(){
+  const canvas=document.getElementById('drawCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
 }
-function stopCat(){ try{stopCatMeows();}catch(e){} clearInterval(catInt);catInt=null; }
+
+function toNorm(canvas,clientX,clientY){
+  const r=canvas.getBoundingClientRect();
+  return { x:(clientX-r.left)/r.width, y:(clientY-r.top)/r.height };
+}
+
+function drawSegmentOnCanvas(ctx,canvas,op){
+  const scale=canvas.width/1000; // reference width so stroke sizes look consistent everywhere
+  if(op.type==='line'){
+    ctx.strokeStyle=op.color;ctx.lineWidth=Math.max(1,op.size*scale);
+    ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();
+    ctx.moveTo(op.x0*canvas.width,op.y0*canvas.height);
+    ctx.lineTo(op.x1*canvas.width,op.y1*canvas.height);
+    ctx.stroke();
+  } else if(op.type==='dot'){
+    ctx.fillStyle=op.color;
+    ctx.beginPath();
+    ctx.arc(op.x*canvas.width,op.y*canvas.height,Math.max(.5,(op.size*scale)/2),0,Math.PI*2);
+    ctx.fill();
+  } else if(op.type==='fill'){
+    floodFillCanvas(canvas,ctx,Math.round(op.x*canvas.width),Math.round(op.y*canvas.height),op.color);
+  }
+}
+
+function redrawCanvasFromHistory(){
+  const canvas=document.getElementById('drawCanvas');
+  if(!canvas)return;
+  initDrawCanvas();
+  const ctx=canvas.getContext('2d');
+  strokeHistory.forEach(op=>drawSegmentOnCanvas(ctx,canvas,op));
+}
+
+function floodFillCanvas(canvas,ctx,startX,startY,fillColorHex){
+  if(startX<0||startY<0||startX>=canvas.width||startY>=canvas.height)return;
+  let img;
+  try{ img=ctx.getImageData(0,0,canvas.width,canvas.height); }catch(e){ return; }
+  const data=img.data;
+  const w=canvas.width,h=canvas.height;
+  const idx=(x,y)=>(y*w+x)*4;
+  const startIdx=idx(startX,startY);
+  const startR=data[startIdx],startG=data[startIdx+1],startB=data[startIdx+2],startA=data[startIdx+3];
+
+  const fr=parseInt(fillColorHex.slice(1,3),16),fg=parseInt(fillColorHex.slice(3,5),16),fb=parseInt(fillColorHex.slice(5,7),16);
+  if(startR===fr&&startG===fg&&startB===fb)return;
+
+  const matches=(i)=>Math.abs(data[i]-startR)<=24&&Math.abs(data[i+1]-startG)<=24&&Math.abs(data[i+2]-startB)<=24&&Math.abs(data[i+3]-startA)<=24;
+
+  const stack=[[startX,startY]];
+  const visited=new Uint8Array(w*h);
+  let iterations=0;
+  const MAX_ITER=w*h;
+  while(stack.length&&iterations<MAX_ITER){
+    iterations++;
+    const [x,y]=stack.pop();
+    if(x<0||y<0||x>=w||y>=h)continue;
+    const vIdx=y*w+x;
+    if(visited[vIdx])continue;
+    const i=idx(x,y);
+    if(!matches(i))continue;
+    visited[vIdx]=1;
+    data[i]=fr;data[i+1]=fg;data[i+2]=fb;data[i+3]=255;
+    stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+  }
+  ctx.putImageData(img,0,0);
+}
+
+function applyLocalOp(op){
+  strokeHistory.push(op);
+  const canvas=document.getElementById('drawCanvas');
+  if(!canvas)return;
+  drawSegmentOnCanvas(canvas.getContext('2d'),canvas,op);
+}
+
+function setupCanvasEvents(){
+  const canvas=document.getElementById('drawCanvas');
+  if(!canvas||canvas._wired)return;
+  canvas._wired=true;
+
+  function pointerDown(clientX,clientY){
+    if(!isDrawer)return;
+    const p=toNorm(canvas,clientX,clientY);
+    if(currentTool==='fill'){
+      const op={type:'fill',x:p.x,y:p.y,color:currentColor};
+      applyLocalOp(op);socket.emit('drawStroke',op);
+      return;
+    }
+    isDrawingNow=true;lastX=p.x;lastY=p.y;
+    const op={type:'dot',x:p.x,y:p.y,size:currentSize,color:currentTool==='eraser'?'#ffffff':currentColor};
+    applyLocalOp(op);socket.emit('drawStroke',op);
+  }
+  function pointerMove(clientX,clientY){
+    if(!isDrawer||!isDrawingNow)return;
+    const p=toNorm(canvas,clientX,clientY);
+    const op={type:'line',x0:lastX,y0:lastY,x1:p.x,y1:p.y,size:currentSize,color:currentTool==='eraser'?'#ffffff':currentColor};
+    applyLocalOp(op);socket.emit('drawStroke',op);
+    lastX=p.x;lastY=p.y;
+  }
+  function pointerUp(){ isDrawingNow=false; }
+
+  canvas.addEventListener('mousedown',e=>pointerDown(e.clientX,e.clientY));
+  canvas.addEventListener('mousemove',e=>pointerMove(e.clientX,e.clientY));
+  window.addEventListener('mouseup',pointerUp);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];pointerDown(t.clientX,t.clientY);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];pointerMove(t.clientX,t.clientY);},{passive:false});
+  canvas.addEventListener('touchend',e=>{e.preventDefault();pointerUp();},{passive:false});
+}
+
+function buildToolbar(){
+  const sw=document.getElementById('colorSwatches');
+  sw.innerHTML='';
+  DRAW_COLORS.forEach((c,i)=>{
+    const b=document.createElement('div');
+    b.className='color-swatch'+(i===0?' active':'');
+    b.style.background=c;
+    b.onclick=()=>{
+      currentColor=c;currentTool='pen';
+      document.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById('eraserToolBtn').classList.remove('active');
+      document.getElementById('fillToolBtn').classList.remove('active');
+    };
+    sw.appendChild(b);
+  });
+  document.querySelectorAll('.size-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      currentSize=Number(btn.dataset.size);
+      document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+    };
+  });
+  const eraserBtn=document.getElementById('eraserToolBtn');
+  const fillBtn=document.getElementById('fillToolBtn');
+  eraserBtn.onclick=()=>{ currentTool='eraser'; eraserBtn.classList.add('active'); fillBtn.classList.remove('active'); };
+  fillBtn.onclick=()=>{ currentTool='fill'; fillBtn.classList.add('active'); eraserBtn.classList.remove('active'); };
+  document.getElementById('undoToolBtn').onclick=()=>{
+    strokeHistory.pop();redrawCanvasFromHistory();
+    socket.emit('drawStroke',{type:'undo'});
+  };
+  document.getElementById('clearToolBtn').onclick=()=>{
+    strokeHistory=[];initDrawCanvas();
+    socket.emit('drawStroke',{type:'clear'});
+  };
+}
+
+socket.on('drawStroke',(op)=>{
+  if(op.type==='clear'){ strokeHistory=[]; initDrawCanvas(); return; }
+  if(op.type==='undo'){ strokeHistory.pop(); redrawCanvasFromHistory(); return; }
+  applyLocalOp(op);
+});
+socket.on('canvasSync',({strokes})=>{
+  strokeHistory=strokes||[];
+  redrawCanvasFromHistory();
+});
+
+// ═══════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════
+let gameState={state:'waiting',round:1,totalRounds:3,drawerId:null,drawerName:'',scores:{},guessedIds:[],wordRevealed:null,picking:false};
+
+socket.on('gameState',(data)=>{
+  gameState=Object.assign(gameState,data);
+  isDrawer=(gameState.drawerId===myId);
+  updateGameUI();
+});
+
+function updateGameUI(){
+  const roundBadge=document.getElementById('roundBadge');
+  const waitingOverlay=document.getElementById('waitingOverlay');
+  const pickingOverlay=document.getElementById('pickingOverlay');
+  const wordChoiceModal=document.getElementById('wordChoiceModal');
+  const drawToolbar=document.getElementById('drawToolbar');
+  const wordHintDisplay=document.getElementById('wordHintDisplay');
+  const canvas=document.getElementById('drawCanvas');
+  if(!roundBadge)return;
+
+  if(gameState.state==='waiting'){
+    roundBadge.style.display='none';
+    waitingOverlay.style.display='flex';
+    pickingOverlay.style.display='none';
+    wordChoiceModal.style.display='none';
+    drawToolbar.style.display='none';
+    wordHintDisplay.style.display='none';
+    if(canvas)canvas.classList.add('not-my-turn');
+    renderList();
+    return;
+  }
+
+  roundBadge.style.display='inline-block';
+  document.getElementById('roundNum').textContent=gameState.round;
+  document.getElementById('roundTotal').textContent=gameState.totalRounds;
+  waitingOverlay.style.display='none';
+
+  if(gameState.picking){
+    if(!isDrawer){
+      pickingOverlay.style.display='flex';
+      document.getElementById('pickingDrawerName').textContent=gameState.drawerName||'Someone';
+    } else {
+      pickingOverlay.style.display='none';
+    }
+    drawToolbar.style.display='none';
+    wordHintDisplay.style.display='none';
+  } else {
+    pickingOverlay.style.display='none';
+    wordChoiceModal.style.display='none';
+    if(isDrawer){
+      drawToolbar.style.display='flex';
+      if(canvas)canvas.classList.remove('not-my-turn');
+    } else {
+      drawToolbar.style.display='none';
+      if(canvas)canvas.classList.add('not-my-turn');
+    }
+    if(gameState.wordRevealed){
+      wordHintDisplay.style.display='block';
+      wordHintDisplay.textContent=gameState.wordRevealed.split('').join(' ');
+    }
+  }
+  renderList();
+}
+
+socket.on('chooseWord',({options,pickTimeMs})=>{
+  isDrawer=true;
+  const modal=document.getElementById('wordChoiceModal');
+  const btnWrap=document.getElementById('wordChoiceButtons');
+  btnWrap.innerHTML='';
+  options.forEach(w=>{
+    const b=document.createElement('button');
+    b.className='word-choice-btn';
+    b.textContent=w;
+    b.onclick=()=>{ socket.emit('chooseWord',{word:w}); modal.style.display='none'; };
+    btnWrap.appendChild(b);
+  });
+  modal.style.display='flex';
+  const fill=document.getElementById('wcTimerFill');
+  fill.style.transition='none';fill.style.width='100%';
+  requestAnimationFrame(()=>{
+    fill.style.transition=\`width \${pickTimeMs}ms linear\`;
+    fill.style.width='0%';
+  });
+});
+
+socket.on('yourWord',()=>{
+  document.getElementById('wordChoiceModal').style.display='none';
+  strokeHistory=[];
+  initDrawCanvas();
+  buildToolbar();
+  setupCanvasEvents();
+});
+
+socket.on('wordHint',({wordRevealed})=>{
+  gameState.wordRevealed=wordRevealed;
+  const el=document.getElementById('wordHintDisplay');
+  if(el&&el.style.display!=='none')el.textContent=wordRevealed.split('').join(' ');
+});
+
+socket.on('scoreUpdate',({scores,guessedIds})=>{
+  gameState.scores=scores;gameState.guessedIds=guessedIds;
+  renderList();
+});
+
+socket.on('guessResult',({correct,points})=>{
+  if(correct){
+    addMsg(\`<span style="color:#1a7a1a;font-weight:800">🎉 You guessed it! +\${points} points</span>\`);
+    playTone(660,880,.25,.12);
+  }
+});
+
+socket.on('turnEnd',({scores})=>{
+  gameState.scores=scores;
+  renderList();
+});
+
+socket.on('gameOver',({ranked,winner})=>{
+  const overlay=document.getElementById('gameOverOverlay');
+  const board=document.getElementById('finalScoreboard');
+  board.innerHTML='';
+  ranked.forEach((p,i)=>{
+    const row=document.createElement('div');
+    row.className='final-score-row'+(i===0?' is-winner':'');
+    row.innerHTML=\`<span>#\${i+1} \${X(p.name)}</span><span>\${p.score} pts</span>\`;
+    board.appendChild(row);
+  });
+  if(winner){
+    document.getElementById('winnerText').textContent=\`🏆 \${winner.name} Won!\`;
+    const cvs=document.getElementById('winnerAvatarCanvas');
+    const ctx=cvs.getContext('2d');
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    drawAV(ctx,winner.avatar||{},cvs.width/2,cvs.height*.46,cvs.width*.32);
+  }
+  forceShow(overlay,'flex');
+  setTimeout(()=>{ forceHide(overlay); },9000);
+});
 
 // ═══════════════════════════════════════
 //  GAME STATE
@@ -1655,7 +1732,6 @@ window.addEventListener('resize',checkOrientation);
 window.addEventListener('orientationchange',checkOrientation);
 checkOrientation();
 
-const socket=io({transports:['websocket']});
 let myId=null,mySeat=-1,lobbyCode='';
 let players={};
 let muted=new Set();
@@ -1678,55 +1754,40 @@ function updateLobbyCount(){
   document.getElementById('lobbyCnt').textContent=\`\${cnt}/8\`;
 }
 
-function renderPlayers(){
-  const layer=document.getElementById('avatarLayer');
-  if(!layer)return;
-  layer.innerHTML='';
-  Object.values(players).forEach(p=>{
-    if(p.seat===undefined||p.seat<0||p.seat>=8)return;
-    placeChar(layer,p,SEATS[p.seat].cx,SEATS[p.seat].sy);
-  });
-  updateLobbyCount();
-}
-
-// Avatars are plain HTML (canvas + div), percentage-positioned over the
-// room — NOT SVG foreignObject. Percentage positioning is resolved by the
-// browser's own box layout relative to #roomBox's actual rendered size,
-// identically on every browser, so this can never drift out of sync with
-// the couch artwork the way foreignObject-in-SVG could on Safari/WebKit.
-function placeChar(layer,player,cx,sy){
-  const R=22,dim=R*2+16; // same nominal "room units" as the original design
-  const wrap=document.createElement('div');
-  wrap.className='avatar-wrap';
-  wrap.style.left=(cx/640*100)+'%';
-  wrap.style.top=(sy/400*100)+'%';
-
-  const PX=3; // internal render resolution multiplier, for crisp avatars at any room size
-  const cvs=document.createElement('canvas');
-  cvs.width=dim*PX;cvs.height=(dim+12)*PX;
-  drawAV(cvs.getContext('2d'),player.avatar||{},cvs.width/2,cvs.height*.55,R*PX*.85);
-  wrap.appendChild(cvs);
-
-  const isMe=player.id===myId;
-  const tag=document.createElement('div');
-  tag.className='avatar-nametag'+(isMe?' is-me':'');
-  tag.textContent=isMe?\`\${player.name} (you)\`:player.name;
-  wrap.appendChild(tag);
-
-  layer.appendChild(wrap);
-}
-
+// Player list — now the single source of truth for player display
+// (there is no more seated-in-room avatar layer; players only ever
+// appear here, with live scores, a pencil icon on the current drawer,
+// and a checkmark on anyone who has already guessed this turn).
+// Sorted by score (highest first) once a game is under way, matching
+// Skribbl.io's own scoreboard-style player list.
 function renderList(){
   const list=document.getElementById('playerList');list.innerHTML='';
-  Object.values(players).forEach(p=>{
-    const isMe=p.id===myId,isMuted=muted.has(p.id);
-    const div=document.createElement('div');div.className='p-entry'+(isMuted?' muted':'');div.dataset.pid=p.id;
+  const scores=(typeof gameState!=='undefined'&&gameState.scores)||{};
+  const guessedIds=(typeof gameState!=='undefined'&&gameState.guessedIds)||[];
+  const drawerId=(typeof gameState!=='undefined')?gameState.drawerId:null;
+  const inGame=(typeof gameState!=='undefined')&&gameState.state&&gameState.state!=='waiting';
+
+  let list_players=Object.values(players);
+  if(inGame){
+    list_players=list_players.slice().sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
+  }
+
+  list_players.forEach(p=>{
+    const isMe=p.id===myId,isMuted=muted.has(p.id),isDrawerP=p.id===drawerId,hasGuessed=guessedIds.includes(p.id);
+    const div=document.createElement('div');
+    div.className='p-entry'+(isMuted?' muted':'')+(isDrawerP?' is-drawer':'');
+    div.dataset.pid=p.id;
     const cvs=document.createElement('canvas');cvs.width=40;cvs.height=48;cvs.style.cssText='width:40px;height:48px;display:block;flex-shrink:0;';
     drawAV(cvs.getContext('2d'),p.avatar||{},20,48*.46,13);
-    const nw=document.createElement('div');nw.className='p-name-wrap';
+    const nw=document.createElement('div');nw.className='p-name-wrap';nw.style.position='relative';
+    const nmRow=document.createElement('div');nmRow.style.cssText='display:flex;align-items:center;gap:2px;';
     const nm=document.createElement('div');nm.className='p-name';nm.textContent=p.name;
-    nw.appendChild(nm);
+    nmRow.appendChild(nm);
+    if(isDrawerP){const d=document.createElement('span');d.className='p-drawer-icon';d.textContent='✏️';nmRow.appendChild(d);}
+    if(hasGuessed){const c=document.createElement('span');c.className='p-guessed-check';c.textContent='✓';nmRow.appendChild(c);}
+    nw.appendChild(nmRow);
     if(isMe){const y=document.createElement('span');y.className='p-you';y.textContent='(you)';nw.appendChild(y);}
+    if(inGame){const sc=document.createElement('span');sc.className='p-score';sc.textContent=(scores[p.id]||0)+' pts';nw.appendChild(sc);}
     div.appendChild(cvs);div.appendChild(nw);
     if(isMuted){const m=document.createElement('span');m.style.cssText='font-size:.55rem;flex-shrink:0;';m.textContent='🔇';div.appendChild(m);}
     if(!isMe)div.addEventListener('click',e=>showCtx(e,p));
@@ -1784,19 +1845,19 @@ document.addEventListener('keydown',e=>{
 });
 function sendChat(){const i=document.getElementById('chatInp');const m=i.value.trim().substring(0,100);if(!m)return;socket.emit('chat',{message:m});i.value='';}
 
-function showBubble(seat,text){
-  const room=document.getElementById('roomBox');if(!room||seat<0||seat>=8)return;
-  if(bubbles[seat]){clearTimeout(bubbles[seat].t);bubbles[seat].el.remove();}
-  const s=SEATS[seat];
-  const b=document.createElement('div');b.className='bubble';
-  b.textContent=text.length>34?text.substring(0,34)+'…':text;
-  // Percentage-positioned, same system as avatars — stays locked above
-  // the right player's head on every browser/device.
-  b.style.left=(s.cx/640*100)+'%';
-  b.style.top=((s.sy-78)/400*100)+'%';
-  room.appendChild(b);
-  const t=setTimeout(()=>{b.remove();delete bubbles[seat];},6000);
-  bubbles[seat]={el:b,t};
+// Bubble chat now appears right next to the player's name in the
+// player list (there is no more seated-in-room avatar to float above)
+// — shows for 3 seconds, max 23 characters, then disappears on its own.
+function showBubble(playerId,text){
+  const entry=document.querySelector(\`.p-entry[data-pid="\${playerId}"]\`);
+  if(!entry)return;
+  if(bubbles[playerId]){clearTimeout(bubbles[playerId].t);bubbles[playerId].el.remove();}
+  const b=document.createElement('div');b.className='name-bubble';
+  b.textContent=text.length>23?text.substring(0,23)+'…':text;
+  entry.style.position='relative';
+  entry.appendChild(b);
+  const t=setTimeout(()=>{ try{b.remove();}catch(e){} delete bubbles[playerId]; },3000);
+  bubbles[playerId]={el:b,t};
 }
 
 // ── Socket events
@@ -1807,12 +1868,12 @@ socket.on('joined',({playerId,seat,lobbyState,code})=>{
   myId=playerId;mySeat=seat;lobbyCode=code;chatCount=0;
   players={};lobbyState.players.forEach(p=>players[p.id]=p);
   document.getElementById('rcDisp').textContent=code;
-  showGame();renderPlayers();renderList();
+  showGame();renderList();
   addMsg('<span style="color:#1a7a1a;font-weight:800">✓ You joined!</span>');
 });
 
 socket.on('playerJoined',({player,message})=>{
-  players[player.id]=player;renderPlayers();renderList();
+  players[player.id]=player;renderList();
   addMsg(X(message),'sys-join');playTone(440,660,.35,.13);
 });
 
@@ -1827,7 +1888,7 @@ socket.on('playerLeft',({playerId,playerName,reason,lobbyState})=>{
     // Add anyone missing locally
     lobbyState.players.forEach(p=>{if(!players[p.id])players[p.id]=p;});
   }
-  renderPlayers();renderList();
+  renderList();
   // Only 'left' goes to chat here; 'kicked' is already handled by systemMessage from server
   if(reason!=='kicked'){
     addMsg(X(\`\${playerName} left\`),'sys-leave');
@@ -1839,8 +1900,7 @@ socket.on('chat',({senderId,senderName,message})=>{
   if(muted.has(senderId))return;
   addMsg(\`<span class="sname">\${X(senderName)}:</span> <span class="mbody">\${X(message)}</span>\`);
   playTone(880,0,.1,.055);
-  const p=players[senderId];
-  if(p&&p.seat!==undefined)showBubble(p.seat,message);
+  showBubble(senderId,message);
 });
 
 socket.on('systemMessage',({text,type})=>{
@@ -1922,8 +1982,6 @@ socket.on('connect',()=>{
 function showDisconnectOverlay(){
   players={};muted=new Set();chatCount=0;
   Object.values(bubbles||{}).forEach(b=>{try{clearTimeout(b.t);b.el.remove();}catch(e){}});bubbles={};
-  try{stopAmbience();}catch(e){}
-  try{stopCat();}catch(e){}
   if(typeof rAF!=='undefined'&&rAF){cancelAnimationFrame(rAF);rAF=null;}
   _intentionalLeave=false; // reset so future reconnects work correctly
   document.getElementById('gamePage').style.display='none';
@@ -1971,8 +2029,6 @@ function leaveGame(skipSocket){
   if(!skipSocket)socket.emit('leave');
   players={};muted=new Set();chatCount=0;
   Object.values(bubbles||{}).forEach(b=>{try{clearTimeout(b.t);b.el.remove();}catch(e){}});bubbles={};
-  try{stopAmbience();}catch(e){}
-  try{stopCat();}catch(e){}
   if(typeof rAF!=='undefined'&&rAF){cancelAnimationFrame(rAF);rAF=null;}
   // Reset after 3s so future disconnect detection works again in the same session
   setTimeout(()=>{ _intentionalLeave=false; },3000);
@@ -1987,13 +2043,11 @@ function showGame(){
   document.getElementById('chatMsgs').innerHTML='';
   document.getElementById('leaveConfirm').style.display='none';
   sizeRoom();
-  setTimeout(()=>{sizeRoom();initRain();animFire();startAmbience();startCat();},80);
+  setTimeout(()=>{sizeRoom();initDrawCanvas();},80);
 }
 function showHome(){
   forceHide(document.getElementById('kickNotice'));
   forceHide(document.getElementById('disconnectOverlay'));
-  try{stopAmbience();}catch(e){}
-  try{stopCat();}catch(e){}
   if(typeof rAF!=='undefined'&&rAF){cancelAnimationFrame(rAF);rAF=null;}
   _intentionalLeave=false; // reset so future disconnect overlay works
   document.getElementById('homePage').style.display='flex';
@@ -2043,12 +2097,12 @@ function renderLobbies(){
 
 function X(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-buildRoom();
 socket.emit('getLobbyList');
 </script>
 </body>
 </html>
 `;
+
 app.get('/', (req,res) => res.type('html').send(INDEX_HTML));
 
 const LOBBY_MAX = 8;
@@ -2058,7 +2112,7 @@ const VOTE_KICK_COOLDOWN_MS = 3*60*1000; // 3 minutes
 const WORD_LIST = [
   'AppleSauce','BagelBoy','CinnamonRoll','DonutDude','EggRoll','FrenchFry','GummiBear','HotDog',
   'IceCream','JellyBean','KiwiSlice','LemonDrop','MapleSyrup','NoodleSoup','OrangePeel','PizzaSlice',
-  'QuailEgg','RamenBowl','SushiRoll','TacoBell','UdonNoodle','VanillaPuff','WaffleStack','XtraCheese',
+  'QuailEgg','RamenBowl','SushiRoll','TacoTruck','UdonNoodle','VanillaPuff','WaffleStack','XtraCheese',
   'YogurtCup','ZestyLime','AlmondMilk','BubbleTea','CaramelPop','DumplingKing','EspressoShot','FudgeCake',
   'GarlicBread','HoneyBee','IrishStew','JamToast','KetchupBot','LollipopKid','MuffinTop','NachoCheese',
   'OnionRing','PretzelTwist','QuickOats','RootBeerFloat','SnickDoodle','ToasterWaffle','UmeboshiPit',
@@ -2084,7 +2138,524 @@ const WORD_LIST = [
   'QuasarKid','PulsarPal','VoidWalker','DarkMatterM','LightspeedL','AstroSnack','MoonRocker','SunDrifter',
   'CometChaser','MeteorMunch','StellarSurge','NeutronNap','WarpZoneW','BlackHoleB','CrystalComet',
   'RocketRamen','SpaceNoodle','ZeroGRamen','OrbitalOats','TwilightTaco','EventHorizon','SingularSnack'
+,
+  'BlissfulRainbow','NimbleRibbon','HumbleChick','SwiftChickadee','RadiantKoala',
+  'VividGelato','SereneSnowflake','GigglyDrawer','SwiftMeerkat','StarryCustard',
+  'ChillMug','CheeryGelato','ModernMocha','FreckledMeerkat','GigglyToucan',
+  'NiftyPopsicle','MintyPond','MellowSunbeam','NimbleSquirrel','GroovyBeanie',
+  'FruityEclair','MerryPuppy','TangyScarf','CreamyPopsicle','GiantToffee',
+  'FrostyBasket','SaltyLantern','PluckyMarigold','CrunchyYarn','SunnySeal',
+  'CloudyTulip','SpunkyRibbon','FancyTrifle','FreckledLilac','PastelFerret',
+  'GentleYarn','SpicyGosling','StarryHedgehog','SpicyCupcake','DreamyCub',
+  'NuttyRabbit','TangyYarn','CrunchyPeacock','PeppyWren','GentleSunbeam',
+  'GoldenTelescope','DapperStrudel','SnappyLavender','BeamingBuckle','CurlyMitten',
+  'ZippyMirror','GroovyLemur','CheekyCroissant','ChewyCroissant','ButterySunflower',
+  'JazzyFern','FancyTelescope','SleekPudding','FruityRobin','MintyToucan',
+  'WobblyBiscuit','ButteryGarden','CozyEclair','GlossyPetal','CosmicPenguin',
+  'MoonlitSnowglobe','StellarTelescope','ShinyDonut','SilverClover','JumboAcorn',
+  'FeistyGosling','TinyNeedle','SnugglyCardinal','GiantFlamingo','JazzyLilac',
+  'SpeckledTurtle','WavyLamb','MiniSorbet','JollyToucan','PlacidPiglet',
+  'TwinklyLilac','SweetFinch','WobblyAcorn','RosyScone','PluckyFudge',
+  'SpeckledLamp','CitrusZipper','WobblyFlamingo','SleekRobin','ModernWindchime',
+  'TranquilQuokka','CosmicScone','FruityCaramel','ChipperPillow','JumboChickadee',
+  'RadiantCupcake','CozyButton','RosyFern','SunnyMilkshake','CozyWindchime',
+  'GooeyMarshmallow','PerkyChick','PastelClover','WavyLemonade','NimbleKitten',
+  'RadiantDaisy','SilverWombat','MintyStrudel','RadiantRibbon','SereneBluebird',
+  'GoldenMeadow','SpunkyFabric','FuzzyBiscuit','NimbleSunbeam','BreezyHammock',
+  'BreezyFritter','SweetDrawer','SleepyBrook','VintageStitch','GiantNougat',
+  'CosmicBadger','PluckyKettle','SereneNoodle','MoonlitClock','SpeckledBeanie',
+  'BouncyPopsicle','VelvetPiglet','SleepyChai','DewyOrchard','CloudyFabric',
+  'JollyKitten','ModernPuppy','ShinySock','GlowingFawn','GiantGrove',
+  'SweetMitten','BerryBlossom','GentleMocha','RusticBeanie','CuddlyQuilt',
+  'SweetHammock','FreckledNeedle','ShinyDanish','PetiteBluebird','CuddlyCobbler',
+  'NimbleMocha','GoldenViolet','BreezySpool','TangyPlatypus','NimblePlatypus',
+  'PetitePanda','FancyAlpaca','WavyDrawer','SweetClock','CrunchyLatte',
+  'FrostyFern','DewyClover','GlossyWombat','FrostyValley','ShinyNougat',
+  'PlacidTulip','FancyVase','BeamingSlipper','ChewyScarf','SilkyDumpling',
+  'JazzyLamb','SilkyFritter','PlumpGelato','PastelPetal','BerrySmoothie',
+  'CozyStitch','SaltyPudding','SnappyPlatypus','FuzzyCupcake','MistyCider',
+  'VelvetCustard','BoldCandle','TinyCrumble','StellarSquirrel','SnazzyWoodpecker',
+  'MiniCurtain','SleekHummingbird','GoldenBaklava','MerryRibbon','VelvetBeaver',
+  'RainyCupcake','BreezyLantern','PlacidPancake','TwinklySundae','SnappyCupcake',
+  'PerkyDanish','GentlePiglet','WobblySnowflake','TranquilWalrus','RosyDaisy',
+  'GroovyBadger','PastelLamb','MintyWalrus','CitrusTruffle','BreezyAcorn',
+  'RainyPatch','SunnySparrow','GooeyClock','JollyPeacock','RainyCocoa',
+  'JazzyAcorn','GlowingTart','TinyJasmine','SnugglyCocoa','DewyBlanket',
+  'SwiftClover','VelvetDrawer','GoldenDuckling','SnappyDrawer','RetroEclair',
+  'SnappyCider','NuttyLamb','CosmicCustard','SnazzyBiscuit','SweetSmoothie',
+  'BeamingKitten','PetiteBuckle','BerryBlanket','HappyPillow','CitrusParfait',
+  'TangyCroissant','CozyDumpling','SleekZipper','CloudyRibbon','JumboPiglet',
+  'MerryWindchime','ZippyDrawer','DreamyPinecone','QuirkyLatte','PluckyBasket',
+  'FreckledCandle','PerkyOwl','MellowDrawer','ShinyRobin','RusticButton',
+  'SpicySundae','RadiantBluebird','CrunchyForest','GlowingLeaf','SnugglyNougat',
+  'StellarStitch','VividDaisy','PerkySlipper','BouncyWindchime','CrispyTrunk',
+  'RosyOwl','CheeryPopsicle','SunnyLatte','TinyBasket','SpicyCider',
+  'ModernKoala','FluffyPoppy','PeppyKoala','ZippyCocoa','FeistyWalrus',
+  'NimbleScone','CuddlyCookie','HappyKettle','StarryTelescope','RusticMeerkat',
+  'SpicyFritter','GigglyChai','JollySweater','HappyMushroom','CloudyHammock',
+  'BoldFox','StarryQuilt','SilkyHummingbird','CuddlyFinch','FrostyBreeze',
+  'QuirkyTrunk','PerkyCandle','CreamyKoala','CitrusBrook','CitrusKitten',
+  'RusticPancake','ZippyHammock','RosyCustard','GentleCupcake','SpeckledStitch',
+  'ChewyPeony','StellarRaindrop','PlumpLemur','PluckyTrunk','TenderRaindrop',
+  'ZippyBasket','SpunkyMeerkat','SereneFern','WavyBlossom','GlossyPeacock',
+  'PeppyCardinal','SpeckledTulip','ZippyWindchime','PeppyStrudel','ButteryPenguin',
+  'MintyTurtle','QuirkyMirror','NiftyBadger','SpeckledSquirrel','GroovyMilkshake',
+  'StellarDumpling','SpeckledFerret','ChewyRaccoon','BouncyHamster','SaltyRibbon',
+  'QuirkyMilkshake','CosmicPanda','GlowingViolet','MiniScone','WobblyDonut',
+  'PastelCushion','FruityPuppy','WavyShelf','ZippyDonut','PastelWoodpecker',
+  'SereneDanish','RusticFrame','FancyGrove','SpunkyEnvelope','GooeyBagel',
+  'RetroCurtain','SparklySpool','GlowingMeadow','FreckledRug','ToastyBunny',
+  'FreckledCardinal','SunnyPlatypus','PlumpEnvelope','PeppyHummingbird','GiantLamp',
+  'BoldDaisy','SnugglyMoss','MistyRainbow','StellarCloud','PlumpOtter',
+  'BouncyCrumble','CrispyFawn','ModernRug','FluffyFinch','MerryOrchard',
+  'VintageHedgehog','HumbleParfait','MistyCroissant','CrunchyNougat','JumboStrudel',
+  'RosyMocha','VintageLantern','PastelDrawer','CreamyLantern','StarryCandle',
+  'RusticNoodle','SweetScarf','TinyScarf','DreamyChest','CloudyBagel',
+  'SnappySweater','SunnyStitch','FeistyDuckling','GooeyTurtle','GiantCrumpet',
+  'DreamyCrumpet','RusticRobin','HappyButton','PerkyEclair','MoonlitPeacock',
+  'ChewyGarden','ZestyKoala','ToastyDrawer','TwinklySnowglobe','StellarWindchime',
+  'FancySlipper','WhimsyChai','FruityCushion','StarryWren','GoldenIris',
+  'TangyChickadee','StellarPiglet','PlacidLeaf','ButteryFudge','PluckySparrow',
+  'MoonlitPetal','FruitySundae','ZestySparrow','CitrusToucan','NuttyFabric',
+  'MintyBasket','PetiteOwl','SereneBunny','ChewyBasket','SpeckledBluebird',
+  'TinyMeringue','SilkyDolphin','BerryCandle','CheeryPond','CrispyChinchilla',
+  'VividBunny','RosyFabric','CrunchyWaffle','DewyTrifle','SpeckledLamb',
+  'BeamingCardinal','ShinyPetal','GiantPudding','TenderCroissant','NimbleBlanket',
+  'TranquilCookie','TenderCupcake','SleekNougat','PluckyScarf','VelvetMushroom',
+  'PeppyCroissant','GroovyLamb','GoldenNougat','MiniSnowflake','CurlyBrownie',
+  'MellowForest','SpunkySunbeam','TinyMushroom','BerryTurtle','BeamingPopsicle',
+  'WhimsyIris','HappyEnvelope','CrispyMeerkat','BeamingPiglet','JollyEclair',
+  'FancyChickadee','FuzzyBluebird','MistyLemur','SleepyVase','HappyCocoa',
+  'TinyParfait','CheekySundae','VividSeal','GlossyCrumpet','FeistyViolet',
+  'ZippyTulip','FluffyRug','CuddlySock','CosmicLemur','GiantPopsicle',
+  'WhimsyDrawer','SwiftFrame','CheeryCardinal','CozyDaisy','CreamyPillow',
+  'JumboCardinal','GoldenPlatypus','CosmicLamp','RainyFrame','PeppyPillow',
+  'WhimsyDuckling','TwinklyPillow','SnugglyTruffle','ZestyCushion','GlowingSundae',
+  'RadiantFudge','VividDuckling','SnappyPuppy','SunnyCurtain','BouncyFinch',
+  'BerryPancake','PlacidBiscuit','FruitySock','GoldenWaffle','SwiftPudding',
+  'PerkyCompass','GigglyChickadee','GentleTrifle','TangyGarden','CurlyRug',
+  'TenderPraline','BlissfulPeony','JazzySeal','ToastyParfait','MintySunbeam',
+  'BouncyToucan','RetroRabbit','CloudyStrudel','RadiantSlipper','WobblyBrook',
+  'BreezyStitch','GlossyPond','TinyPeacock','SpicyValley','SereneClock',
+  'JollyBasket','ToastyDolphin','SunnyOwl','JumboGerbil','PetiteCompass',
+  'MiniDumpling','FluffyWalrus','TangyButton','HumblePraline','GooeySunflower',
+  'WobblyLeaf','FrostyCandle','CosmicPinecone','ZippyMoss','PluckyPraline',
+  'RainyChickadee','BerryCocoa','JollyOtter','WobblyMoss','TenderRibbon',
+  'CrunchyTulip','MistyCupcake','NimbleDolphin','CloudyWren','SilverBluebird',
+  'SweetTrifle','GigglyCloud','BlissfulMushroom','RainyKoala','CrunchyPostcard',
+  'RetroChinchilla','JumboSnowglobe','ButteryCub','CozyPanda','WhimsyWombat',
+  'TangyBeanie','ZippyCaramel','WhimsyBlanket','PlacidBunny','QuirkyStrudel',
+  'GentleDrawer','VintageChick','SunnyCider','MiniCocoa','MerryLatte',
+  'NuttySnowglobe','FeistyRug','GlowingGelato','PlacidVase','SnugglyTart',
+  'ZippyChickadee','CrispyMirror','PeppyGerbil','SilkyPraline','MistySquirrel',
+  'TranquilCardinal','RadiantFlamingo','ShinyPanda','MoonlitMeringue','CosmicSundae',
+  'ButteryMushroom','BeamingTrifle','JollyBiscuit','CreamyCroissant','HumbleMoss',
+  'CurlyWombat','FruityJasmine','RusticNougat','CrunchyLemonade','JazzyQuokka',
+  'PluckyMeerkat','FuzzyGrove','PlacidPond','CheekyHilltop','BouncyBeanie',
+  'PetiteBeaver','SpunkyPeony','WobblyBuckle','FluffyGosling','ZippyRainbow',
+  'GlossyBeanie','SereneMeadow','SleekBadger','TranquilFinch','SnugglyHilltop',
+  'BoldHummingbird','SpeckledScarf','RetroGerbil','BoldNeedle','RetroBlossom',
+  'TenderViolet','VividFerret','ChipperChickadee','HumbleStrudel','ChewyMacaron',
+  'QuirkyCaramel','BeamingHedgehog','PlacidChick','GooeyParfait','NuttyPretzel',
+  'CuddlyCocoa','HumbleFinch','BerryPeacock','MiniWombat','SleepyHamster',
+  'WobblyKettle','ButteryViolet','BeamingForest','NuttyPoppy','NuttyCupcake',
+  'TangyLamb','NiftyWoodpecker','SilkyTrifle','StellarCaramel','BreezyRaccoon',
+  'RusticRibbon','CrispyWoodpecker','GigglyClover','VintagePeony','ButteryMilkshake',
+  'BoldBeaver','FluffyWindchime','BlissfulLeaf','SwiftRobin','MellowLamp',
+  'RadiantSnowflake','FrostyPlatypus','FuzzyKettle','PeppyFrame','CrunchyCub',
+  'PetitePeacock','BoldRug','JollyFudge','SleekTruffle','SaltyDonut',
+  'ModernLamp','NiftyCompass','CheeryPetal','BouncyMushroom','JumboYarn',
+  'SleekWoodpecker','ChipperRibbon','ModernFlamingo','GoldenSparrow','JumboMilkshake',
+  'DapperMitten','CitrusSnowglobe','RetroWaffle','BerryBagel','BreezyWindchime',
+  'HappyPetal','TangySnowglobe','SnugglyMeerkat','FluffyDumpling','SleepyDumpling',
+  'MistyPanda','RadiantLatte','JollyOrchard','GlossyJasmine','CozyGrove',
+  'SunnySloth','RosyBadger','DapperThimble','BoldForest','FancyBaklava',
+  'ZippyClock','MellowPiglet','SleekLilac','BeamingLemonade','CreamyMeadow',
+  'GlowingSunbeam','FeistyScarf','ButteryToucan','ShinyPraline','MerryLemur',
+  'BouncyCushion','CurlyCushion','MoonlitBluebird','GigglyTelescope','ShinyValley',
+  'SaltyBeaver','SpeckledFabric','PetiteMoss','RosyDanish','SaltyWren',
+  'BoldSeal','WobblyOtter','WavyWindchime','CurlyFlamingo','JumboLantern',
+  'MintyRabbit','TwinklyYarn','WobblyMarigold','ZestyIris','HumbleDuckling',
+  'DreamyChickadee','MiniMuffin','JumboCub','CrunchyScarf','CheeryBeaver',
+  'JazzyCushion','GlowingDuckling','GiantPinecone','MistyRug','CozyChinchilla',
+  'NiftySeal','VintagePlatypus','MistyMushroom','FruityHedgehog','SpunkyBadger',
+  'FeistyWoodpecker','CloudyGosling','DreamyMeerkat','SwiftBeaver','ButteryPanda',
+  'FrostyIris','SunnyWaffle','ChewyBaklava','TranquilGelato','PlacidMug',
+  'FruityTrunk','GiantPanda','HumbleSlipper','ChewyGosling','VintageEnvelope',
+  'DewyRabbit','DreamyBeaver','GooeyPinecone','SweetCupcake','SaltySparrow',
+  'PlumpLilac','CurlyWoodpecker','GentleChest','GroovySquirrel','RainyBrook',
+  'StarryBlanket','ZestyShelf','TangyTrifle','ChewySloth','BeamingHammock',
+  'BreezyNeedle','BouncyLavender','CheeryCider','WobblyShelf','FancySeal',
+  'CreamyDumpling','CozyLatte','CheeryWindchime','TenderBasket','TangyBreeze',
+  'HappyLantern','SpunkyFlamingo','GoldenHammock','BlissfulChick','FancyPiglet',
+  'FluffyRobin','WavyLavender','HumbleCrumpet','RadiantTelescope','ChewyWaffle',
+  'SnugglyFern','ButteryRaccoon','GooeyFawn','SleepyClover','SereneBaklava',
+  'MellowPuppy','SpicyBagel','PerkyBreeze','ModernChickadee','TranquilAcorn',
+  'VelvetAcorn','PlacidGrove','CheeryMarigold','RetroTurtle','GiantWombat',
+  'GoldenSundae','MistyPinecone','PerkyIris','MistyLeaf','CuddlySundae',
+  'JumboBeaver','GentleMarigold','ButteryTrunk','ModernFern','GroovyPretzel',
+  'CitrusWaffle','SnazzyChai','ChillMarigold','MintyGosling','ChipperCompass',
+  'FeistyCandle','MoonlitTulip','CloudyClock','MistyCandle','WobblyCocoa',
+  'BreezyClock','FuzzyTulip','FruityMirror','SwiftChai','RusticScarf',
+  'NimblePeacock'
 ];
+
+
+// ═══════════════════════════════════════════════════════════════════
+//  DOODLY.IO GAME ENGINE
+//  Turn-based drawing & guessing game, built to match Skribbl.io's
+//  confirmed public mechanics (cross-referenced across the official
+//  site, community wiki, and independent write-ups):
+//    - 3 rounds; every player draws once per round
+//    - Drawer picks from a set of word options (this game: 4, per
+//      the site owner's own spec) within a pick timer (20s)
+//    - If no pick is made in time, one is auto-selected
+//    - 80-second draw timer (Skribbl.io's confirmed default)
+//    - Turn ends early the instant every guesser has guessed correctly
+//    - Guesses must exactly match the word; a guess exactly one
+//      letter off (word length 3+) gets a private "close!" hint
+//    - Once you guess correctly, your future chat that turn is only
+//      visible to the drawer and other players who already guessed —
+//      this prevents spoiling the word for people still guessing
+//    - Word is revealed to everyone when a turn ends
+//    - Scoring rewards faster + earlier correct guesses; the drawer
+//      is rewarded for how many people guessed their drawing
+//    - Winner is whoever has the most points after all 3 rounds
+//  The exact internal point-value formula and hint-reveal timing are
+//  not published by the original game, so those two specific pieces
+//  are a reasonable, clearly-documented approximation; every other
+//  rule above is directly confirmed from public sources.
+// ═══════════════════════════════════════════════════════════════════
+
+const DRAW_WORDS = ["dog", "cat", "fish", "bird", "horse", "cow", "pig", "sheep", "duck", "frog", "rabbit", "mouse", "lion", "tiger", "bear", "elephant", "giraffe", "zebra", "monkey", "kangaroo", "penguin", "owl", "snake", "turtle", "crab", "octopus", "whale", "dolphin", "shark", "bee", "butterfly", "spider", "ant", "snail", "ladybug", "chicken", "rooster", "goat", "deer", "fox", "wolf", "squirrel", "hedgehog", "bat", "camel", "panda", "koala", "peacock", "flamingo", "dinosaur", "dragon", "pizza", "burger", "hotdog", "taco", "sandwich", "apple", "banana", "orange", "grapes", "strawberry", "watermelon", "pineapple", "cherry", "carrot", "broccoli", "corn", "potato", "egg", "bread", "cheese", "cake", "cupcake", "donut", "cookie", "icecream", "pancake", "waffle", "popcorn", "pretzel", "candy", "chocolate", "lollipop", "honey", "milk", "coffee", "tea", "soup", "salad", "pasta", "sushi", "pie", "muffin", "bacon", "sausage", "fries", "popsicle", "pumpkin", "mushroom", "onion", "pepper", "sun", "moon", "star", "cloud", "rain", "snow", "rainbow", "lightning", "tornado", "volcano", "mountain", "ocean", "river", "lake", "waterfall", "tree", "flower", "leaf", "grass", "cactus", "island", "beach", "desert", "forest", "cave", "rock", "fire", "ice", "wind", "earth", "chair", "table", "bed", "lamp", "clock", "mirror", "window", "door", "key", "lock", "phone", "computer", "television", "camera", "book", "pencil", "scissors", "umbrella", "glasses", "hat", "shoe", "sock", "shirt", "pants", "jacket", "glove", "ring", "crown", "backpack", "suitcase", "guitar", "piano", "drum", "violin", "trumpet", "microphone", "headphones", "battery", "lightbulb", "candle", "broom", "bucket", "ladder", "hammer", "screwdriver", "wrench", "shovel", "rope", "chain", "magnet", "balloon", "kite", "swing", "slide", "trampoline", "skateboard", "bicycle", "wheel", "ball", "car", "truck", "bus", "train", "airplane", "helicopter", "boat", "ship", "submarine", "rocket", "motorcycle", "scooter", "tractor", "ambulance", "firetruck", "taxi", "sled", "wagon", "canoe", "hotairballoon", "eye", "ear", "nose", "mouth", "hand", "foot", "tooth", "hair", "heart", "brain", "baby", "robot", "ghost", "alien", "zombie", "pirate", "knight", "wizard", "superhero", "clown", "skeleton", "vampire", "mermaid", "angel", "king", "queen", "doctor", "chef", "farmer", "astronaut", "house", "castle", "tent", "bridge", "tower", "church", "school", "hospital", "store", "library", "airport", "farm", "zoo", "park", "playground", "stadium", "lighthouse", "windmill", "barn", "igloo", "soccer", "basketball", "baseball", "football", "tennis", "golf", "bowling", "swimming", "skiing", "surfing", "boxing", "fishing", "camping", "dancing", "singing", "painting", "reading", "sleeping", "running", "jumping", "circle", "square", "triangle", "diamond", "arrow", "anchor", "compass", "map", "flag", "trophy", "medal", "wand", "sword", "shield", "bomb", "ruler", "eraser", "calculator", "notebook", "crayon", "paintbrush", "globe", "telescope", "microscope", "chameleon", "ostrich", "parrot", "toucan", "woodpecker", "hummingbird", "seahorse", "jellyfish", "lobster", "shrimp", "starfish", "walrus", "seal", "otter", "beaver", "raccoon", "skunk", "porcupine", "armadillo", "sloth", "platypus", "llama", "alpaca", "buffalo", "bison", "moose", "elk", "antelope", "lemon", "lime", "peach", "pear", "plum", "mango", "kiwi", "coconut", "avocado", "eggplant", "cucumber", "celery", "spinach", "lettuce", "tomato", "garlic", "ginger", "cinnamon", "vanilla", "caramel", "envelope", "stamp", "calendar", "wallet", "purse", "necklace", "bracelet", "earring", "watch", "coin", "dice", "puzzle", "domino", "marbles", "yoyo", "frisbee", "jumprope", "helmet", "mask", "cape", "hurricane", "blizzard", "fog", "mist", "dew", "frost", "iceberg", "glacier", "eclipse", "comet", "satellite", "planet", "galaxy", "asteroid", "meteor", "spaceship", "moonwalk", "happy", "sad", "angry", "sleepy", "scared", "surprised", "love", "dream", "magic", "luck"];
+
+const GAME_CONFIG = {
+  TOTAL_ROUNDS: 3,
+  WORD_OPTIONS_COUNT: 4,     // site owner's explicit spec (Skribbl.io's own default is 3)
+  PICK_TIME_MS: 20 * 1000,   // site owner's explicit spec
+  DRAW_TIME_MS: 80 * 1000,   // Skribbl.io's confirmed default
+  MIN_PLAYERS: 2,            // confirmed: game starts/continues with 2+ players
+  ROUND_END_DELAY_MS: 5000,  // pause between turns so the "word was X" message is readable
+  GAME_END_DELAY_MS: 10000,  // how long the winner screen stays up before a fresh game starts
+};
+
+function pickRandomWords(count, exclude){
+  const pool = DRAW_WORDS.filter(w => !exclude || !exclude.has(w));
+  const chosen = [];
+  const used = new Set();
+  while(chosen.length < count && chosen.length < pool.length){
+    const w = pool[Math.floor(Math.random()*pool.length)];
+    if(!used.has(w)){ used.add(w); chosen.push(w); }
+  }
+  return chosen;
+}
+
+// Levenshtein edit distance — used for the "close!" guess hint
+// (Skribbl.io: a guess exactly one letter off from the correct word,
+// only for words 3+ letters long, shows a "close!" hint visible only
+// to that guesser).
+function editDistance(a, b){
+  if(Math.abs(a.length - b.length) > 1) return 99; // fast reject, saves work
+  const dp = Array.from({length:a.length+1}, (_,i)=>Array(b.length+1).fill(0));
+  for(let i=0;i<=a.length;i++) dp[i][0]=i;
+  for(let j=0;j<=b.length;j++) dp[0][j]=j;
+  for(let i=1;i<=a.length;i++){
+    for(let j=1;j<=b.length;j++){
+      if(a[i-1]===b[j-1]) dp[i][j]=dp[i-1][j-1];
+      else dp[i][j]=1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+function normalizeGuess(s){
+  return (s||'').toLowerCase().trim().replace(/\s+/g,' ');
+}
+
+function initGame(lobby){
+  const ids = Object.keys(lobby.players);
+  lobby.game = {
+    active: true,
+    state: 'picking',          // 'picking' | 'drawing' | 'turnEnd' | 'gameEnd'
+    round: 1,
+    totalRounds: GAME_CONFIG.TOTAL_ROUNDS,
+    turnOrder: ids.slice(),    // fixed for this game; late joiners are added to NEXT game
+    turnIndex: -1,             // advanceTurn() increments this first
+    drawerId: null,
+    wordOptions: [],
+    word: null,
+    wordRevealed: null,        // underscore/letter display sent to guessers
+    hintsRevealed: 0,
+    guessedIds: new Set(),
+    scores: {},
+    turnAwards: [],            // [{id,name,points}] for this turn's end summary
+    strokes: [],               // canvas history for this turn, replayed for late joiners
+    turnStartAt: 0,
+    pickTimer: null,
+    drawTimer: null,
+    hintTimer: null,
+    transitionTimer: null,
+  };
+  ids.forEach(id => lobby.game.scores[id] = 0);
+  return lobby.game;
+}
+
+function endGameSession(lobby){
+  const g = lobby.game;
+  if(!g) return;
+  clearTimeout(g.pickTimer); clearTimeout(g.drawTimer);
+  clearTimeout(g.hintTimer); clearTimeout(g.transitionTimer);
+  lobby.game = null;
+}
+
+function broadcastGameState(io, lobby, extra){
+  const g = lobby.game;
+  if(!g) return;
+  io.to(lobby.code).emit('gameState', Object.assign({
+    state: g.state,
+    round: g.round,
+    totalRounds: g.totalRounds,
+    drawerId: g.drawerId,
+    wordLength: g.word ? g.word.replace(/ /g,'').length : 0,
+    wordRevealed: g.wordRevealed,
+    scores: g.scores,
+    guessedIds: Array.from(g.guessedIds),
+  }, extra||{}));
+}
+
+function startTurn(io, lobby){
+  const g = lobby.game;
+  clearTimeout(g.pickTimer); clearTimeout(g.drawTimer); clearTimeout(g.hintTimer);
+  g.strokes = [];
+  g.guessedIds = new Set();
+  g.turnAwards = [];
+  g.word = null;
+  g.wordRevealed = null;
+
+  // Advance to the next drawer; skip anyone who has left mid-game
+  let attempts = 0;
+  do{
+    g.turnIndex++;
+    if(g.turnIndex >= g.turnOrder.length){
+      g.turnIndex = 0;
+      g.round++;
+    }
+    attempts++;
+  } while(!lobby.players[g.turnOrder[g.turnIndex]] && attempts <= g.turnOrder.length);
+
+  if(g.round > g.totalRounds){
+    return endGame(io, lobby);
+  }
+  if(!lobby.players[g.turnOrder[g.turnIndex]]){
+    // Nobody left eligible to draw — end the session gracefully
+    return endGame(io, lobby);
+  }
+
+  g.drawerId = g.turnOrder[g.turnIndex];
+  g.state = 'picking';
+  const drawerName = lobby.players[g.drawerId]?.name || 'Someone';
+  g.wordOptions = pickRandomWords(GAME_CONFIG.WORD_OPTIONS_COUNT);
+
+  const drawerSock = io.sockets.sockets.get(g.drawerId);
+  if(drawerSock) drawerSock.emit('chooseWord', { options: g.wordOptions, pickTimeMs: GAME_CONFIG.PICK_TIME_MS });
+
+  io.to(lobby.code).emit('systemMessage', { text: `${drawerName} is choosing a word...`, type: 'turn' });
+  broadcastGameState(io, lobby, { drawerName, picking: true });
+
+  g.pickTimer = setTimeout(() => {
+    // Auto-pick if the drawer didn't choose in time (confirmed Skribbl.io behavior)
+    const word = g.wordOptions[Math.floor(Math.random()*g.wordOptions.length)];
+    beginDrawing(io, lobby, word);
+  }, GAME_CONFIG.PICK_TIME_MS);
+}
+
+function beginDrawing(io, lobby, word){
+  const g = lobby.game;
+  if(!g || g.state !== 'picking') return;
+  clearTimeout(g.pickTimer);
+  g.state = 'drawing';
+  g.word = word;
+  g.turnStartAt = Date.now();
+  g.hintsRevealed = 0;
+  const letters = word.split('');
+  g.wordRevealed = letters.map(ch => ch===' ' ? ' ' : '_').join('');
+
+  const drawerName = lobby.players[g.drawerId]?.name || 'Someone';
+  io.to(lobby.code).emit('systemMessage', { text: `${drawerName} is drawing now!`, type: 'turn' });
+
+  const drawerSock = io.sockets.sockets.get(g.drawerId);
+  if(drawerSock) drawerSock.emit('yourWord', { word });
+
+  broadcastGameState(io, lobby, { picking: false });
+
+  // ── Hint reveal schedule ──
+  // Reveal one additional letter at evenly-spaced points through the
+  // timer, capping at roughly 40% of the word's letters revealed so
+  // there's always something left to guess. Skribbl.io does not
+  // publish its exact schedule/percentage, so this is a reasonable,
+  // clearly-documented approximation of the same qualitative behavior
+  // ("hints appear as time passes").
+  const revealable = letters.filter(c => c!==' ').length;
+  const maxHints = Math.max(0, Math.floor(revealable * 0.4));
+  if(maxHints > 0 && word.length >= 4){
+    const intervalMs = GAME_CONFIG.DRAW_TIME_MS / (maxHints + 1);
+    const scheduleHint = () => {
+      if(!lobby.game || lobby.game.state !== 'drawing') return;
+      const unrevealed = [];
+      for(let i=0;i<letters.length;i++){
+        if(letters[i]!==' ' && g.wordRevealed[i]==='_') unrevealed.push(i);
+      }
+      if(unrevealed.length===0 || g.hintsRevealed>=maxHints) return;
+      const idx = unrevealed[Math.floor(Math.random()*unrevealed.length)];
+      const arr = g.wordRevealed.split('');
+      arr[idx] = letters[idx];
+      g.wordRevealed = arr.join('');
+      g.hintsRevealed++;
+      io.to(lobby.code).emit('wordHint', { wordRevealed: g.wordRevealed });
+      if(g.hintsRevealed < maxHints){
+        g.hintTimer = setTimeout(scheduleHint, intervalMs);
+      }
+    };
+    g.hintTimer = setTimeout(scheduleHint, intervalMs);
+  }
+
+  g.drawTimer = setTimeout(() => endTurn(io, lobby, 'timeout'), GAME_CONFIG.DRAW_TIME_MS);
+}
+
+function computeGuessPoints(elapsedMs, guessOrderIndex){
+  // Faster + earlier guesses score more, consistently decreasing —
+  // matches the confirmed qualitative rule ("earn more points for
+  // guessing faster and/or before other players"). Exact numbers are
+  // this implementation's own reasonable curve since Skribbl.io does
+  // not publish its internal formula.
+  const timeFraction = Math.min(1, elapsedMs / GAME_CONFIG.DRAW_TIME_MS);
+  const timeScore = Math.round(100 - timeFraction * 60);       // 100 → 40 over the full timer
+  const orderPenalty = guessOrderIndex * 8;                     // each subsequent guesser scores a bit less
+  return Math.max(10, timeScore - orderPenalty);                // floor of 10 points for any correct guess
+}
+
+function endTurn(io, lobby, reason){
+  const g = lobby.game;
+  if(!g || (g.state !== 'drawing' && g.state !== 'picking')) return;
+  clearTimeout(g.pickTimer); clearTimeout(g.drawTimer); clearTimeout(g.hintTimer);
+
+  const word = g.word || (g.wordOptions && g.wordOptions[0]) || '';
+  g.state = 'turnEnd';
+
+  // Drawer bonus: rewarded for how many players understood their
+  // drawing enough to guess it correctly (confirmed qualitative rule).
+  const guesserCount = g.guessedIds.size;
+  if(guesserCount > 0 && g.drawerId){
+    const bonus = guesserCount * 10;
+    g.scores[g.drawerId] = (g.scores[g.drawerId]||0) + bonus;
+    g.turnAwards.push({ id: g.drawerId, name: lobby.players[g.drawerId]?.name||'', points: bonus, role: 'drawer' });
+  }
+
+  io.to(lobby.code).emit('systemMessage', { text: `The word was "${word}"`, type: 'reveal' });
+  io.to(lobby.code).emit('turnEnd', {
+    word,
+    scores: g.scores,
+    turnAwards: g.turnAwards,
+    reason,
+  });
+  broadcastGameState(io, lobby, { picking:false, turnOver:true });
+
+  g.transitionTimer = setTimeout(() => {
+    if(!lobby.game) return;
+    const stillEnough = Object.keys(lobby.players).length >= GAME_CONFIG.MIN_PLAYERS;
+    if(!stillEnough){
+      pauseGameForPlayers(io, lobby);
+      return;
+    }
+    startTurn(io, lobby);
+  }, GAME_CONFIG.ROUND_END_DELAY_MS);
+}
+
+function endGame(io, lobby){
+  const g = lobby.game;
+  if(!g) return;
+  clearTimeout(g.pickTimer); clearTimeout(g.drawTimer);
+  clearTimeout(g.hintTimer); clearTimeout(g.transitionTimer);
+  g.state = 'gameEnd';
+
+  const ranked = Object.entries(g.scores)
+    .map(([id,score]) => ({ id, score, name: lobby.players[id]?.name||'', avatar: lobby.players[id]?.avatar||{} }))
+    .filter(p => p.name)
+    .sort((a,b) => b.score - a.score);
+
+  io.to(lobby.code).emit('gameOver', { ranked, winner: ranked[0]||null });
+  broadcastGameState(io, lobby, { gameOver:true });
+
+  g.transitionTimer = setTimeout(() => {
+    if(!lobby.players || Object.keys(lobby.players).length < GAME_CONFIG.MIN_PLAYERS){
+      endGameSession(lobby);
+      io.to(lobby.code).emit('systemMessage', { text:'Waiting for more players to start a new game...', type:'turn' });
+      return;
+    }
+    initGame(lobby);
+    startTurn(io, lobby);
+  }, GAME_CONFIG.GAME_END_DELAY_MS);
+}
+
+function pauseGameForPlayers(io, lobby){
+  endGameSession(lobby);
+  io.to(lobby.code).emit('systemMessage', { text: 'Not enough players — waiting for more to join...', type:'turn' });
+  io.to(lobby.code).emit('gameState', { state:'waiting' });
+}
+
+function maybeStartGame(io, lobby){
+  if(lobby.game && lobby.game.active) return;
+  if(Object.keys(lobby.players).length < GAME_CONFIG.MIN_PLAYERS) return;
+  initGame(lobby);
+  startTurn(io, lobby);
+}
+
+// ── Guess routing ──────────────────────────────────────────────────
+// Returns { handled: bool, broadcastTo: 'all'|'guessers'|'graduated'|null,
+//           systemText, isCorrect, isClose }
+function routeGuess(lobby, socket, rawMsg){
+  const g = lobby.game;
+  if(!g || g.state !== 'drawing') return null; // not in an active drawing turn — normal chat
+
+  const senderId = socket.id;
+  const isDrawer = senderId === g.drawerId;
+  if(isDrawer) return { visibility: 'all' }; // drawer's own messages are always visible to everyone
+
+  const alreadyGuessed = g.guessedIds.has(senderId);
+  const norm = normalizeGuess(rawMsg);
+  const target = normalizeGuess(g.word);
+
+  if(!alreadyGuessed){
+    if(norm === target){
+      return { visibility: 'correct', word: g.word };
+    }
+    if(target.length >= 3 && editDistance(norm, target) === 1){
+      return { visibility: 'closeOnly' }; // private "close!" — only to the guesser
+    }
+    return { visibility: 'guessers' }; // normal wrong guess, visible to drawer + not-yet-guessed
+  }
+  return { visibility: 'graduated' }; // already guessed — talk only with drawer + other graduates
+}
+
+function applyCorrectGuess(io, lobby, socket){
+  const g = lobby.game;
+  const name = lobby.players[socket.id]?.name || 'Someone';
+  const order = g.guessedIds.size;
+  const elapsed = Date.now() - g.turnStartAt;
+  const points = computeGuessPoints(elapsed, order);
+  g.guessedIds.add(socket.id);
+  g.scores[socket.id] = (g.scores[socket.id]||0) + points;
+  g.turnAwards.push({ id: socket.id, name, points, role: 'guesser' });
+
+  io.to(lobby.code).emit('systemMessage', { text: `${name} guessed the word!`, type: 'correct' });
+  io.to(lobby.code).emit('scoreUpdate', { scores: g.scores, guessedIds: Array.from(g.guessedIds) });
+  socket.emit('guessResult', { correct: true, points });
+
+  // Turn ends the instant every eligible guesser has guessed — confirmed rule
+  const eligibleGuessers = g.turnOrder.filter(id => lobby.players[id] && id !== g.drawerId);
+  const allGuessed = eligibleGuessers.length > 0 && eligibleGuessers.every(id => g.guessedIds.has(id));
+  if(allGuessed) endTurn(io, lobby, 'allGuessed');
+}
 
 const lobbies = {};
 const kickBans = {}; // socketId -> { lobbyCode -> expiry }
@@ -2124,12 +2695,40 @@ function assignSeat(lobby){
   return -1;
 }
 
-function randomName(){ return WORD_LIST[Math.floor(Math.random()*WORD_LIST.length)]; }
+function randomName(lobby){
+  // Avoid any name currently used by another active player in this lobby.
+  // With 1000 names and a max of 8 players, a collision is already rare —
+  // this loop makes it a hard guarantee rather than just "unlikely".
+  const used=lobby?new Set(Object.values(lobby.players).map(p=>p.name)):new Set();
+  let attempts=0,name;
+  do{
+    name=WORD_LIST[Math.floor(Math.random()*WORD_LIST.length)];
+    attempts++;
+  }while(used.has(name)&&attempts<80);
+  return name;
+}
 
-function sanitizeName(name){
-  if(!name||!name.trim()) return randomName();
-  let n=name.trim().replace(/[<>&"']/g,'').substring(0,16);
-  return n||randomName();
+function sanitizeName(name,lobby){
+  let n;
+  if(!name||!name.trim()) n=randomName(lobby);
+  else n=name.trim().replace(/[<>&"']/g,'').substring(0,16)||randomName(lobby);
+
+  // Hard guarantee: no two active players in the SAME lobby ever end up
+  // with an identical displayed name — covers auto-generated names AND
+  // names someone typed by hand that happen to match another player.
+  if(lobby){
+    const used=new Set(Object.values(lobby.players).map(p=>p.name));
+    if(used.has(n)){
+      const base=n.substring(0,14); // leave room for a numeric suffix within the 16-char limit
+      let suffix=2,candidate=n;
+      while(used.has(candidate)&&suffix<100){
+        candidate=base+suffix;
+        suffix++;
+      }
+      n=candidate;
+    }
+  }
+  return n;
 }
 
 function getLobbyState(lobby){
@@ -2194,7 +2793,7 @@ io.on('connection',(socket)=>{
     // Already in a lobby? leave first silently
     if(curLobby&&curPlayer) doRemove(socket.id,curLobby,'left',true);
 
-    const cleanName=sanitizeName(name);
+    const cleanName=sanitizeName(name,lobby);
     const seat=assignSeat(lobby);
     if(seat===-1){socket.emit('joinError',{message:'No seats available.'});return;}
 
@@ -2209,6 +2808,30 @@ io.on('connection',(socket)=>{
       message:`${cleanName} joined the lobby`
     });
     io.emit('lobbyList',getLobbyList());
+
+    // If a game is already in progress and this is a fresh join mid-turn,
+    // sync their canvas to the current drawing so it looks identical to
+    // everyone else's screen immediately (confirmed requirement: canvas
+    // must be identical on every viewer's screen at all times).
+    if(lobby.game && lobby.game.active && lobby.game.state==='drawing'){
+      socket.emit('canvasSync',{strokes:lobby.game.strokes});
+      socket.emit('gameState',{
+        state:lobby.game.state, round:lobby.game.round, totalRounds:lobby.game.totalRounds,
+        drawerId:lobby.game.drawerId, drawerName:lobby.players[lobby.game.drawerId]?.name||'',
+        wordLength:lobby.game.word?lobby.game.word.replace(/ /g,'').length:0,
+        wordRevealed:lobby.game.wordRevealed, scores:lobby.game.scores,
+        guessedIds:Array.from(lobby.game.guessedIds), picking:false
+      });
+    } else if(lobby.game && lobby.game.active && lobby.game.state==='picking'){
+      socket.emit('gameState',{
+        state:'picking', round:lobby.game.round, totalRounds:lobby.game.totalRounds,
+        drawerId:lobby.game.drawerId, drawerName:lobby.players[lobby.game.drawerId]?.name||'',
+        scores:lobby.game.scores, picking:true
+      });
+    }
+    // Auto-start a game once there are enough players (confirmed rule:
+    // public games begin automatically once 2+ players are present)
+    maybeStartGame(io,lobby);
   }
 
   // Chat spam tracking per connection
@@ -2405,8 +3028,73 @@ io.on('connection',(socket)=>{
       return;
     }
 
+    // ── Route through the drawing game's guess system when a turn is active ──
+    const routed=routeGuess(curLobby,socket,msg);
+    if(routed){
+      if(routed.visibility==='all'){
+        // The drawer talking — visible to everyone, same as normal chat
+        io.to(curLobby.code).emit('chat',{senderId:socket.id,senderName:curPlayer.name,message:msg});
+      }else if(routed.visibility==='correct'){
+        applyCorrectGuess(io,curLobby,socket);
+      }else if(routed.visibility==='closeOnly'){
+        socket.emit('systemMessage',{text:`"${msg}" is close!`,type:'close'});
+      }else if(routed.visibility==='guessers'){
+        // Wrong guess — visible to the drawer and everyone who hasn't guessed yet
+        const g=curLobby.game;
+        const targets=[g.drawerId,...Array.from(Object.keys(curLobby.players)).filter(id=>!g.guessedIds.has(id))];
+        const uniqueTargets=new Set(targets);
+        uniqueTargets.forEach(id=>{
+          const s=io.sockets.sockets.get(id);
+          if(s) s.emit('chat',{senderId:socket.id,senderName:curPlayer.name,message:msg});
+        });
+      }else if(routed.visibility==='graduated'){
+        // Post-guess chat — visible only to the drawer and other players
+        // who have already guessed correctly this turn (prevents spoiling
+        // the word for anyone still guessing).
+        const g=curLobby.game;
+        const targets=new Set([g.drawerId,...Array.from(g.guessedIds)]);
+        targets.forEach(id=>{
+          const s=io.sockets.sockets.get(id);
+          if(s) s.emit('chat',{senderId:socket.id,senderName:curPlayer.name,message:msg});
+        });
+      }
+      return;
+    }
+
+    // No active drawing turn — plain chat, visible to everyone (lobby waiting screen, etc.)
     io.to(curLobby.code).emit('chat',{senderId:socket.id,senderName:curPlayer.name,message:msg});
   });
+
+  // ── DRAWING GAME: word choice (drawer only) ──
+  socket.on('chooseWord',({word})=>{
+    if(!curLobby||!curPlayer)return;
+    const g=curLobby.game;
+    if(!g||g.state!=='picking'||g.drawerId!==socket.id)return;
+    if(!g.wordOptions.includes(word))return;
+    beginDrawing(io,curLobby,word);
+  });
+
+  // ── DRAWING GAME: canvas stroke relay ──
+  // The drawer is the only one allowed to originate strokes; the server
+  // relays them to everyone else in the lobby and keeps a history so
+  // players who join mid-turn can have their canvas synced to match.
+  socket.on('drawStroke',(data)=>{
+    if(!curLobby||!curPlayer)return;
+    const g=curLobby.game;
+    if(!g||g.state!=='drawing'||g.drawerId!==socket.id)return;
+    if(!data||typeof data!=='object')return;
+    if(data.type==='clear'){
+      g.strokes=[];
+    }else if(data.type==='undo'){
+      g.strokes.pop();
+    }else{
+      // Cap history growth defensively so a very long turn can never
+      // grow unbounded memory — well beyond what a real drawing needs.
+      if(g.strokes.length<20000) g.strokes.push(data);
+    }
+    socket.to(curLobby.code).emit('drawStroke',data);
+  });
+
 
   socket.on('voteKick',({targetId})=>{
     if(!curLobby||!curPlayer)return;
@@ -2533,8 +3221,30 @@ io.on('connection',(socket)=>{
     if(!silent){
       io.to(lobby.code).emit('playerLeft',{playerId,playerName:name,reason,lobbyState:getLobbyState(lobby)});
     }
+
+    // ── DRAWING GAME: handle a mid-game departure ──
+    if(lobby.game&&lobby.game.active){
+      const remaining=Object.keys(lobby.players).length;
+      if(remaining<GAME_CONFIG.MIN_PLAYERS){
+        pauseGameForPlayers(io,lobby);
+      }else if(lobby.game.drawerId===playerId){
+        // Confirmed rule: if the presenter/drawer leaves mid-turn, the
+        // turn ends immediately and the word is revealed, same as a
+        // normal timeout — then play continues to the next drawer.
+        endTurn(io,lobby,'drawerLeft');
+      }else if(lobby.game.state==='drawing'){
+        // A guesser left — if everyone ELSE remaining has already
+        // guessed, that now completes the turn early.
+        const g=lobby.game;
+        const eligible=g.turnOrder.filter(id=>lobby.players[id]&&id!==g.drawerId);
+        const allGuessed=eligible.length>0&&eligible.every(id=>g.guessedIds.has(id));
+        if(allGuessed) endTurn(io,lobby,'allGuessed');
+      }
+    }
+
     // Delete lobby immediately if empty so it never shows in list
     if(Object.keys(lobby.players).length===0){
+      if(lobby.game) endGameSession(lobby);
       delete lobbies[lobby.code];
     }
     io.emit('lobbyList',getLobbyList());
@@ -2542,4 +3252,4 @@ io.on('connection',(socket)=>{
 });
 
 const PORT=process.env.PORT||3000;
-server.listen(PORT,()=>console.log(`Rainy Day Living Room running on http://localhost:${PORT}`));
+server.listen(PORT,()=>console.log(`Doodly.io running on http://localhost:${PORT}`));
