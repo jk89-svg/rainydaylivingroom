@@ -581,7 +581,7 @@ const USERNAME_BAD_TERMS = [
   'cracker','honky','whitey',
   'towelhead','raghead','sandnigger','cameljockey',
   'paki','pakis','jap','japs','redskin','injun',
-  'coon','sambo','darkie','darky',
+  'coonass','sambo','darkie','darky',
   'gringo','wop','dago','polack','mick','cholo',
   // Homophobic / transphobic
   'faggot','fagot','fag','dyke','tranny','trannies',
@@ -600,7 +600,7 @@ const USERNAME_BAD_TERMS = [
   // Drugs
   'heroin','cocaine','methamphetamine','fentanyl',
   // Reserved / impersonation
-  'system','admin','administrator','moderator','mod','staff','bot',
+  'system','admin','administrator','moderator','staffmember',
   'official','owner','operator',
 ];
 
@@ -766,7 +766,7 @@ let fanAngle=0, fanSpeed=0, fanAnimId=null, fanWindNode=null;
 let clockIntervalId=null;
 
 function fanAnimLoop(){
-  const targetSpeed=fanOn?14:0;
+  const targetSpeed=fanOn?7:0;
   // Ease current speed toward target — real "spins up" / "winds down" feel,
   // not an instant on/off snap.
   fanSpeed+=(targetSpeed-fanSpeed)*0.02;
@@ -781,7 +781,7 @@ function applyFanState(){
   const bulb=document.getElementById('fanBulb');
   if(bulb)bulb.setAttribute('fill',fanOn?'#FFD966':'#999');
   const toggle=document.getElementById('fanToggle');
-  if(toggle)toggle.setAttribute('transform',fanOn?'rotate(-18,394,179)':'rotate(18,394,179)');
+  if(toggle)toggle.setAttribute('transform',fanOn?'rotate(-22,394,179)':'rotate(0,394,179)');
   if(!fanAnimId)fanAnimId=requestAnimationFrame(fanAnimLoop);
   if(fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
   else if(!fanOn&&fanWindNode){ stopNode(fanWindNode); fanWindNode=null; }
@@ -1423,8 +1423,8 @@ function buildRoom(){
 <rect x="0" y="316" width="640" height="84" fill="#5C3A14"/>
 <line x1="0" y1="330" x2="640" y2="330" stroke="#3E2408" stroke-width="1" opacity=".35"/>
 <line x1="0" y1="348" x2="640" y2="348" stroke="#3E2408" stroke-width="1" opacity=".25"/>
-<rect x="0" y="0" width="640" height="320" fill="#ECE3A1"/>
-<rect x="0" y="310" width="640" height="10" fill="#D4C87E"/>
+<rect x="0" y="0" width="640" height="320" fill="#E0D488"/>
+<rect x="0" y="310" width="640" height="10" fill="#C7BB68"/>
 <!-- Window -->
 <rect x="32" y="34" width="126" height="168" rx="5" fill="#0D1A2E" stroke="#6B4C1E" stroke-width="5"/>
 <line x1="95" y1="36" x2="95" y2="200" stroke="#6B4C1E" stroke-width="4"/>
@@ -1435,9 +1435,9 @@ function buildRoom(){
 <rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2"/>
 <rect id="lFlash" x="35" y="37" width="117" height="161" fill="white" opacity="0" rx="2"/>
 <!-- Curtains, open style, drawn back on each side of the window -->
-<path d="M20,28 Q10,90 24,168 Q30,180 20,204 L34,204 Q26,180 32,168 Q20,90 34,28 Z" fill="#0F4D92" stroke="#082A52" stroke-width="1.5"/>
-<path d="M168,28 Q178,90 164,168 Q158,180 168,204 L154,204 Q162,180 156,168 Q178,90 154,28 Z" fill="#0F4D92" stroke="#082A52" stroke-width="1.5"/>
-<rect x="16" y="24" width="156" height="7" rx="3" fill="#082A52"/>
+<path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#0F4D92" stroke="#082A52" stroke-width="1.5"/>
+<path d="M174,26 Q186,90 168,170 Q160,182 172,206 L150,206 Q158,182 152,170 Q172,90 150,26 Z" fill="#0F4D92" stroke="#082A52" stroke-width="1.5"/>
+<rect x="12" y="22" width="164" height="8" rx="3" fill="#082A52"/>
 <!-- Wall decor: Kelly Green frame, 2 cats -->
 <rect x="193" y="41" width="56" height="64" rx="3" fill="#4CB817" stroke="#3A9010" stroke-width="2.5"/>
 <rect x="199" y="47" width="44" height="52" rx="2" fill="#EDE0C8"/>
@@ -1481,9 +1481,10 @@ function buildRoom(){
   <circle cx="383" cy="192" r="1" fill="#777"/>
   <circle cx="405" cy="192" r="1" fill="#777"/>
   <!-- Lever pivots from its base (bottom point) like a real toggle, not its center -->
-  <rect id="fanToggle" x="391" y="167" width="6" height="12" rx="2.5" fill="#888" stroke="#333" stroke-width=".7" transform="rotate(18,394,179)"/>
+  <rect id="fanToggle" x="391" y="167" width="6" height="12" rx="2.5" fill="#888" stroke="#333" stroke-width=".7" transform="rotate(0,394,179)"/>
 </g>
-<!-- Fireplace -->
+<!-- Fireplace: moved to the left wall, turned/cropped -->
+<g transform="translate(-150,0) skewY(-6) scale(0.82,1)">
 <rect x="216" y="200" width="128" height="14" rx="3" fill="#7A3E10"/>
 <rect x="206" y="214" width="148" height="88" rx="5" fill="#5A2E0A"/>
 <rect x="224" y="220" width="112" height="78" rx="4" fill="#160800"/>
@@ -1521,6 +1522,7 @@ function buildRoom(){
   <ellipse cx="12" cy="0" rx="7" ry="11" fill="#FF4400" opacity=".6"/>
 </g>
 <ellipse cx="280" cy="297" rx="28" ry="4" fill="#FF1100" opacity=".2"/>
+</g>
 <!-- TV desk/stand -->
 <rect x="466" y="244" width="162" height="14" rx="4" fill="#7A5E30"/>
 <rect x="476" y="258" width="9" height="58" rx="2" fill="#5A4020"/>
@@ -1589,23 +1591,25 @@ function buildRoom(){
 <rect x="240" y="322" width="15" height="14" rx="2" fill="#CC2222" stroke="#8B1111" stroke-width="1"/>
 <path d="M255,325 Q262,325 262,330 Q262,335 255,335" fill="none" stroke="#8B1111" stroke-width="1.8"/>
 <ellipse cx="247.5" cy="322" rx="7.5" ry="2" fill="#8B1111"/>
-<!-- TV remote on the coffee table -->
+<!-- TV remote on the coffee table, angled naturally -->
+<g transform="rotate(28,347,340)">
 <rect x="340" y="323" width="14" height="34" rx="4" fill="#2A2A2A" stroke="#111" stroke-width="1"/>
 <circle cx="347" cy="330" r="2.3" fill="#555"/>
 <rect x="343" y="336" width="8" height="3" rx="1" fill="#444"/>
 <rect x="343" y="341" width="8" height="3" rx="1" fill="#444"/>
 <rect x="343" y="346" width="8" height="3" rx="1" fill="#444"/>
 <circle cx="347" cy="353" r="1.6" fill="#CC3333"/>
+</g>
 
 <!-- Ceiling fan, mounted at the top-center of the room -->
 <g id="fanG">
   <rect x="317" y="0" width="6" height="16" fill="#555" stroke="#333" stroke-width=".8"/>
   <g id="fanBladesG">
-    <polygon points="323.3,30.0 321.6,5.6 318.4,5.6 316.7,30.0" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
-    <polygon points="321.0,31.3 375.7,23.1 374.7,21.8 319.0,28.7" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
-    <polygon points="317.3,30.8 352.8,50.1 355.4,49.3 322.7,29.2" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
-    <polygon points="317.3,29.2 284.6,49.3 287.2,50.1 322.7,30.8" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
-    <polygon points="321.0,28.7 265.3,21.8 264.3,23.1 319.0,31.3" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
+    <polygon points="325.0,27.5 323.5,6.5 316.5,6.5 315.0,27.5" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="327.3,31.2 374.3,24.1 372.2,21.3 324.2,27.2" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="319.5,33.3 350.1,49.9 355.7,48.2 327.6,30.8" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="312.4,30.8 284.3,48.2 289.9,49.9 320.5,33.3" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="315.8,27.2 267.8,21.3 265.7,24.1 312.7,31.2" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
   </g>
   <circle cx="320" cy="30" r="10" fill="#B23A3A" stroke="#7A2222" stroke-width="1.5"/>
   <circle id="fanBulb" cx="320" cy="35" r="7" fill="#999" stroke="#666" stroke-width="1"/>
@@ -2635,7 +2639,7 @@ function isBlocked(raw){
     'paki','pakis',
     'jap','japs',
     'redskin','redskins','injun',
-    'coon','coony','sambo',
+    'coonass','coony','sambo',
     'darkie','darky',
     'gringo','gringos',
     'wop','dago','guido',
@@ -2780,9 +2784,9 @@ function sanitizeName(name,lobby,usedAutoNames){
     if(!n){ n=randomName(lobby,usedAutoNames); wasAuto=true; }
   }
 
-  // Same banned-word filter used in chat also applies to usernames — a
-  // name someone could not say in chat, they cannot use as their name.
-  if(!wasAuto&&isBlocked(n)){ n=randomName(lobby,usedAutoNames); wasAuto=true; }
+  // A typed name containing a banned word is REJECTED, never silently
+  // swapped — the player must see this and pick a different name.
+  if(!wasAuto&&isBlocked(n)){ return {rejected:true}; }
 
   // Hard guarantee: no two active players in the SAME lobby ever end up
   // with an identical displayed name — covers auto-generated names AND
@@ -2804,7 +2808,7 @@ function sanitizeName(name,lobby,usedAutoNames){
   // typed names are the player's own choice and shouldn't restrict them.
   if(wasAuto&&usedAutoNames) usedAutoNames.add(n);
 
-  return n;
+  return {rejected:false,name:n};
 }
 
 function getLobbyState(lobby){
@@ -2872,10 +2876,15 @@ io.on('connection',(socket)=>{
       const mins=Math.ceil(banLeft(socket.id,lobby.code,socket)/60000);
       socket.emit('joinError',{message:`You were kicked. Wait ${mins} min${mins!==1?'s':''} to rejoin.`});return;
     }
+    const nameResult=sanitizeName(name,lobby,usedAutoNames);
+    if(nameResult.rejected){
+      socket.emit('joinError',{message:'❌ Username contains inappropriate content — please choose a different username.'});
+      return;
+    }
+    const cleanName=nameResult.name;
     // Already in a lobby? leave first silently
     if(curLobby&&curPlayer) doRemove(socket.id,curLobby,'left',true);
 
-    const cleanName=sanitizeName(name,lobby,usedAutoNames);
     const seat=assignSeat(lobby);
     if(seat===-1){socket.emit('joinError',{message:'No seats available.'});return;}
 
