@@ -134,12 +134,12 @@ body.game-active{overflow:hidden;}
 /* Lobby list */
 .lobby-scroll{flex:1;overflow-y:auto;min-height:0;}
 .lobby-scroll::-webkit-scrollbar{width:4px;}.lobby-scroll::-webkit-scrollbar-thumb{background:var(--accent-light);border-radius:2px;}
-.lobby-item{display:flex;align-items:flex-start;justify-content:space-between;padding:5px 6px;border-radius:7px;background:var(--lobby-bg);border:1.5px solid var(--lobby-border);margin-bottom:4px;cursor:pointer;transition:all .12s;}
+.lobby-item{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 8px;border-radius:8px;background:var(--lobby-bg);border:1.5px solid var(--lobby-border);margin-bottom:5px;cursor:pointer;transition:all .12s;}
 .lobby-item:hover{background:var(--lobby-hover);}
 .lobby-item.lobby-full{cursor:default;opacity:.72;}
 .lobby-item.lobby-full:hover{background:var(--lobby-bg);}
 .lobby-avatars{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:2px;}
-.lobby-names{font-size:.56rem;font-weight:700;color:var(--text-sub);line-height:1.3;word-break:break-word;}
+.lobby-names{font-size:.66rem;font-weight:700;color:var(--text-sub);line-height:1.4;word-break:break-word;margin-top:2px;}
 .lobby-code-txt{font-family:'Fredoka One',cursive;font-size:.74rem;color:var(--accent-dark);letter-spacing:2px;margin-top:1px;}
 .lobby-cnt{font-size:.64rem;font-weight:700;color:var(--text-muted);text-align:right;flex-shrink:0;}
 .lobby-full-tag{font-size:.52rem;font-weight:800;color:var(--accent-mid);}
@@ -161,7 +161,7 @@ input:checked+.dm-slider::before{transform:translateX(14px);}
 /* ══ GAME ══ */
 #gamePage{display:none;position:fixed;inset:0;z-index:200;flex-direction:row;gap:3px;padding:8px;box-sizing:border-box;background:rgba(0,0,0,.18);align-items:center;justify-content:center;overflow:hidden;}
 
-#playerPanel{width:138px;flex-shrink:0;background:var(--bg-panel);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;}
+#playerPanel{width:152px;flex-shrink:0;background:var(--bg-panel);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;}
 .panel-title{font-family:'Fredoka One',cursive;font-size:.75rem;color:var(--accent-dark);padding:5px 7px 4px;border-bottom:2px solid var(--border-soft);text-align:center;background:var(--bg-hdr);flex-shrink:0;}
 #playerList{flex:1;overflow-y:auto;padding:4px;}
 #playerList::-webkit-scrollbar{width:3px;}#playerList::-webkit-scrollbar-thumb{background:var(--accent-light);border-radius:2px;}
@@ -173,7 +173,7 @@ body.dark .p-entry:nth-child(even){background:rgba(255,255,255,.06);}
 .p-entry:hover{background:var(--accent-subtle);}.p-entry.muted{opacity:.5;}
 body.dark .p-entry:hover{background:#3a3a50;}
 .p-name-wrap{flex:1;min-width:0;}
-.p-name{font-size:.86rem;font-weight:800;color:var(--text-main);white-space:normal;overflow-wrap:break-word;word-break:break-word;line-height:1.15;}
+.p-name{font-size:.72rem;font-weight:800;color:var(--text-main);white-space:normal;overflow-wrap:break-word;word-break:break-word;line-height:1.2;}
 .p-you{font-size:.57rem;color:var(--accent-mid);font-weight:800;display:block;}
 
 #roomWrap{flex:0 0 auto;display:flex;flex-direction:column;min-width:0;gap:3px;}
@@ -284,16 +284,16 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 @keyframes spin{0%{transform:rotate(0deg);}50%{transform:rotate(90deg);}100%{transform:rotate(90deg);}}
 /* ── Responsive breakpoints: ALL devices, ALL browsers ── */
 @media(max-width:600px){
-  #playerPanel{width:90px!important;}#chatPanel{width:110px!important;}
-  .p-name{font-size:.66rem;}.panel-title,.chat-title{font-size:.58rem;}
+  #playerPanel{width:100px!important;}#chatPanel{width:110px!important;}
+  .p-name{font-size:.56rem;}.panel-title,.chat-title{font-size:.58rem;}
   #roomHdr{padding:3px 5px;}.rc-display{font-size:.62rem;}
 }
 @media(max-width:900px){
   .col-left,.col-right{width:160px;}
-  #playerPanel{width:115px;}#chatPanel{width:145px;}
+  #playerPanel{width:128px;}#chatPanel{width:145px;}
   .home-3col{gap:5px;}
   .logo{font-size:1.2rem;}
-  .p-name{font-size:.79rem;}
+  .p-name{font-size:.66rem;}
   .panel-title,.chat-title{font-size:.68rem;}
 }
 @media(max-width:700px){
@@ -304,14 +304,14 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
   .logo{font-size:1.05rem;}
 }
 @media(max-width:560px){
-  #playerPanel{width:94px;}#chatPanel{width:115px;}
-  .p-name{font-size:.69rem;}
+  #playerPanel{width:105px;}#chatPanel{width:115px;}
+  .p-name{font-size:.58rem;}
   .panel-title,.chat-title{font-size:.6rem;}
   .logo{font-size:.9rem;}
 }
 /* Landscape phone specific */
 @media(max-height:500px) and (orientation:landscape){
-  #playerPanel{width:90px;}#chatPanel{width:110px;}
+  #playerPanel{width:100px;}#chatPanel{width:110px;}
   .p-name{font-size:.66rem;}
 }
 
@@ -429,6 +429,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
         </div>
         <p class="tagline-txt">Bored? Join this game to socialize and relax! It's a rainy day in the living room, so use your imagination and find something creative to do. Keep things fun, engaging, and entertaining for everyone.</p>
         <p class="tagline-txt" style="margin-top:5px;">👆 Tap any player's name on the player list to mute or vote kick them.</p>
+        <p class="tagline-txt" style="margin-top:3px;font-weight:800;">👥 <span id="totalPlayersCount">0</span> players online right now</p>
         
       </div>
     </div>
@@ -780,7 +781,7 @@ function applyFanState(){
   const bulb=document.getElementById('fanBulb');
   if(bulb)bulb.setAttribute('fill',fanOn?'#FFD966':'#999');
   const toggle=document.getElementById('fanToggle');
-  if(toggle)toggle.setAttribute('transform',fanOn?'rotate(-20,376,174)':'rotate(20,376,174)');
+  if(toggle)toggle.setAttribute('transform',fanOn?'rotate(-18,394,179)':'rotate(18,394,179)');
   if(!fanAnimId)fanAnimId=requestAnimationFrame(fanAnimLoop);
   if(fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
   else if(!fanOn&&fanWindNode){ stopNode(fanWindNode); fanWindNode=null; }
@@ -1463,21 +1464,24 @@ function buildRoom(){
 <line x1="237" y1="69" x2="240" y2="68.5" stroke="#666" stroke-width=".6"/>
 <line x1="237" y1="70.5" x2="240" y2="70.5" stroke="#666" stroke-width=".6"/>
 <line x1="201" y1="79" x2="241" y2="79" stroke="#B09060" stroke-width=".8" opacity=".5"/>
-<!-- Mirror above the middle couch: fancy frame + glass -->
-<rect x="270" y="130" width="76" height="94" rx="6" fill="#B8860B" stroke="#7A5A08" stroke-width="2.5"/>
-<rect x="277" y="137" width="62" height="80" rx="3" fill="#DCE8F0" stroke="#8FA8B8" stroke-width="1.5"/>
-<polygon points="283,143 300,143 285,205 279,205" fill="rgba(255,255,255,.35)"/>
-<polygon points="310,143 320,143 305,205 297,205" fill="rgba(255,255,255,.22)"/>
-<circle cx="308" cy="128" r="3" fill="#B8860B" stroke="#7A5A08" stroke-width="1"/>
+<!-- Mirror above the middle couch: landscape rectangle, fancy frame + glass -->
+<rect x="248" y="142" width="120" height="76" rx="6" fill="#B8860B" stroke="#7A5A08" stroke-width="2.5"/>
+<rect x="256" y="149" width="104" height="62" rx="3" fill="#DCE8F0" stroke="#8FA8B8" stroke-width="1.5"/>
+<polygon points="264,154 288,154 268,205 258,205" fill="rgba(255,255,255,.35)"/>
+<polygon points="300,154 316,154 296,205 284,205" fill="rgba(255,255,255,.22)"/>
+<circle cx="308" cy="140" r="3" fill="#B8860B" stroke="#7A5A08" stroke-width="1"/>
 <!-- Light switch, wall-mounted, next to the mirror on its right side -->
 <g id="fanSwitchG" style="cursor:pointer;" onclick="toggleFanClick()">
-  <rect x="365" y="158" width="22" height="32" rx="3" fill="#E8E8E4" stroke="#999" stroke-width="1.3"/>
-  <rect x="369" y="162" width="14" height="24" rx="2" fill="#F5F5F2" stroke="#BBB" stroke-width=".8"/>
-  <circle cx="371" cy="164" r="1" fill="#999"/>
-  <circle cx="381" cy="164" r="1" fill="#999"/>
-  <circle cx="371" cy="184" r="1" fill="#999"/>
-  <circle cx="381" cy="184" r="1" fill="#999"/>
-  <rect id="fanToggle" x="373" y="163" width="6" height="11" rx="2" fill="#777" stroke="#444" stroke-width=".6" transform="rotate(20,376,174)"/>
+  <rect x="380" y="155" width="28" height="40" rx="3" fill="#F0F0EC" stroke="#333" stroke-width="1.3"/>
+  <rect x="385" y="160" width="18" height="30" rx="2" fill="#FAFAF8" stroke="#999" stroke-width=".7"/>
+  <text x="394" y="167" text-anchor="middle" font-family="sans-serif" font-size="4.2" font-weight="700" fill="#555">ON</text>
+  <text x="394" y="187" text-anchor="middle" font-family="sans-serif" font-size="4.2" font-weight="700" fill="#555">OFF</text>
+  <circle cx="383" cy="158" r="1" fill="#777"/>
+  <circle cx="405" cy="158" r="1" fill="#777"/>
+  <circle cx="383" cy="192" r="1" fill="#777"/>
+  <circle cx="405" cy="192" r="1" fill="#777"/>
+  <!-- Lever pivots from its base (bottom point) like a real toggle, not its center -->
+  <rect id="fanToggle" x="391" y="167" width="6" height="12" rx="2.5" fill="#888" stroke="#333" stroke-width=".7" transform="rotate(18,394,179)"/>
 </g>
 <!-- Fireplace -->
 <rect x="216" y="200" width="128" height="14" rx="3" fill="#7A3E10"/>
@@ -1596,7 +1600,7 @@ function buildRoom(){
 <!-- Ceiling fan, mounted at the top-center of the room -->
 <g id="fanG">
   <rect x="317" y="0" width="6" height="16" fill="#555" stroke="#333" stroke-width=".8"/>
-  <g id="fanBladesG" style="transform-origin:320px 30px;">
+  <g id="fanBladesG">
     <polygon points="323.3,30.0 321.6,5.6 318.4,5.6 316.7,30.0" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
     <polygon points="321.0,31.3 375.7,23.1 374.7,21.8 319.0,28.7" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
     <polygon points="317.3,30.8 352.8,50.1 355.4,49.3 322.7,29.2" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
@@ -1604,7 +1608,7 @@ function buildRoom(){
     <polygon points="321.0,28.7 265.3,21.8 264.3,23.1 319.0,31.3" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
   </g>
   <circle cx="320" cy="30" r="10" fill="#B23A3A" stroke="#7A2222" stroke-width="1.5"/>
-  <circle id="fanBulb" cx="320" cy="38" r="6" fill="#999" stroke="#666" stroke-width="1"/>
+  <circle id="fanBulb" cx="320" cy="35" r="7" fill="#999" stroke="#666" stroke-width="1"/>
 </g>
 <!-- Wall clock above the TV -->
 <g id="clockG">
@@ -2010,8 +2014,8 @@ function renderList(){
   Object.values(players).forEach(p=>{
     const isMe=p.id===myId,isMuted=muted.has(p.id);
     const div=document.createElement('div');div.className='p-entry'+(isMuted?' muted':'');div.dataset.pid=p.id;
-    const cvs=document.createElement('canvas');cvs.width=186;cvs.height=216;cvs.style.cssText='width:62px;height:72px;display:block;flex-shrink:0;';
-    drawAV(cvs.getContext('2d'),p.avatar||{},93,99,60);
+    const cvs=document.createElement('canvas');cvs.width=132;cvs.height=156;cvs.style.cssText='width:44px;height:52px;display:block;flex-shrink:0;';
+    drawAV(cvs.getContext('2d'),p.avatar||{},66,72,43);
     const nw=document.createElement('div');nw.className='p-name-wrap';
     const nm=document.createElement('div');nm.className='p-name';nm.textContent=p.name;
     nw.appendChild(nm);
@@ -2312,8 +2316,8 @@ function renderLobbies(){
     const div=document.createElement('div');div.className='lobby-item'+(isFull?' lobby-full':'');
     const avRow=document.createElement('div');avRow.className='lobby-avatars';
     (l.players||[]).forEach(p=>{
-      const c=document.createElement('canvas');c.width=22;c.height=26;c.style.cssText='width:22px;height:26px;display:block;';
-      drawAV(c.getContext('2d'),p.avatar||{},11,26*.46,7);avRow.appendChild(c);
+      const c=document.createElement('canvas');c.width=99;c.height=117;c.style.cssText='width:33px;height:39px;display:block;';
+      drawAV(c.getContext('2d'),p.avatar||{},49.5,53.8,32);avRow.appendChild(c);
     });
     const names=document.createElement('div');names.className='lobby-names';names.textContent=(l.players||[]).map(p=>p.name).join(', ');
     const codeEl=document.createElement('div');codeEl.className='lobby-code-txt';codeEl.textContent=l.code;
