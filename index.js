@@ -43,9 +43,9 @@ const INDEX_HTML = `<!DOCTYPE html>
   --lobby-hover:#FFE8B0;
   --inp-bg:#fff;
   /* ── Orange / golden-yellow accent palette ── */
-  --grad-a:#6A3FA0;
-  --grad-b:#8B5FC0;
-  --grad-c:#1F4A2E;
+  --grad-a:#0B2A4A;
+  --grad-b:#1B4D7A;
+  --grad-c:#081C33;
   --accent:#C86000;
   --accent-mid:#D4A000;
   --accent-dark:#A04400;
@@ -106,7 +106,7 @@ body.game-active{overflow:hidden;}
 .feat-picker{display:flex;align-items:center;gap:4px;justify-content:center;padding:2px 0;}
 .feat-arrow{background:#1E9E4A;color:#fff;border:none;border-radius:5px;font-size:.9rem;width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;}
 .feat-arrow:hover{background:#157A38;}
-.feat-label{font-family:'Fredoka One',cursive;font-size:.72rem;color:var(--text-main);flex:1;text-align:center;background:var(--bg-hdr);border-radius:6px;padding:2px 4px;border:1.5px solid var(--border-soft);min-width:60px;}
+.feat-label{display:none;}
 
 .divider{height:1px;background:linear-gradient(90deg,transparent,var(--border-soft),transparent);margin:4px 0;}
 
@@ -117,7 +117,7 @@ body.game-active{overflow:hidden;}
 /* Play section */
 .big-btn{width:100%;padding:7px;border-radius:8px;border:none;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;transition:all .13s;margin-bottom:5px;}
 .big-btn:hover{transform:translateY(-1px);}
-.btn-play{background:linear-gradient(135deg,#1E9E4A,#2DBE5E);color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2);box-shadow:0 3px 12px rgba(0,0,0,.28);}
+.btn-play{background:linear-gradient(135deg,#1E9E4A,#2DBE5E);color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2);box-shadow:0 3px 12px rgba(0,0,0,.28);padding:14px 7px;font-size:.92rem;}
 .code-row{display:flex;gap:4px;}
 .code-inp{flex:1;padding:5px 7px;border-radius:7px;border:2px solid var(--accent);font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;outline:none;text-align:center;color:var(--text-main);background:var(--inp-bg);}
 .code-btn{background:linear-gradient(135deg,#157A38,#1E9E4A);color:#fff;border:none;border-radius:7px;font-family:'Fredoka One',cursive;font-size:.7rem;padding:5px 9px;cursor:pointer;white-space:nowrap;}
@@ -173,7 +173,7 @@ body.dark .p-entry:nth-child(even){background:rgba(255,255,255,.06);}
 .p-entry:hover{background:var(--accent-subtle);}.p-entry.muted{opacity:.5;}
 body.dark .p-entry:hover{background:#3a3a50;}
 .p-name-wrap{flex:1;min-width:0;}
-.p-name{font-size:.72rem;font-weight:800;color:var(--text-main);white-space:normal;overflow-wrap:break-word;word-break:break-word;line-height:1.15;}
+.p-name{font-size:.86rem;font-weight:800;color:var(--text-main);white-space:normal;overflow-wrap:break-word;word-break:break-word;line-height:1.15;}
 .p-you{font-size:.57rem;color:var(--accent-mid);font-weight:800;display:block;}
 
 #roomWrap{flex:0 0 auto;display:flex;flex-direction:column;min-width:0;gap:3px;}
@@ -285,7 +285,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 /* ── Responsive breakpoints: ALL devices, ALL browsers ── */
 @media(max-width:600px){
   #playerPanel{width:90px!important;}#chatPanel{width:110px!important;}
-  .p-name{font-size:.55rem;}.panel-title,.chat-title{font-size:.58rem;}
+  .p-name{font-size:.66rem;}.panel-title,.chat-title{font-size:.58rem;}
   #roomHdr{padding:3px 5px;}.rc-display{font-size:.62rem;}
 }
 @media(max-width:900px){
@@ -293,7 +293,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
   #playerPanel{width:115px;}#chatPanel{width:145px;}
   .home-3col{gap:5px;}
   .logo{font-size:1.2rem;}
-  .p-name{font-size:.66rem;}
+  .p-name{font-size:.79rem;}
   .panel-title,.chat-title{font-size:.68rem;}
 }
 @media(max-width:700px){
@@ -305,14 +305,14 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 }
 @media(max-width:560px){
   #playerPanel{width:94px;}#chatPanel{width:115px;}
-  .p-name{font-size:.58rem;}
+  .p-name{font-size:.69rem;}
   .panel-title,.chat-title{font-size:.6rem;}
   .logo{font-size:.9rem;}
 }
 /* Landscape phone specific */
 @media(max-height:500px) and (orientation:landscape){
   #playerPanel{width:90px;}#chatPanel{width:110px;}
-  .p-name{font-size:.55rem;}
+  .p-name{font-size:.66rem;}
 }
 
 /* ── Holiday theme toggle button ── */
@@ -409,6 +409,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
               <button class="feat-arrow" onclick="next('hat')" title="Hat">▶</button>
             </div>
           </div>
+          <button onclick="resetAvatar()" title="Reset to random look" style="margin-top:4px;background:none;border:1.5px solid var(--border-soft);border-radius:8px;padding:3px 10px;font-size:.85rem;cursor:pointer;color:var(--text-main);">🔄</button>
           <!-- Labels below avatar -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:100%;max-width:200px;">
             <div style="text-align:center;"><div class="feat-label" id="skinLbl" style="font-size:.65rem;padding:1px 4px;"></div></div>
@@ -436,6 +437,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
     <div class="home-col col-right">
       <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
         <h3>🏠 All Lobbies</h3>
+        <p style="font-size:.58rem;color:var(--text-muted);text-align:center;margin:0 0 6px;padding:0 6px;">The Play button joins a random lobby, or tap a lobby here to join it.</p>
         <div class="lobby-scroll"><div id="lobbyList"><div class="no-lob">No open lobbies — be the first!</div></div></div>
       </div>
     </div>
@@ -470,7 +472,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
   <div id="roomWrap">
     <div id="roomHdr">
       <div style="display:flex;align-items:center;gap:8px;">
-        <div><div style="font-size:.52rem;color:var(--text-muted);font-weight:700;">ROOM</div><div class="rc-display" id="rcDisp">-----</div></div>
+        <div><div style="font-size:.52rem;color:var(--text-muted);font-weight:700;">ROOM</div><div style="display:flex;align-items:center;gap:3px;"><div class="rc-display" id="rcDisp">-----</div><button onclick="copyRoomCode()" id="copyRcBtn" style="font-size:.5rem;padding:2px 5px;border-radius:5px;border:1px solid var(--border-soft);background:none;cursor:pointer;color:var(--text-main);">Copy</button></div></div>
         <div class="lobby-count-badge" id="lobbyCnt">1/8</div>
       </div>
       <div style="display:flex;gap:5px;align-items:center;margin-left:auto;">
@@ -754,6 +756,106 @@ window.addEventListener('orientationchange',()=>setTimeout(sizeRoom,60));
 })();
 
 // ═══════════════════════════════════════
+//  CEILING FAN + LIGHT SWITCH + WALL CLOCK
+//  All synced across every player in the lobby via socket state —
+//  identical fan speed/light and clock color for everyone at once.
+// ═══════════════════════════════════════
+let fanOn=false, clockColor='red', clockOffset=0;
+let fanAngle=0, fanSpeed=0, fanAnimId=null, fanWindNode=null;
+let clockIntervalId=null;
+
+function fanAnimLoop(){
+  const targetSpeed=fanOn?14:0;
+  // Ease current speed toward target — real "spins up" / "winds down" feel,
+  // not an instant on/off snap.
+  fanSpeed+=(targetSpeed-fanSpeed)*0.02;
+  if(Math.abs(fanSpeed)<0.01&&targetSpeed===0)fanSpeed=0;
+  fanAngle=(fanAngle+fanSpeed)%360;
+  const bladesEl=document.getElementById('fanBladesG');
+  if(bladesEl)bladesEl.setAttribute('transform','rotate('+fanAngle.toFixed(1)+',320,30)');
+  if(fanSpeed!==0||fanOn){ fanAnimId=requestAnimationFrame(fanAnimLoop); }
+  else{ fanAnimId=null; } // fully stopped — no wasted CPU on a static frame
+}
+function applyFanState(){
+  const bulb=document.getElementById('fanBulb');
+  if(bulb)bulb.setAttribute('fill',fanOn?'#FFD966':'#999');
+  const toggle=document.getElementById('fanToggle');
+  if(toggle)toggle.setAttribute('transform',fanOn?'rotate(-20,376,174)':'rotate(20,376,174)');
+  if(!fanAnimId)fanAnimId=requestAnimationFrame(fanAnimLoop);
+  if(fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
+  else if(!fanOn&&fanWindNode){ stopNode(fanWindNode); fanWindNode=null; }
+}
+function playSwitchClick(){
+  if(sndMuted)return;
+  try{
+    const ac=getAC(),o=ac.createOscillator(),g=ac.createGain();
+    o.type='square';o.connect(g);g.connect(masterGain);
+    o.frequency.setValueAtTime(fanOn?1200:700,ac.currentTime);
+    g.gain.setValueAtTime(.12,ac.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.06);
+    o.start();o.stop(ac.currentTime+.07);
+  }catch(e){}
+}
+function playClockBeep(){ playTone(900,1100,.08,.1); }
+function copyRoomCode(){
+  const code=document.getElementById('rcDisp').textContent;
+  const btn=document.getElementById('copyRcBtn');
+  const showCopied=()=>{ if(btn){const old=btn.textContent;btn.textContent='Copied!';setTimeout(()=>{btn.textContent=old;},1200);} };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(showCopied).catch(()=>{fallbackCopy(code,showCopied);});
+  }else{
+    fallbackCopy(code,showCopied);
+  }
+}
+function fallbackCopy(text,cb){
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    if(cb)cb();
+  }catch(e){}
+}
+function toggleFanClick(){ try{getAC();}catch(e){} socket.emit('toggleFan'); }
+function clockButtonClick(color){ try{getAC();}catch(e){} socket.emit('toggleClockColor',{color}); }
+
+// ── Wall clock: pure Date.now()-based math, synced per-lobby via a random
+//    offset assigned once when the lobby is created — same technique as
+//    the cat's deterministic movement, so every player always computes
+//    the exact same clock time without needing constant server ticks.
+function getClockDisplay(){
+  const cycleSeconds=660*20; // 11 hours × 60 min × 20s-per-displayed-minute
+  const t=Math.floor(Date.now()/1000);
+  const cyclePos=((t+clockOffset*20)%cycleSeconds+cycleSeconds)%cycleSeconds;
+  const minutesElapsed=Math.floor(cyclePos/20);
+  const totalMin=(19*60+minutesElapsed)%1440; // baseline 19:00 = 7:00 PM
+  const hour24=Math.floor(totalMin/60),min=totalMin%60;
+  const period=hour24<12?'AM':'PM';
+  let hour12=hour24%12; if(hour12===0)hour12=12;
+  return hour12+':'+String(min).padStart(2,'0')+' '+period;
+}
+function updateClockDisplay(){
+  const el=document.getElementById('clockText');
+  if(el)el.textContent=getClockDisplay();
+}
+function startClockLoop(){
+  updateClockDisplay();
+  if(clockIntervalId)clearInterval(clockIntervalId);
+  clockIntervalId=setInterval(updateClockDisplay,1000);
+}
+function stopClockLoop(){ if(clockIntervalId){clearInterval(clockIntervalId);clockIntervalId=null;} }
+function applyClockColor(){
+  const el=document.getElementById('clockText');
+  if(el)el.setAttribute('fill',clockColor==='green'?'#3FAE5C':'#CC2222');
+}
+function stopFanAndClock(){
+  fanOn=false;fanSpeed=0;fanAngle=0;
+  if(fanAnimId){cancelAnimationFrame(fanAnimId);fanAnimId=null;}
+  if(fanWindNode){stopNode(fanWindNode);fanWindNode=null;}
+  stopClockLoop();
+}
+
+// ═══════════════════════════════════════
 //  DARK MODE
 // ═══════════════════════════════════════
 let darkMode=false;
@@ -783,9 +885,9 @@ const SKINS=[
 ];
 let skinIdx=1;
 
-const EYES_LIST=['Round','Wide','Dot','Star','Shut','Wink','Anime','Tired','Angry','Happy','Heart','Spiral','Sunglasses','Squint','Cyclops','Dizzy','Sparkle','Cute','Pixel','Hollow','Cross','Sleepy'];
-const MOUTH_LIST=['Smile','Grin','Flat','Sad','Wow','Tongue','Smirk','Teeth','Kiss','Wavy','Oof','Beam','Fangs','Whistle','Drool','BigSmile','Grimace','Pout','Zipper','Cat','Beak','Derp'];
-const HAT_LIST=['None','Cap','TopHat','Beanie','Crown','Bow','Halo','Party','Cowboy','Helmet','Witch','Flower','Glasses','Headband','Chef','Antlers','Viking','Propeller','Tiara','Beret','Pirate','Santa','Fedora','Bucket','Fez','Hardhat','Mohawk','Bunny','Space Helm'];
+const EYES_LIST=['Round','Wide','Dot','Star','Shut','Wink','Anime','Tired','Angry','Happy','Heart','Spiral','Sunglasses','Squint','Cyclops','Dizzy','Sparkle','Cute','Pixel','Hollow','Cross','Sleepy','Curious','Laser'];
+const MOUTH_LIST=['Smile','Grin','Flat','Sad','Wow','Tongue','Smirk','Teeth','Kiss','Wavy','Oof','Beam','Fangs','Whistle','Drool','BigSmile','Grimace','Pout','Zipper','Cat','Beak','Derp','Bubblegum','Yawn'];
+const HAT_LIST=['None','Cap','TopHat','Beanie','Crown','Bow','Halo','Party','Cowboy','Helmet','Witch','Flower','Glasses','Headband','Chef','Antlers','Viking','Propeller','Tiara','Beret','Pirate','Santa','Fedora','Bucket','Fez','Hardhat','Mohawk','Bunny','Space Helm','Burger','Pizza','Cupcake','Frog','BearEars'];
 
 let AV={skin:'#F5C28A',eyes:'Round',mouth:'Smile',hat:'None'};
 let eyesIdx=0,mouthIdx=0,hatIdx=0;
@@ -807,6 +909,17 @@ function next(feat){
   if(feat==='eyes'){eyesIdx=(eyesIdx+1)%EYES_LIST.length;AV.eyes=EYES_LIST[eyesIdx];document.getElementById('eyesLbl').textContent=AV.eyes;}
   else if(feat==='mouth'){mouthIdx=(mouthIdx+1)%MOUTH_LIST.length;AV.mouth=MOUTH_LIST[mouthIdx];document.getElementById('mouthLbl').textContent=AV.mouth;}
   else if(feat==='hat'){hatIdx=(hatIdx+1)%HAT_LIST.length;AV.hat=HAT_LIST[hatIdx];document.getElementById('hatLbl').textContent=AV.hat;}
+  drawHome();saveP();
+}
+function resetAvatar(){
+  // Random skin color, default eyes/mouth, no accessory
+  skinIdx=Math.floor(Math.random()*SKINS.length);
+  eyesIdx=0;mouthIdx=0;hatIdx=0;
+  AV={skin:SKINS[skinIdx].v,eyes:EYES_LIST[0],mouth:MOUTH_LIST[0],hat:HAT_LIST[0]};
+  updSkinLbl();
+  const el=document.getElementById('eyesLbl');if(el)el.textContent=AV.eyes;
+  const ml=document.getElementById('mouthLbl');if(ml)ml.textContent=AV.mouth;
+  const hl=document.getElementById('hatLbl');if(hl)hl.textContent=AV.hat;
   drawHome();saveP();
 }
 
@@ -921,6 +1034,14 @@ function drawEyes(ctx,style,cx,cy,R,LW){
         ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';
         ctx.beginPath();ctx.moveTo(x-R*.13,ey-R*.04);ctx.lineTo(x+R*.13,ey-R*.04);ctx.stroke();
         ctx.fillStyle='#aaddff';ctx.beginPath();ctx.ellipse(x,ey+R*.04,R*.1,R*.06,0,0,Math.PI*2);ctx.fill();break;
+      case'Curious':
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey+R*.02,R*.1,R*.13,0,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*.9;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(x-R*.13,ey-R*.22);ctx.quadraticCurveTo(x,ey-R*.3,x+R*.13,ey-R*.24);ctx.stroke();break;
+      case'Laser':
+        ctx.fillStyle='#FF3333';ctx.beginPath();ctx.arc(x,ey,R*.09,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='rgba(255,50,50,.5)';ctx.lineWidth=R*.05;
+        ctx.beginPath();ctx.moveTo(x,ey);ctx.lineTo(x+(x>cx?R*.7:-R*.7),ey+R*.02);ctx.stroke();break;
     }
   };
   if(style==='Wink'){eye1(exL,false);eye1(exR,true);}
@@ -1017,6 +1138,14 @@ function drawMouth(ctx,style,cx,cy,R,LW){
       ctx.beginPath();ctx.moveTo(cx-R*.12,my);ctx.lineTo(cx,my+R*.16);ctx.lineTo(cx+R*.12,my);ctx.closePath();ctx.fill();ctx.stroke();break;
     case'Derp':
       ctx.beginPath();ctx.moveTo(cx-R*.2,my+R*.04);ctx.quadraticCurveTo(cx-R*.05,my+R*.18,cx+R*.1,my+R*.06);ctx.quadraticCurveTo(cx+R*.2,my,cx+R*.25,my+R*.1);ctx.stroke();break;
+    case'Bubblegum':
+      ctx.beginPath();ctx.moveTo(cx-R*.25,my);ctx.quadraticCurveTo(cx,my+R*.2,cx+R*.25,my);ctx.stroke();
+      ctx.fillStyle='#FF6FD8';ctx.strokeStyle='#CC3DA0';ctx.lineWidth=LW*.7;
+      ctx.beginPath();ctx.arc(cx,my-R*.14,R*.13,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.5)';ctx.beginPath();ctx.arc(cx-R*.04,my-R*.18,R*.04,0,Math.PI*2);ctx.fill();break;
+    case'Yawn':
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(cx,my+R*.1,R*.16,R*.2,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#FF99AA';ctx.beginPath();ctx.ellipse(cx,my+R*.16,R*.08,R*.08,0,0,Math.PI*2);ctx.fill();break;
   }
   ctx.restore();
 }
@@ -1042,11 +1171,11 @@ function drawHat(ctx,style,cx,cy,R,LW){
       ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,hy-R*.78,R*.17,0,Math.PI*2);ctx.fill();ctx.stroke();
       ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillRect(cx-R*.74,hy+R*.12,R*1.48,R*.13);break;
     case'Crown':
-      ctx.fillStyle='#FFD700';ctx.strokeStyle='#AA8800';ctx.lineWidth=LW;
+      ctx.fillStyle='#FFD700';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.moveTo(cx-R*.55,hy+R*.16);ctx.lineTo(cx-R*.55,hy-R*.3);ctx.lineTo(cx-R*.26,hy+R*.02);ctx.lineTo(cx,hy-R*.52);ctx.lineTo(cx+R*.26,hy+R*.02);ctx.lineTo(cx+R*.55,hy-R*.3);ctx.lineTo(cx+R*.55,hy+R*.16);ctx.closePath();ctx.fill();ctx.stroke();
       ['#F00','#0F0','#00F'].forEach((c,i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(cx-R*.24+i*R*.24,hy-R*.04,R*.08,0,Math.PI*2);ctx.fill();});break;
     case'Bow':
-      ctx.fillStyle='#FF69B4';ctx.strokeStyle='#AA2266';ctx.lineWidth=LW;
+      ctx.fillStyle='#FF69B4';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       [[cx-R*.3,hy-R*.2,-.5],[cx+R*.3,hy-R*.2,.5]].forEach(([bx,by,a])=>{ctx.beginPath();ctx.ellipse(bx,by,R*.26,R*.16,a,0,Math.PI*2);ctx.fill();ctx.stroke();});
       ctx.fillStyle='#FF1493';ctx.beginPath();ctx.arc(cx,hy-R*.2,R*.1,0,Math.PI*2);ctx.fill();break;
     case'Halo':
@@ -1058,12 +1187,12 @@ function drawHat(ctx,style,cx,cy,R,LW){
       ctx.fillStyle='#FFD700';[[cx-R*.12,hy-R*.18],[cx+R*.1,hy-R*.35],[cx,hy-R*.06]].forEach(([px,py])=>{ctx.beginPath();ctx.arc(px,py,R*.055,0,Math.PI*2);ctx.fill();});
       ctx.fillStyle='#FF00FF';ctx.beginPath();ctx.arc(cx,hy-R*.76,R*.09,0,Math.PI*2);ctx.fill();break;
     case'Cowboy':
-      ctx.fillStyle='#8B5E3C';ctx.strokeStyle='#5A3A1A';ctx.lineWidth=LW;
+      ctx.fillStyle='#8B5E3C';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.arc(cx,hy-R*.04,R*.52,Math.PI,0,false);ctx.lineTo(cx+R*.52,hy+R*.2);ctx.lineTo(cx-R*.52,hy+R*.2);ctx.closePath();ctx.fill();ctx.stroke();
       ctx.beginPath();ctx.ellipse(cx,hy+R*.2,R*.78,R*.19,0,0,Math.PI*2);ctx.fill();ctx.stroke();
       ctx.fillStyle='#CCAA33';ctx.beginPath();ctx.ellipse(cx,hy+R*.06,R*.36,R*.08,0,0,Math.PI*2);ctx.fill();break;
     case'Helmet':
-      ctx.fillStyle='#3388CC';ctx.strokeStyle='#1155AA';ctx.lineWidth=LW;
+      ctx.fillStyle='#3388CC';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.arc(cx,hy-R*.04,R*.7,Math.PI,0,false);ctx.lineTo(cx+R*.7,hy+R*.26);ctx.lineTo(cx-R*.7,hy+R*.26);ctx.closePath();ctx.fill();ctx.stroke();
       ctx.fillStyle='rgba(180,220,255,.45)';ctx.beginPath();ctx.ellipse(cx-R*.16,hy-R*.22,R*.21,R*.36,-.4,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#CC2222';ctx.fillRect(cx-R*.7,hy+R*.14,R*1.4,R*.12);break;
@@ -1084,7 +1213,7 @@ function drawHat(ctx,style,cx,cy,R,LW){
       ctx.beginPath();ctx.moveTo(cx-R*.49,cy-R*.1);ctx.lineTo(cx-R*.62,cy-R*.04);ctx.stroke();
       ctx.beginPath();ctx.moveTo(cx+R*.49,cy-R*.1);ctx.lineTo(cx+R*.62,cy-R*.04);ctx.stroke();break;
     case'Headband':
-      ctx.fillStyle='#FF3366';ctx.strokeStyle='#CC1144';ctx.lineWidth=LW;
+      ctx.fillStyle='#FF3366';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.ellipse(cx,hy+R*.35,R*.8,R*.22,0,Math.PI,0,true);ctx.fill();ctx.stroke();
       ctx.fillStyle='#FF99AA';ctx.beginPath();ctx.arc(cx,hy+R*.14,R*.14,0,Math.PI*2);ctx.fill();
       starPoly(ctx,cx,hy+R*.14,R*.1,'#FF3366');break;
@@ -1127,11 +1256,11 @@ function drawHat(ctx,style,cx,cy,R,LW){
         ctx.beginPath();ctx.ellipse(R*.18,0,R*.18,R*.08,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
       });break;
     case'Tiara':
-      ctx.fillStyle='#FFD700';ctx.strokeStyle='#AA8800';ctx.lineWidth=LW;
+      ctx.fillStyle='#FFD700';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.moveTo(cx-R*.5,hy+R*.2);ctx.lineTo(cx-R*.5,hy-R*.1);ctx.lineTo(cx-R*.25,hy+R*.05);ctx.lineTo(cx,hy-R*.32);ctx.lineTo(cx+R*.25,hy+R*.05);ctx.lineTo(cx+R*.5,hy-R*.1);ctx.lineTo(cx+R*.5,hy+R*.2);ctx.stroke();
       ctx.fillStyle='#FF88BB';ctx.beginPath();ctx.arc(cx,hy-R*.32,R*.07,0,Math.PI*2);ctx.fill();break;
     case'Beret':
-      ctx.fillStyle='#AA3322';ctx.strokeStyle='#771111';ctx.lineWidth=LW;
+      ctx.fillStyle='#AA3322';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.ellipse(cx+R*.15,hy+R*.08,R*.62,R*.32,-.2,Math.PI,0,true);ctx.fill();ctx.stroke();
       ctx.fillStyle='#CC4433';ctx.beginPath();ctx.arc(cx+R*.42,hy-R*.05,R*.08,0,Math.PI*2);ctx.fill();break;
     case'Pirate':
@@ -1141,7 +1270,7 @@ function drawHat(ctx,style,cx,cy,R,LW){
       ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(cx-R*.2,hy-R*.5);ctx.lineTo(cx,hy-R*.1);ctx.lineTo(cx+R*.2,hy-R*.5);ctx.fill();ctx.stroke();
       ctx.fillStyle='#111';ctx.beginPath();ctx.arc(cx,hy-R*.3,R*.08,0,Math.PI*2);ctx.fill();break;
     case'Santa':
-      ctx.fillStyle='#CC1111';ctx.strokeStyle='#990000';ctx.lineWidth=LW;
+      ctx.fillStyle='#CC1111';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.arc(cx,hy-R*.08,R*.7,Math.PI,0,false);ctx.lineTo(cx+R*.7,hy+R*.28);ctx.lineTo(cx-R*.7,hy+R*.28);ctx.closePath();ctx.fill();ctx.stroke();
       ctx.fillStyle='#fff';ctx.fillRect(cx-R*.72,hy+R*.14,R*1.44,R*.16);
       ctx.beginPath();ctx.arc(cx-R*.1,hy-R*.72,R*.13,0,Math.PI*2);ctx.fill();break;
@@ -1151,17 +1280,17 @@ function drawHat(ctx,style,cx,cy,R,LW){
       ctx.beginPath();ctx.ellipse(cx,hy+R*.06,R*.7,R*.16,0,0,Math.PI*2);ctx.fill();ctx.stroke();
       ctx.fillStyle='#8B6B3D';ctx.fillRect(cx-R*.4,hy-R*.04,R*.8,R*.1);break;
     case'Bucket':
-      ctx.fillStyle='#5577AA';ctx.strokeStyle='#334466';ctx.lineWidth=LW;
+      ctx.fillStyle='#5577AA';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       rrect(ctx,cx-R*.44,hy-R*.55,R*.88,R*.62,R*.08);ctx.fill();ctx.stroke();
       ctx.fillRect(cx-R*.5,hy+R*.04,R*1.0,R*.12);ctx.strokeRect(cx-R*.5,hy+R*.04,R*1.0,R*.12);break;
     case'Fez':
-      ctx.fillStyle='#AA2211';ctx.strokeStyle='#770000';ctx.lineWidth=LW;
+      ctx.fillStyle='#AA2211';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.moveTo(cx-R*.35,hy+R*.1);ctx.lineTo(cx-R*.28,hy-R*.52);ctx.lineTo(cx+R*.28,hy-R*.52);ctx.lineTo(cx+R*.35,hy+R*.1);ctx.closePath();ctx.fill();ctx.stroke();
       ctx.beginPath();ctx.ellipse(cx,hy+R*.1,R*.35,R*.1,0,0,Math.PI*2);ctx.fill();ctx.stroke();
       ctx.fillStyle='#FFD700';ctx.fillRect(cx-R*.02,hy-R*.52,R*.04,R*.14);
       ctx.fillStyle='#111';ctx.beginPath();ctx.arc(cx,hy-R*.52,R*.04,0,Math.PI*2);ctx.fill();break;
     case'Hardhat':
-      ctx.fillStyle='#FFCC00';ctx.strokeStyle='#AA8800';ctx.lineWidth=LW;
+      ctx.fillStyle='#FFCC00';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
       ctx.beginPath();ctx.arc(cx,hy-R*.05,R*.62,Math.PI,0,false);ctx.lineTo(cx+R*.62,hy+R*.18);ctx.lineTo(cx-R*.62,hy+R*.18);ctx.closePath();ctx.fill();ctx.stroke();
       ctx.beginPath();ctx.ellipse(cx,hy+R*.18,R*.72,R*.15,0,0,Math.PI*2);ctx.fill();ctx.stroke();
       ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(cx-R*.15,hy-R*.2,R*.18,R*.3,-.3,0,Math.PI*2);ctx.fill();break;
@@ -1171,18 +1300,73 @@ function drawHat(ctx,style,cx,cy,R,LW){
         ctx.beginPath();ctx.moveTo(cx-R*.06+i*R*.03,hy+R*.05);ctx.lineTo(cx-R*.12+i*R*.06,hy-R*.5-i*R*.08);ctx.lineTo(cx+R*.12-i*R*.06+R*.06,hy-R*.5-i*R*.08);ctx.lineTo(cx+R*.06+i*R*.03,hy+R*.05);ctx.closePath();ctx.fill();ctx.stroke();
       });break;
     case'Bunny':
-      ctx.fillStyle='#EEE';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
-      [[cx-R*.28,hy+R*.04],[cx+R*.08,hy+R*.04]].forEach(([ex,ey2])=>{
-        ctx.beginPath();ctx.ellipse(ex+R*.1,ey2-R*.4,R*.12,R*.4,-.1,0,Math.PI*2);ctx.fill();ctx.stroke();
-        ctx.fillStyle='#FFB0B0';ctx.beginPath();ctx.ellipse(ex+R*.1,ey2-R*.4,R*.06,R*.28,-.1,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='#EEE';
-      });break;
+      // Headband arc across the head, like a real bunny-ear headband
+      ctx.fillStyle='#E8E8E8';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,cy,R*1.06,Math.PI,Math.PI*2,false);ctx.stroke();
+      // Two perky upright ears near the top-center, angled slightly OUTWARD
+      // (not inward/drooping) so they read as cute and alert, not sad.
+      [-1,1].forEach(s=>{
+        ctx.save();
+        ctx.translate(cx+s*R*.22,hy+R*.05);
+        ctx.rotate(s*.16);
+        ctx.fillStyle='#E8E8E8';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+        ctx.beginPath();ctx.ellipse(0,-R*.46,R*.16,R*.48,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#FFB6C1';
+        ctx.beginPath();ctx.ellipse(0,-R*.44,R*.08,R*.34,0,0,Math.PI*2);ctx.fill();
+        ctx.restore();
+      });
+      // Small pink accent dots at the headband ends (matching the reference)
+      ctx.fillStyle='#FF9EAE';
+      ctx.beginPath();ctx.arc(cx-R*1.02,cy+R*.18,R*.055,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(cx+R*1.02,cy+R*.18,R*.055,0,Math.PI*2);ctx.fill();
+      break;
     case'Space Helm':
       ctx.fillStyle='rgba(51,68,85,.6)';ctx.strokeStyle='#1a2233';ctx.lineWidth=LW;
       ctx.beginPath();ctx.arc(cx,cy,R*1.18,0,Math.PI*2);ctx.fill();ctx.stroke();
       ctx.fillStyle='rgba(100,200,255,.3)';ctx.beginPath();ctx.arc(cx,cy,R*1.18,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='#445566';ctx.lineWidth=LW*1.2;
       ctx.beginPath();ctx.arc(cx,cy,R*1.18,0,Math.PI*2);ctx.stroke();break;
+    case'Burger':
+      ctx.fillStyle='#E8A85C';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,hy-R*.14,R*.5,Math.PI,0,false);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#6BA83A';ctx.fillRect(cx-R*.5,hy-R*.16,R*1.0,R*.1);
+      ctx.strokeRect(cx-R*.5,hy-R*.16,R*1.0,R*.1);
+      ctx.fillStyle='#7A4A20';ctx.fillRect(cx-R*.5,hy-R*.04,R*1.0,R*.12);
+      ctx.strokeRect(cx-R*.5,hy-R*.04,R*1.0,R*.12);
+      ctx.fillStyle='#E8A85C';ctx.fillRect(cx-R*.5,hy+R*.1,R*1.0,R*.1);
+      ctx.strokeRect(cx-R*.5,hy+R*.1,R*1.0,R*.1);
+      ctx.fillStyle='#FFD700';[[cx-R*.25,hy-R*.32],[cx,hy-R*.38],[cx+R*.25,hy-R*.32]].forEach(([sx,sy])=>{ctx.beginPath();ctx.arc(sx,sy,R*.04,0,Math.PI*2);ctx.fill();});
+      break;
+    case'Pizza':
+      ctx.save();ctx.translate(cx,hy-R*.1);ctx.rotate(-.15);
+      ctx.fillStyle='#F0C060';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-R*.42,-R*.5);ctx.arc(0,0,R*.65,Math.PI*1.13,Math.PI*1.37);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#CC3322';[[-R*.1,-R*.2],[R*.05,-R*.35],[-R*.22,-R*.38]].forEach(([px,py])=>{ctx.beginPath();ctx.arc(px,py,R*.055,0,Math.PI*2);ctx.fill();});
+      ctx.restore();break;
+    case'Cupcake':
+      ctx.fillStyle='#FFB6D9';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(cx-R*.32,hy+R*.1);ctx.quadraticCurveTo(cx-R*.4,hy-R*.35,cx,hy-R*.42);ctx.quadraticCurveTo(cx+R*.4,hy-R*.35,cx+R*.32,hy+R*.1);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#E85DA0';ctx.beginPath();ctx.arc(cx,hy-R*.42,R*.14,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#FF3366';ctx.beginPath();ctx.arc(cx,hy-R*.56,R*.05,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#7A4A20';ctx.fillRect(cx-R*.34,hy+R*.08,R*.68,R*.12);ctx.strokeRect(cx-R*.34,hy+R*.08,R*.68,R*.12);
+      break;
+    case'Frog':
+      ctx.fillStyle='#5CB85C';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      [-1,1].forEach(s=>{
+        ctx.beginPath();ctx.arc(cx+s*R*.32,hy-R*.02,R*.16,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+s*R*.32,hy-R*.02,R*.09,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(cx+s*R*.32,hy-R*.02,R*.045,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#5CB85C';
+      });
+      ctx.beginPath();ctx.ellipse(cx,hy+R*.1,R*.42,R*.16,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      break;
+    case'BearEars':
+      ctx.fillStyle='#8B5E3C';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      [-1,1].forEach(s=>{
+        ctx.beginPath();ctx.arc(cx+s*R*.4,hy-R*.02,R*.22,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#C89468';ctx.beginPath();ctx.arc(cx+s*R*.4,hy-R*.02,R*.12,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#8B5E3C';
+      });break;
   }
   ctx.restore();
 }
@@ -1238,8 +1422,8 @@ function buildRoom(){
 <rect x="0" y="316" width="640" height="84" fill="#5C3A14"/>
 <line x1="0" y1="330" x2="640" y2="330" stroke="#3E2408" stroke-width="1" opacity=".35"/>
 <line x1="0" y1="348" x2="640" y2="348" stroke="#3E2408" stroke-width="1" opacity=".25"/>
-<rect x="0" y="0" width="640" height="320" fill="#32612D"/>
-<rect x="0" y="310" width="640" height="10" fill="#234620"/>
+<rect x="0" y="0" width="640" height="320" fill="#ECE3A1"/>
+<rect x="0" y="310" width="640" height="10" fill="#D4C87E"/>
 <!-- Window -->
 <rect x="32" y="34" width="126" height="168" rx="5" fill="#0D1A2E" stroke="#6B4C1E" stroke-width="5"/>
 <line x1="95" y1="36" x2="95" y2="200" stroke="#6B4C1E" stroke-width="4"/>
@@ -1249,6 +1433,10 @@ function buildRoom(){
 <rect x="35" y="119" width="58" height="81" fill="#0E1E38" rx="2"/>
 <rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2"/>
 <rect id="lFlash" x="35" y="37" width="117" height="161" fill="white" opacity="0" rx="2"/>
+<!-- Curtains, open style, drawn back on each side of the window -->
+<path d="M20,28 Q10,90 24,168 Q30,180 20,204 L34,204 Q26,180 32,168 Q20,90 34,28 Z" fill="#0F4D92" stroke="#082A52" stroke-width="1.5"/>
+<path d="M168,28 Q178,90 164,168 Q158,180 168,204 L154,204 Q162,180 156,168 Q178,90 154,28 Z" fill="#0F4D92" stroke="#082A52" stroke-width="1.5"/>
+<rect x="16" y="24" width="156" height="7" rx="3" fill="#082A52"/>
 <!-- Wall decor: Kelly Green frame, 2 cats -->
 <rect x="193" y="41" width="56" height="64" rx="3" fill="#4CB817" stroke="#3A9010" stroke-width="2.5"/>
 <rect x="199" y="47" width="44" height="52" rx="2" fill="#EDE0C8"/>
@@ -1275,6 +1463,22 @@ function buildRoom(){
 <line x1="237" y1="69" x2="240" y2="68.5" stroke="#666" stroke-width=".6"/>
 <line x1="237" y1="70.5" x2="240" y2="70.5" stroke="#666" stroke-width=".6"/>
 <line x1="201" y1="79" x2="241" y2="79" stroke="#B09060" stroke-width=".8" opacity=".5"/>
+<!-- Mirror above the middle couch: fancy frame + glass -->
+<rect x="270" y="130" width="76" height="94" rx="6" fill="#B8860B" stroke="#7A5A08" stroke-width="2.5"/>
+<rect x="277" y="137" width="62" height="80" rx="3" fill="#DCE8F0" stroke="#8FA8B8" stroke-width="1.5"/>
+<polygon points="283,143 300,143 285,205 279,205" fill="rgba(255,255,255,.35)"/>
+<polygon points="310,143 320,143 305,205 297,205" fill="rgba(255,255,255,.22)"/>
+<circle cx="308" cy="128" r="3" fill="#B8860B" stroke="#7A5A08" stroke-width="1"/>
+<!-- Light switch, wall-mounted, next to the mirror on its right side -->
+<g id="fanSwitchG" style="cursor:pointer;" onclick="toggleFanClick()">
+  <rect x="365" y="158" width="22" height="32" rx="3" fill="#E8E8E4" stroke="#999" stroke-width="1.3"/>
+  <rect x="369" y="162" width="14" height="24" rx="2" fill="#F5F5F2" stroke="#BBB" stroke-width=".8"/>
+  <circle cx="371" cy="164" r="1" fill="#999"/>
+  <circle cx="381" cy="164" r="1" fill="#999"/>
+  <circle cx="371" cy="184" r="1" fill="#999"/>
+  <circle cx="381" cy="184" r="1" fill="#999"/>
+  <rect id="fanToggle" x="373" y="163" width="6" height="11" rx="2" fill="#777" stroke="#444" stroke-width=".6" transform="rotate(20,376,174)"/>
+</g>
 <!-- Fireplace -->
 <rect x="216" y="200" width="128" height="14" rx="3" fill="#7A3E10"/>
 <rect x="206" y="214" width="148" height="88" rx="5" fill="#5A2E0A"/>
@@ -1329,6 +1533,12 @@ function buildRoom(){
 <!-- TV stand center foot -->
 <rect x="541" y="234" width="24" height="10" rx="2" fill="#222"/>
 <rect x="528" y="242" width="50" height="4" rx="2" fill="#333"/>
+<!-- Mouse and keyboard on the desk -->
+<rect x="486" y="246" width="46" height="9" rx="2" fill="#3A3A3A" stroke="#222" stroke-width=".8"/>
+<rect x="488" y="248" width="9" height="5" rx="1" fill="#555"/>
+<rect x="499" y="248" width="9" height="5" rx="1" fill="#555"/>
+<ellipse cx="605" cy="249" rx="8" ry="11" fill="#3A3A3A" stroke="#222" stroke-width=".8"/>
+<line x1="605" y1="242" x2="605" y2="249" stroke="#222" stroke-width=".8"/>
 <!-- Lamp (keep) -->
 <rect x="473" y="228" width="5" height="18" rx="2" fill="#999"/>
 <line x1="475" y1="228" x2="468" y2="210" stroke="#888" stroke-width="2.5"/>
@@ -1340,44 +1550,79 @@ function buildRoom(){
 <ellipse cx="615" cy="222" rx="8" ry="7" fill="#2EAA2E"/>
 <ellipse cx="626" cy="223" rx="7" ry="6" fill="#1A8A1A"/>
 <!-- Rug -->
-<ellipse cx="307" cy="326" rx="210" ry="22" fill="#4A4A4A"/>
-<ellipse cx="307" cy="326" rx="196" ry="17" fill="#5E5E5E"/>
-<ellipse cx="307" cy="326" rx="175" ry="12" fill="#727272" opacity=".8"/>
+<ellipse cx="307" cy="326" rx="210" ry="22" fill="#B56727"/>
+<ellipse cx="307" cy="326" rx="196" ry="17" fill="#FFAA1D"/>
+<ellipse cx="307" cy="326" rx="175" ry="12" fill="#FFC252" opacity=".85"/>
 <!-- Left chair -->
-<rect x="38" y="250" width="100" height="50" rx="9" fill="#C3B1E1" stroke="#6E5896" stroke-width="2.5"/>
-<rect x="34" y="278" width="108" height="40" rx="7" fill="#D8CCEE" stroke="#6E5896" stroke-width="2"/>
-<rect x="30" y="260" width="13" height="53" rx="6" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<rect x="133" y="260" width="13" height="53" rx="6" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<line x1="87" y1="280" x2="87" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
+<rect x="38" y="250" width="100" height="50" rx="9" fill="#0F4D92" stroke="#082A52" stroke-width="2.5"/>
+<rect x="34" y="278" width="108" height="40" rx="7" fill="#3D74B8" stroke="#082A52" stroke-width="2"/>
+<rect x="30" y="260" width="13" height="53" rx="6" fill="#0A3A70" stroke="#082A52" stroke-width="1.5"/>
+<rect x="133" y="260" width="13" height="53" rx="6" fill="#0A3A70" stroke="#082A52" stroke-width="1.5"/>
+<line x1="87" y1="280" x2="87" y2="316" stroke="#082A52" stroke-width="1.5" opacity=".45"/>
 <!-- Main couch -->
-<rect x="154" y="242" width="308" height="56" rx="11" fill="#C3B1E1" stroke="#6E5896" stroke-width="2.5"/>
-<rect x="150" y="272" width="316" height="46" rx="9" fill="#D8CCEE" stroke="#6E5896" stroke-width="2"/>
-<rect x="143" y="252" width="15" height="62" rx="7" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<rect x="458" y="252" width="15" height="62" rx="7" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<line x1="229" y1="274" x2="229" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
-<line x1="308" y1="274" x2="308" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
-<line x1="387" y1="274" x2="387" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
-<line x1="229" y1="244" x2="229" y2="270" stroke="#6E5896" stroke-width="1" opacity=".3"/>
-<line x1="308" y1="244" x2="308" y2="270" stroke="#6E5896" stroke-width="1" opacity=".3"/>
-<line x1="387" y1="244" x2="387" y2="270" stroke="#6E5896" stroke-width="1" opacity=".3"/>
+<rect x="154" y="242" width="308" height="56" rx="11" fill="#0F4D92" stroke="#082A52" stroke-width="2.5"/>
+<rect x="150" y="272" width="316" height="46" rx="9" fill="#3D74B8" stroke="#082A52" stroke-width="2"/>
+<rect x="143" y="252" width="15" height="62" rx="7" fill="#0A3A70" stroke="#082A52" stroke-width="1.5"/>
+<rect x="458" y="252" width="15" height="62" rx="7" fill="#0A3A70" stroke="#082A52" stroke-width="1.5"/>
+<line x1="229" y1="274" x2="229" y2="316" stroke="#082A52" stroke-width="1.5" opacity=".45"/>
+<line x1="308" y1="274" x2="308" y2="316" stroke="#082A52" stroke-width="1.5" opacity=".45"/>
+<line x1="387" y1="274" x2="387" y2="316" stroke="#082A52" stroke-width="1.5" opacity=".45"/>
+<line x1="229" y1="244" x2="229" y2="270" stroke="#082A52" stroke-width="1" opacity=".3"/>
+<line x1="308" y1="244" x2="308" y2="270" stroke="#082A52" stroke-width="1" opacity=".3"/>
+<line x1="387" y1="244" x2="387" y2="270" stroke="#082A52" stroke-width="1" opacity=".3"/>
 <!-- Right chair -->
-<rect x="504" y="250" width="100" height="50" rx="9" fill="#C3B1E1" stroke="#6E5896" stroke-width="2.5"/>
-<rect x="500" y="278" width="108" height="40" rx="7" fill="#D8CCEE" stroke="#6E5896" stroke-width="2"/>
-<rect x="496" y="260" width="13" height="53" rx="6" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<rect x="599" y="260" width="13" height="53" rx="6" fill="#9E86C4" stroke="#6E5896" stroke-width="1.5"/>
-<line x1="551" y1="280" x2="551" y2="316" stroke="#6E5896" stroke-width="1.5" opacity=".45"/>
+<rect x="504" y="250" width="100" height="50" rx="9" fill="#0F4D92" stroke="#082A52" stroke-width="2.5"/>
+<rect x="500" y="278" width="108" height="40" rx="7" fill="#3D74B8" stroke="#082A52" stroke-width="2"/>
+<rect x="496" y="260" width="13" height="53" rx="6" fill="#0A3A70" stroke="#082A52" stroke-width="1.5"/>
+<rect x="599" y="260" width="13" height="53" rx="6" fill="#0A3A70" stroke="#082A52" stroke-width="1.5"/>
+<line x1="551" y1="280" x2="551" y2="316" stroke="#082A52" stroke-width="1.5" opacity=".45"/>
 <!-- Coffee table -->
 <rect x="174" y="328" width="268" height="30" rx="8" fill="#5A3008" stroke="#3A1E04" stroke-width="2"/>
 <rect x="180" y="331" width="256" height="22" rx="6" fill="#7A5028"/>
 <rect x="186" y="357" width="9" height="12" rx="3" fill="#4A2006"/>
 <rect x="429" y="357" width="9" height="12" rx="3" fill="#4A2006"/>
+<!-- Red mug on the coffee table -->
+<rect x="240" y="322" width="15" height="14" rx="2" fill="#CC2222" stroke="#8B1111" stroke-width="1"/>
+<path d="M255,325 Q262,325 262,330 Q262,335 255,335" fill="none" stroke="#8B1111" stroke-width="1.8"/>
+<ellipse cx="247.5" cy="322" rx="7.5" ry="2" fill="#8B1111"/>
+<!-- TV remote on the coffee table -->
+<rect x="340" y="323" width="14" height="34" rx="4" fill="#2A2A2A" stroke="#111" stroke-width="1"/>
+<circle cx="347" cy="330" r="2.3" fill="#555"/>
+<rect x="343" y="336" width="8" height="3" rx="1" fill="#444"/>
+<rect x="343" y="341" width="8" height="3" rx="1" fill="#444"/>
+<rect x="343" y="346" width="8" height="3" rx="1" fill="#444"/>
+<circle cx="347" cy="353" r="1.6" fill="#CC3333"/>
+
+<!-- Ceiling fan, mounted at the top-center of the room -->
+<g id="fanG">
+  <rect x="317" y="0" width="6" height="16" fill="#555" stroke="#333" stroke-width=".8"/>
+  <g id="fanBladesG" style="transform-origin:320px 30px;">
+    <polygon points="323.3,30.0 321.6,5.6 318.4,5.6 316.7,30.0" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
+    <polygon points="321.0,31.3 375.7,23.1 374.7,21.8 319.0,28.7" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
+    <polygon points="317.3,30.8 352.8,50.1 355.4,49.3 322.7,29.2" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
+    <polygon points="317.3,29.2 284.6,49.3 287.2,50.1 322.7,30.8" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
+    <polygon points="321.0,28.7 265.3,21.8 264.3,23.1 319.0,31.3" fill="#D9A050" stroke="#8B5E20" stroke-width="1"/>
+  </g>
+  <circle cx="320" cy="30" r="10" fill="#B23A3A" stroke="#7A2222" stroke-width="1.5"/>
+  <circle id="fanBulb" cx="320" cy="38" r="6" fill="#999" stroke="#666" stroke-width="1"/>
+</g>
+<!-- Wall clock above the TV -->
+<g id="clockG">
+  <rect x="518" y="66" width="70" height="46" rx="6" fill="#1a1a1a" stroke="#000" stroke-width="1.5"/>
+  <rect x="524" y="72" width="58" height="28" rx="3" fill="#DDE5E0"/>
+  <text id="clockText" x="553" y="91" text-anchor="middle" font-family="monospace" font-weight="700" font-size="13" fill="#CC2222">7:00 PM</text>
+  <circle id="clockRedBtn" cx="533" cy="106" r="4.5" fill="#E14444" stroke="#8B1111" stroke-width="1" style="cursor:pointer;" onclick="clockButtonClick('red')"/>
+  <circle id="clockGreenBtn" cx="573" cy="106" r="4.5" fill="#3FAE5C" stroke="#1E7A38" stroke-width="1" style="cursor:pointer;" onclick="clockButtonClick('green')"/>
+</g>
 <g id="catG"></g>\`;
 }
 
 let fT=0;
 function animFire(){
-  fT+=.032;const sc=1+Math.sin(fT)*.03+Math.cos(fT*2.1)*.012;
-  document.getElementById('fireG')?.setAttribute('transform',\`translate(280,290) scale(1,\${sc})\`);
+  fT+=.026;
+  const sc=1+Math.sin(fT)*.015+Math.cos(fT*2.3)*.006;
+  const sway=Math.sin(fT*1.4)*1.1+Math.sin(fT*3.7)*.4;
+  document.getElementById('fireG')?.setAttribute('transform',\`translate(\${280+sway},290) scale(1,\${sc})\`);
   requestAnimationFrame(animFire);
 }
 function flash(){
@@ -1452,6 +1697,8 @@ function setVolume(v){
   // also pause/resume ambience when muting in-game
   if(document.getElementById('gamePage')&&document.getElementById('gamePage').style.display!=='none'){
     if(sndMuted)stopAmbience(); else if(!sndMuted&&!thunderInt)startAmbience();
+    // Fan wind sound may not have started if it was muted when turned on
+    if(!sndMuted&&typeof fanOn!=='undefined'&&fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
   }
 }
 let _preMuteVol=0.7;
@@ -1517,19 +1764,29 @@ function catNameBlock(x,y){
   for(const s of SEATS){if(Math.abs(x-s.cx)<30&&y>s.sy&&y<s.sy+22)return true;}return false;
 }
 function catTick(){
-  // Deterministic position from UTC time: identical on ALL clients simultaneously
-  const PERIOD=24000,t=Date.now()%PERIOD;
-  const X1=168,X2=456;
+  // Deterministic position from UTC time: identical on ALL clients simultaneously.
+  // The cat now visits 4 different spots around the room in a loop (with a
+  // pause at each) instead of simply pacing back and forth between 2 points.
+  const WAYPOINTS=[70,240,410,560]; // 4 distinct floor positions
+  const WALK_MS=3500, PAUSE_MS=2200;
+  const SEGMENT_MS=WALK_MS+PAUSE_MS;
+  const PERIOD=SEGMENT_MS*WAYPOINTS.length;
+  const t=Date.now()%PERIOD;
+  const segIdx=Math.floor(t/SEGMENT_MS);
+  const segT=t%SEGMENT_MS;
+  const fromX=WAYPOINTS[segIdx];
+  const toX=WAYPOINTS[(segIdx+1)%WAYPOINTS.length];
   cat.surf=0;cat.y=SURFS[0][2];cat.vis=true;
   cat.ft++;if(cat.ft>6){cat.ft=0;cat.frame=(cat.frame+1)%4;}
-  if(t<10000){
-    cat.x=X1+(t/10000)*(X2-X1);cat.dir=1;cat.state='walk';
-  }else if(t<13000){
-    cat.x=X2;cat.dir=-1;cat.state='idle';cat.frame=0;cat.ft=0;
-  }else if(t<23000){
-    cat.x=X2-((t-13000)/10000)*(X2-X1);cat.dir=-1;cat.state='walk';
+  if(segT<WALK_MS){
+    const prog=segT/WALK_MS;
+    cat.x=fromX+(toX-fromX)*prog;
+    cat.dir=toX>fromX?1:-1;
+    cat.state='walk';
   }else{
-    cat.x=X1;cat.dir=1;cat.state='idle';cat.frame=0;cat.ft=0;
+    cat.x=toX;
+    cat.dir=toX>fromX?1:-1;
+    cat.state='idle';cat.frame=0;cat.ft=0;
   }
 }
 function catDecide(){
@@ -1610,17 +1867,48 @@ function playCatMeow(){
   if(sndMuted) return;
   try{
     const ac=getAC();
-    const osc=ac.createOscillator(),fil=ac.createBiquadFilter(),g=ac.createGain();
-    fil.type='bandpass';fil.frequency.value=900;fil.Q.value=2.5;
-    osc.connect(fil);fil.connect(g);g.connect(masterGain);
-    osc.frequency.setValueAtTime(550,ac.currentTime);
-    osc.frequency.linearRampToValueAtTime(1100,ac.currentTime+.18);
-    osc.frequency.linearRampToValueAtTime(750,ac.currentTime+.45);
-    g.gain.setValueAtTime(0,ac.currentTime);
-    g.gain.linearRampToValueAtTime(.11,ac.currentTime+.06);
-    g.gain.setValueAtTime(.11,ac.currentTime+.38);
-    g.gain.linearRampToValueAtTime(0,ac.currentTime+.55);
-    osc.start(ac.currentTime);osc.stop(ac.currentTime+.6);
+    const now=ac.currentTime;
+    const g=ac.createGain();g.connect(masterGain);
+    g.gain.setValueAtTime(0,now);
+    g.gain.linearRampToValueAtTime(.13,now+.05);
+    g.gain.setValueAtTime(.13,now+.32);
+    g.gain.linearRampToValueAtTime(0,now+.5);
+
+    // Two slightly detuned triangle oscillators for a richer "vocal cord"
+    // buzz instead of a single thin sine tone.
+    const fil=ac.createBiquadFilter();
+    fil.type='bandpass';fil.Q.value=3.5;
+    fil.frequency.setValueAtTime(700,now);
+    fil.frequency.linearRampToValueAtTime(1400,now+.16);
+    fil.frequency.linearRampToValueAtTime(600,now+.42);
+    fil.connect(g);
+
+    [0,-9].forEach(detune=>{
+      const osc=ac.createOscillator();
+      osc.type='triangle';
+      osc.detune.value=detune;
+      osc.frequency.setValueAtTime(480,now);
+      osc.frequency.linearRampToValueAtTime(980,now+.15);
+      osc.frequency.linearRampToValueAtTime(620,now+.42);
+      osc.connect(fil);
+      osc.start(now);osc.stop(now+.5);
+    });
+
+    // Tiny vibrato for a less robotic, more animal-like wobble
+    const lfo=ac.createOscillator(),lfoGain=ac.createGain();
+    lfo.frequency.value=7;lfoGain.gain.value=18;
+    lfo.connect(lfoGain);lfoGain.connect(fil.frequency);
+    lfo.start(now);lfo.stop(now+.5);
+
+    // Brief breathy noise at the very start (onset of a real meow)
+    const nbuf=ac.createBuffer(1,ac.sampleRate*.08,ac.sampleRate);
+    const nd=nbuf.getChannelData(0);
+    for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*(1-i/nd.length);
+    const nsrc=ac.createBufferSource(),nfil=ac.createBiquadFilter(),ng=ac.createGain();
+    nfil.type='highpass';nfil.frequency.value=2000;
+    ng.gain.value=.05;
+    nsrc.buffer=nbuf;nsrc.connect(nfil);nfil.connect(ng);ng.connect(masterGain);
+    nsrc.start(now);
   }catch(e){}
 }
 function startCatMeows(){
@@ -1722,8 +2010,8 @@ function renderList(){
   Object.values(players).forEach(p=>{
     const isMe=p.id===myId,isMuted=muted.has(p.id);
     const div=document.createElement('div');div.className='p-entry'+(isMuted?' muted':'');div.dataset.pid=p.id;
-    const cvs=document.createElement('canvas');cvs.width=144;cvs.height=168;cvs.style.cssText='width:48px;height:56px;display:block;flex-shrink:0;';
-    drawAV(cvs.getContext('2d'),p.avatar||{},72,77,47);
+    const cvs=document.createElement('canvas');cvs.width=186;cvs.height=216;cvs.style.cssText='width:62px;height:72px;display:block;flex-shrink:0;';
+    drawAV(cvs.getContext('2d'),p.avatar||{},93,99,60);
     const nw=document.createElement('div');nw.className='p-name-wrap';
     const nm=document.createElement('div');nm.className='p-name';nm.textContent=p.name;
     nw.appendChild(nm);
@@ -1808,9 +2096,16 @@ socket.on('joined',({playerId,seat,lobbyState,code})=>{
   myId=playerId;mySeat=seat;lobbyCode=code;chatCount=0;
   players={};lobbyState.players.forEach(p=>players[p.id]=p);
   document.getElementById('rcDisp').textContent=code;
+  fanOn=!!lobbyState.fanOn;
+  clockColor=lobbyState.clockColor||'red';
+  clockOffset=lobbyState.clockOffset||0;
   showGame();renderPlayers();renderList();
+  applyFanState();applyClockColor();startClockLoop();
   addMsg('<span style="color:#1a7a1a;font-weight:800">✓ You joined!</span>');
 });
+
+socket.on('fanState',({fanOn:on})=>{ fanOn=on; applyFanState(); playSwitchClick(); });
+socket.on('clockColorState',({clockColor:c})=>{ clockColor=c; applyClockColor(); playClockBeep(); });
 
 socket.on('playerJoined',({player,message})=>{
   players[player.id]=player;renderPlayers();renderList();
@@ -1974,6 +2269,7 @@ function leaveGame(skipSocket){
   Object.values(bubbles||{}).forEach(b=>{try{clearTimeout(b.t);b.el.remove();}catch(e){}});bubbles={};
   try{stopAmbience();}catch(e){}
   try{stopCat();}catch(e){}
+  try{stopFanAndClock();}catch(e){}
   if(typeof rAF!=='undefined'&&rAF){cancelAnimationFrame(rAF);rAF=null;}
   // Reset after 3s so future disconnect detection works again in the same session
   setTimeout(()=>{ _intentionalLeave=false; },3000);
@@ -1995,6 +2291,7 @@ function showHome(){
   forceHide(document.getElementById('disconnectOverlay'));
   try{stopAmbience();}catch(e){}
   try{stopCat();}catch(e){}
+  try{stopFanAndClock();}catch(e){}
   if(typeof rAF!=='undefined'&&rAF){cancelAnimationFrame(rAF);rAF=null;}
   _intentionalLeave=false; // reset so future disconnect overlay works
   document.getElementById('homePage').style.display='flex';
@@ -2257,7 +2554,8 @@ function generateCode(){
 
 function createLobby(){
   const code=generateCode();
-  lobbies[code]={code,players:{},seats:new Array(8).fill(null),votes:{},voteTimers:{},createdAt:Date.now()};
+  lobbies[code]={code,players:{},seats:new Array(8).fill(null),votes:{},voteTimers:{},createdAt:Date.now(),
+    fanOn:false, clockColor:'red', clockOffset:Math.floor(Math.random()*660)};
   return lobbies[code];
 }
 
@@ -2299,6 +2597,177 @@ function randomName(lobby,usedAutoNames){
   return name;
 }
 
+// Reused by BOTH the chat filter and the username filter, so nobody can
+// use a word in their name that they could not say in chat.
+function isBlocked(raw){
+  // 1. Normalize: lowercase, strip accents, collapse spaces, l33tspeak
+  let s = raw.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // strip accents
+    .replace(/[@]/g,'a').replace(/[4]/g,'a')
+    .replace(/[3]/g,'e').replace(/[€]/g,'e')
+    .replace(/[1!|]/g,'i').replace(/[0]/g,'o')
+    .replace(/[$5]/g,'s').replace(/[7]/g,'t')
+    .replace(/[+]/g,'t').replace(/[8]/g,'b')
+    .replace(/[9]/g,'g').replace(/[6]/g,'g')
+    .replace(/[xX]/g,'x')
+    .replace(/\s+/g,'')          // remove all spaces (catches s p a c e d)
+    .replace(/[^a-z0-9]/g,'');   // strip all remaining non-alphanumeric
+
+  // 2. URL / contact-sharing patterns (raw, before normalization)
+  const rawLower = raw.toLowerCase();
+  if(/https?:\/\/|www\.|\.com|\.net|\.org|\.io|\.gg|\.ly|\.me|\.co|\.tv/.test(rawLower)) return true;
+  if(/discord\.gg|discordapp|snap(chat)?|instagram|tiktok|onlyfans|telegram/.test(rawLower)) return true;
+  if(/[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(raw)) return true;  // email
+  if(/(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/.test(raw)) return true; // phone
+
+  // 3. Racial & ethnic slurs — blocked regardless of context
+  const racialSlurs = [
+    'nigger','nigga','nigg','n1gg','niga','nigar',
+    'chink','chinc','gook','zipperhead','slant','slanteye',
+    'spic','spick','beaner','wetback',
+    'kike','hymie','heeb',
+    'cracker','honky','whitey',
+    'towelhead','raghead','sandnigger','camel jockey','cameljockey',
+    'paki','pakis',
+    'jap','japs',
+    'redskin','redskins','injun',
+    'coon','coony','sambo',
+    'darkie','darky',
+    'gringo','gringos',
+    'wop','dago','guido',
+    'kraut','krauts',
+    'polack','polacks',
+    'mick','micks',
+    'cholo','cholos',
+  ];
+
+  // 4. Homophobic / transphobic slurs
+  const lgbtSlurs = [
+    'faggot','fagot','fag','fags','fagg',
+    'dyke','dykes',
+    'tranny','trannies',
+    'homo','homos',
+    'queer',  // only block as a slur if combined with hate context — keep simple: block alone
+    'shemale','heshe',
+    'ladyboy',
+    'sissy','sissies',
+  ];
+
+  // 5. Misogynistic / gendered slurs
+  const genderSlurs = [
+    'cunt','cunts',
+    'whore','whores','whor',
+    'slut','sluts',
+    'skank','skanks',
+    'bitch','bitches',  // common insult but also used casually — we include it
+    'hoe','hoes',
+    'thot',
+    'twat','twats',
+  ];
+
+  // 6. Severe sexual content
+  const sexualTerms = [
+    'porn','porno','pornography',
+    'xxx',
+    'hentai',
+    'nsfw',
+    'onlyfans',
+    'nude','nudes','nudity',
+    'naked',
+    'penis','vagina','vulva','anus','rectum','butthole','asshole','arsehole',
+    'cock','cocks',
+    'dick','dicks',
+    'pussy','pussies',
+    'boob','boobs','tits','tit','titties','titty',
+    'cum','cumshot','cumming',
+    'sex','sexy','sexting',
+    'masturbat','masterbat',
+    'orgasm','orgasms',
+    'erection',
+    'blowjob','handjob','footjob',
+    'dildo','vibrator',
+    'rape','raped','raping','rapist',
+    'molestation','molest',
+    'incest',
+    'pedophile','paedophile','pedo','paedo','pedophilia',
+    'lolita','loli',
+    'child porn','cp ',
+  ];
+
+  // 7. Violence / threats / extremism
+  const violenceTerms = [
+    'kill yourself','kys',
+    'kill urself',
+    'i will kill','im gonna kill','gonna kill you',
+    'die bitch','die you','you should die','hope you die',
+    'shoot up','mass shooting','school shooting',
+    'bomb threat','i have a bomb','gonna bomb',
+    'terrorist','terrorism','isis','alqaeda','al-qaeda','jihad',
+    'genocide','ethnic cleansing',
+    'neo nazi','neonazi','nsdap','heil hitler','sieg heil','14 words','88',
+    'white power','white supremacy','kkk',
+    'lynch','lynching',
+    'assault','stab you','gonna stab',
+  ];
+
+  // 8. Self-harm / suicide promotion
+  const selfHarmTerms = [
+    'kill myself','kms',
+    'commit suicide','end my life','end it all',
+    'slit my','cut myself',
+    'how to kill','ways to die',
+    'neck yourself',
+    'rope yourself',
+    'drink bleach',
+    'selfharm','self harm',
+  ];
+
+  // 9. Drug-related (for AdSense compliance)
+  const drugTerms = [
+    'heroin','meth','methamphetamine','cocaine','crack cocaine',
+    'fentanyl','oxycontin','opioid',
+    'buy drugs','sell drugs','drug deal',
+    'weed for sale','weed dealer',
+    'mdma','ecstasy','molly pill',
+  ];
+
+  // 10. Spam / advertising patterns
+  const spamPatterns = [
+    'free robux','free vbucks','free gift card','free money',
+    'click here','click this link','check out my',
+    'subscribe to my','follow me on',
+    'use code ','promo code',
+    'cashapp me','venmo me','paypal me','send me money',
+    'join my server','join our discord',
+    'dm me','dms open',
+  ];
+
+  // Combine all lists and check
+  const allTerms = [
+    ...racialSlurs,
+    ...lgbtSlurs,
+    ...genderSlurs,
+    ...sexualTerms,
+    ...violenceTerms,
+    ...selfHarmTerms,
+    ...drugTerms,
+    ...spamPatterns,
+  ];
+
+  // Check normalized (catches l33tspeak and spaced out versions)
+  for(const term of allTerms){
+    const normTerm = term.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+    if(normTerm && s.includes(normTerm)) return true;
+  }
+
+  // Also check raw lowercase for multi-word phrases (spam patterns, threats)
+  for(const term of [...spamPatterns,...violenceTerms,...selfHarmTerms,...sexualTerms]){
+    if(rawLower.includes(term.toLowerCase())) return true;
+  }
+
+  return false;
+}
+
 function sanitizeName(name,lobby,usedAutoNames){
   let n,wasAuto=false;
   if(!name||!name.trim()){ n=randomName(lobby,usedAutoNames); wasAuto=true; }
@@ -2306,6 +2775,10 @@ function sanitizeName(name,lobby,usedAutoNames){
     n=name.trim().replace(/[<>&"']/g,'').substring(0,16);
     if(!n){ n=randomName(lobby,usedAutoNames); wasAuto=true; }
   }
+
+  // Same banned-word filter used in chat also applies to usernames — a
+  // name someone could not say in chat, they cannot use as their name.
+  if(!wasAuto&&isBlocked(n)){ n=randomName(lobby,usedAutoNames); wasAuto=true; }
 
   // Hard guarantee: no two active players in the SAME lobby ever end up
   // with an identical displayed name — covers auto-generated names AND
@@ -2334,7 +2807,8 @@ function getLobbyState(lobby){
   return {
     code:lobby.code,
     players:Object.values(lobby.players).map(p=>({id:p.id,name:p.name,avatar:p.avatar,seat:p.seat})),
-    count:Object.keys(lobby.players).length
+    count:Object.keys(lobby.players).length,
+    fanOn:lobby.fanOn, clockColor:lobby.clockColor, clockOffset:lobby.clockOffset
   };
 }
 
@@ -2433,174 +2907,6 @@ io.on('connection',(socket)=>{
     //  All filtering happens here — cannot be bypassed by the client.
     //  Returns true if the message should be BLOCKED (not sent).
     // ════════════════════════════════════════════════════════════════════
-    function isBlocked(raw){
-      // 1. Normalize: lowercase, strip accents, collapse spaces, l33tspeak
-      let s = raw.toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // strip accents
-        .replace(/[@]/g,'a').replace(/[4]/g,'a')
-        .replace(/[3]/g,'e').replace(/[€]/g,'e')
-        .replace(/[1!|]/g,'i').replace(/[0]/g,'o')
-        .replace(/[$5]/g,'s').replace(/[7]/g,'t')
-        .replace(/[+]/g,'t').replace(/[8]/g,'b')
-        .replace(/[9]/g,'g').replace(/[6]/g,'g')
-        .replace(/[xX]/g,'x')
-        .replace(/\s+/g,'')          // remove all spaces (catches s p a c e d)
-        .replace(/[^a-z0-9]/g,'');   // strip all remaining non-alphanumeric
-
-      // 2. URL / contact-sharing patterns (raw, before normalization)
-      const rawLower = raw.toLowerCase();
-      if(/https?:\/\/|www\.|\.com|\.net|\.org|\.io|\.gg|\.ly|\.me|\.co|\.tv/.test(rawLower)) return true;
-      if(/discord\.gg|discordapp|snap(chat)?|instagram|tiktok|onlyfans|telegram/.test(rawLower)) return true;
-      if(/[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(raw)) return true;  // email
-      if(/(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/.test(raw)) return true; // phone
-
-      // 3. Racial & ethnic slurs — blocked regardless of context
-      const racialSlurs = [
-        'nigger','nigga','nigg','n1gg','niga','nigar',
-        'chink','chinc','gook','zipperhead','slant','slanteye',
-        'spic','spick','beaner','wetback',
-        'kike','hymie','heeb',
-        'cracker','honky','whitey',
-        'towelhead','raghead','sandnigger','camel jockey','cameljockey',
-        'paki','pakis',
-        'jap','japs',
-        'redskin','redskins','injun',
-        'coon','coony','sambo',
-        'darkie','darky',
-        'gringo','gringos',
-        'wop','dago','guido',
-        'kraut','krauts',
-        'polack','polacks',
-        'mick','micks',
-        'cholo','cholos',
-      ];
-
-      // 4. Homophobic / transphobic slurs
-      const lgbtSlurs = [
-        'faggot','fagot','fag','fags','fagg',
-        'dyke','dykes',
-        'tranny','trannies',
-        'homo','homos',
-        'queer',  // only block as a slur if combined with hate context — keep simple: block alone
-        'shemale','heshe',
-        'ladyboy',
-        'sissy','sissies',
-      ];
-
-      // 5. Misogynistic / gendered slurs
-      const genderSlurs = [
-        'cunt','cunts',
-        'whore','whores','whor',
-        'slut','sluts',
-        'skank','skanks',
-        'bitch','bitches',  // common insult but also used casually — we include it
-        'hoe','hoes',
-        'thot',
-        'twat','twats',
-      ];
-
-      // 6. Severe sexual content
-      const sexualTerms = [
-        'porn','porno','pornography',
-        'xxx',
-        'hentai',
-        'nsfw',
-        'onlyfans',
-        'nude','nudes','nudity',
-        'naked',
-        'penis','vagina','vulva','anus','rectum','butthole','asshole','arsehole',
-        'cock','cocks',
-        'dick','dicks',
-        'pussy','pussies',
-        'boob','boobs','tits','tit','titties','titty',
-        'cum','cumshot','cumming',
-        'sex','sexy','sexting',
-        'masturbat','masterbat',
-        'orgasm','orgasms',
-        'erection',
-        'blowjob','handjob','footjob',
-        'dildo','vibrator',
-        'rape','raped','raping','rapist',
-        'molestation','molest',
-        'incest',
-        'pedophile','paedophile','pedo','paedo','pedophilia',
-        'lolita','loli',
-        'child porn','cp ',
-      ];
-
-      // 7. Violence / threats / extremism
-      const violenceTerms = [
-        'kill yourself','kys',
-        'kill urself',
-        'i will kill','im gonna kill','gonna kill you',
-        'die bitch','die you','you should die','hope you die',
-        'shoot up','mass shooting','school shooting',
-        'bomb threat','i have a bomb','gonna bomb',
-        'terrorist','terrorism','isis','alqaeda','al-qaeda','jihad',
-        'genocide','ethnic cleansing',
-        'neo nazi','neonazi','nsdap','heil hitler','sieg heil','14 words','88',
-        'white power','white supremacy','kkk',
-        'lynch','lynching',
-        'assault','stab you','gonna stab',
-      ];
-
-      // 8. Self-harm / suicide promotion
-      const selfHarmTerms = [
-        'kill myself','kms',
-        'commit suicide','end my life','end it all',
-        'slit my','cut myself',
-        'how to kill','ways to die',
-        'neck yourself',
-        'rope yourself',
-        'drink bleach',
-        'selfharm','self harm',
-      ];
-
-      // 9. Drug-related (for AdSense compliance)
-      const drugTerms = [
-        'heroin','meth','methamphetamine','cocaine','crack cocaine',
-        'fentanyl','oxycontin','opioid',
-        'buy drugs','sell drugs','drug deal',
-        'weed for sale','weed dealer',
-        'mdma','ecstasy','molly pill',
-      ];
-
-      // 10. Spam / advertising patterns
-      const spamPatterns = [
-        'free robux','free vbucks','free gift card','free money',
-        'click here','click this link','check out my',
-        'subscribe to my','follow me on',
-        'use code ','promo code',
-        'cashapp me','venmo me','paypal me','send me money',
-        'join my server','join our discord',
-        'dm me','dms open',
-      ];
-
-      // Combine all lists and check
-      const allTerms = [
-        ...racialSlurs,
-        ...lgbtSlurs,
-        ...genderSlurs,
-        ...sexualTerms,
-        ...violenceTerms,
-        ...selfHarmTerms,
-        ...drugTerms,
-        ...spamPatterns,
-      ];
-
-      // Check normalized (catches l33tspeak and spaced out versions)
-      for(const term of allTerms){
-        const normTerm = term.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
-        if(normTerm && s.includes(normTerm)) return true;
-      }
-
-      // Also check raw lowercase for multi-word phrases (spam patterns, threats)
-      for(const term of [...spamPatterns,...violenceTerms,...selfHarmTerms,...sexualTerms]){
-        if(rawLower.includes(term.toLowerCase())) return true;
-      }
-
-      return false;
-    }
 
     if(isBlocked(msg)){
       // Private notice to sender only — nobody else in the lobby sees anything
@@ -2609,6 +2915,20 @@ io.on('connection',(socket)=>{
     }
 
     io.to(curLobby.code).emit('chat',{senderId:socket.id,senderName:curPlayer.name,message:msg});
+  });
+
+  socket.on('toggleFan',()=>{
+    if(!curLobby)return;
+    curLobby.fanOn=!curLobby.fanOn;
+    io.to(curLobby.code).emit('fanState',{fanOn:curLobby.fanOn});
+  });
+
+  socket.on('toggleClockColor',({color})=>{
+    if(!curLobby)return;
+    if(color!=='red'&&color!=='green')return;
+    if(curLobby.clockColor===color)return; // already that color, no-op
+    curLobby.clockColor=color;
+    io.to(curLobby.code).emit('clockColorState',{clockColor:color});
   });
 
   socket.on('voteKick',({targetId})=>{
