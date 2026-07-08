@@ -572,6 +572,9 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 //  USERNAME VALIDATION
 //  Real-time feedback — green = good, red = blocked
 // ═══════════════════════════════════════
+// Kept IDENTICAL to the server's isBlocked() term set (see server-side filter
+// further down this file) so the live/typing check can never disagree with
+// what happens when the player actually presses Play.
 const USERNAME_BAD_TERMS = [
   // Racial & ethnic slurs
   'nigger','nigga','nigg','n1gg','niga','nigar',
@@ -580,25 +583,40 @@ const USERNAME_BAD_TERMS = [
   'kike','hymie','heeb',
   'cracker','honky','whitey',
   'towelhead','raghead','sandnigger','cameljockey',
-  'paki','pakis','jap','japs','redskin','injun',
-  'coonass','sambo','darkie','darky',
-  'gringo','wop','dago','polack','mick','cholo',
+  'paki','pakis','jap','japs','redskin','redskins','injun',
+  'coonass','coony','sambo','darkie','darky',
+  'gringo','gringos','wop','dago','guido','kraut','krauts',
+  'polack','polacks','mick','micks','cholo','cholos',
   // Homophobic / transphobic
-  'faggot','fagot','fag','dyke','tranny','trannies',
-  'shemale','heshe','ladyboy','sissy',
+  'faggot','fagot','fag','fags','fagg','dyke','dykes',
+  'tranny','trannies','homo','homos','queer',
+  'shemale','heshe','ladyboy','sissy','sissies',
   // Misogynistic
-  'cunt','whore','slut','skank','thot','twat',
+  'cunt','cunts','whore','whores','whor','slut','sluts',
+  'skank','skanks','bitch','bitches','hoe','hoes','thot','twat','twats',
   // Sexual
-  'porn','porno','xxx','hentai','nsfw',
-  'penis','vagina','cock','dick','pussy',
-  'boob','tits','titties','titty',
-  'cum','rape','molest','pedophile','pedo','loli',
-  // Violence / hate
-  'kys','killurself','killyourself',
+  'porn','porno','pornography','xxx','hentai','nsfw','onlyfans',
+  'nude','nudes','nudity','naked',
+  'penis','vagina','vulva','anus','rectum','butthole','asshole','arsehole',
+  'cock','cocks','dick','dicks','pussy','pussies',
+  'boob','boobs','tits','tit','titties','titty',
+  'cum','cumshot','cumming','sex','sexy','sexting',
+  'masturbat','masterbat','orgasm','orgasms','erection',
+  'blowjob','handjob','footjob','dildo','vibrator',
+  'rape','raped','raping','rapist','molestation','molest','incest',
+  'pedophile','paedophile','pedo','paedo','pedophilia','lolita','loli',
+  // Violence / hate / extremism
+  'kys','killurself','killyourself','terrorist','terrorism',
+  'isis','alqaeda','jihad','genocide',
   'neonazi','nsdap','hitlersass','hitlerass','seigheil','siegheil',
-  'whitepower','kkk','kkkmember',
+  'whitepower','kkk','kkkmember','lynch','lynching',
+  // Self-harm
+  'kms','selfharm',
   // Drugs
-  'heroin','cocaine','methamphetamine','fentanyl',
+  'heroin','meth','methamphetamine','cocaine','fentanyl','oxycontin',
+  'opioid','mdma','ecstasy',
+  // Contact-sharing / spam platforms
+  'discordapp','snapchat','instagram','tiktok','telegram',
   // Reserved / impersonation
   'system','admin','administrator','moderator','staffmember',
   'official','owner','operator',
@@ -612,6 +630,7 @@ function normUsername(s){
     .replace(/[1!|]/g,'i').replace(/[0]/g,'o')
     .replace(/[$5]/g,'s').replace(/[7]/g,'t')
     .replace(/[+]/g,'t').replace(/[8]/g,'b')
+    .replace(/[9]/g,'g').replace(/[6]/g,'g')
     .replace(/\\s+/g,'').replace(/[^a-z0-9]/g,'');
 }
 
@@ -780,8 +799,8 @@ function fanAnimLoop(){
 function applyFanState(){
   const bulb=document.getElementById('fanBulb');
   if(bulb)bulb.setAttribute('fill',fanOn?'#FFD966':'#999');
-  const toggle=document.getElementById('fanToggle');
-  if(toggle)toggle.setAttribute('transform',fanOn?'rotate(-22,394,179)':'rotate(0,394,179)');
+  // Switch lever intentionally left untouched here — it stays fully static
+  // (no tilt/rotate) on every tap. Only the click sound + bulb color change.
   if(!fanAnimId)fanAnimId=requestAnimationFrame(fanAnimLoop);
   if(fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
   else if(!fanOn&&fanWindNode){ stopNode(fanWindNode); fanWindNode=null; }
@@ -1483,8 +1502,10 @@ function buildRoom(){
   <!-- Lever pivots from its base (bottom point) like a real toggle, not its center -->
   <rect id="fanToggle" x="391" y="167" width="6" height="12" rx="2.5" fill="#888" stroke="#333" stroke-width=".7" transform="rotate(0,394,179)"/>
 </g>
-<!-- Fireplace: moved to the left wall, turned/cropped -->
-<g transform="translate(-150,0) skewY(-6) scale(0.82,1)">
+<!-- Fireplace: on the left wall, turned fully sideways (even horizontal
+     compression, no skew, so it doesn't look lopsided) and pushed off the
+     left edge of the room frame so only about half is visible -->
+<g transform="translate(-118,0) scale(0.42,1)">
 <rect x="216" y="200" width="128" height="14" rx="3" fill="#7A3E10"/>
 <rect x="206" y="214" width="148" height="88" rx="5" fill="#5A2E0A"/>
 <rect x="224" y="220" width="112" height="78" rx="4" fill="#160800"/>
@@ -1605,11 +1626,11 @@ function buildRoom(){
 <g id="fanG">
   <rect x="317" y="0" width="6" height="16" fill="#555" stroke="#333" stroke-width=".8"/>
   <g id="fanBladesG">
-    <polygon points="325.0,27.5 323.5,6.5 316.5,6.5 315.0,27.5" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
-    <polygon points="327.3,31.2 374.3,24.1 372.2,21.3 324.2,27.2" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
-    <polygon points="319.5,33.3 350.1,49.9 355.7,48.2 327.6,30.8" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
-    <polygon points="312.4,30.8 284.3,48.2 289.9,49.9 320.5,33.3" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
-    <polygon points="315.8,27.2 267.8,21.3 265.7,24.1 312.7,31.2" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="317.5,21.0 322.5,21.0 326.0,3.0 314.0,3.0" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="327.8,24.8 329.3,29.6 347.5,27.4 343.8,16.0" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="327.3,35.8 323.3,38.8 331.0,55.4 340.7,48.3" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="316.7,38.8 312.7,35.8 299.3,48.3 309.0,55.4" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="310.7,29.6 312.2,24.8 296.2,16.0 292.5,27.4" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
   </g>
   <circle cx="320" cy="30" r="10" fill="#B23A3A" stroke="#7A2222" stroke-width="1.5"/>
   <circle id="fanBulb" cx="320" cy="35" r="7" fill="#999" stroke="#666" stroke-width="1"/>
