@@ -569,154 +569,93 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 
 <script>
 // ═══════════════════════════════════════
-//  USERNAME VALIDATION - CLIENT SIDE
-//  Now mirrors the server's isBlocked() exactly.
+//  USERNAME VALIDATION
+//  Real-time feedback — green = good, red = blocked
 // ═══════════════════════════════════════
+const USERNAME_BAD_TERMS = [
+  // Racial & ethnic slurs
+  'nigger','nigga','nigg','n1gg','niga','nigar',
+  'chink','chinc','gook','zipperhead','slant','slanteye',
+  'spic','spick','beaner','wetback',
+  'kike','hymie','heeb',
+  'cracker','honky','whitey',
+  'towelhead','raghead','sandnigger','cameljockey',
+  'paki','pakis','jap','japs','redskin','injun',
+  'coonass','sambo','darkie','darky',
+  'gringo','wop','dago','polack','mick','cholo',
+  // Homophobic / transphobic
+  'faggot','fagot','fag','dyke','tranny','trannies',
+  'shemale','heshe','ladyboy','sissy',
+  // Misogynistic
+  'cunt','whore','slut','skank','thot','twat',
+  // Sexual
+  'porn','porno','xxx','hentai','nsfw',
+  'penis','vagina','cock','dick','pussy',
+  'boob','tits','titties','titty',
+  'cum','rape','molest','pedophile','pedo','loli',
+  // Violence / hate
+  'kys','killurself','killyourself',
+  'neonazi','nsdap','hitlersass','hitlerass','seigheil','siegheil',
+  'whitepower','kkk','kkkmember',
+  // Drugs
+  'heroin','cocaine','methamphetamine','fentanyl',
+  // Reserved / impersonation
+  'system','admin','administrator','moderator','staffmember',
+  'official','owner','operator',
+];
 
-// ── Copy of server's isBlocked logic ──
-function isBlockedClient(raw) {
-  // 1. Normalize: lowercase, strip accents, collapse spaces, l33tspeak
-  let s = raw.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+function normUsername(s){
+  return s.toLowerCase()
+    .normalize('NFD').replace(/[\\u0300-\\u036f]/g,'')
     .replace(/[@]/g,'a').replace(/[4]/g,'a')
     .replace(/[3]/g,'e').replace(/[€]/g,'e')
     .replace(/[1!|]/g,'i').replace(/[0]/g,'o')
     .replace(/[$5]/g,'s').replace(/[7]/g,'t')
     .replace(/[+]/g,'t').replace(/[8]/g,'b')
-    .replace(/[9]/g,'g').replace(/[6]/g,'g')
-    .replace(/[xX]/g,'x')
-    .replace(/\s+/g,'')
-    .replace(/[^a-z0-9]/g,'');
-
-  const rawLower = raw.toLowerCase();
-  // URL / contact-sharing
-  if (/https?:\/\/|www\.|\.com|\.net|\.org|\.io|\.gg|\.ly|\.me|\.co|\.tv/.test(rawLower)) return true;
-  if (/discord\.gg|discordapp|snap(chat)?|instagram|tiktok|onlyfans|telegram/.test(rawLower)) return true;
-  if (/[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(raw)) return true;
-  if (/(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/.test(raw)) return true;
-
-  const racialSlurs = [
-    'nigger','nigga','nigg','n1gg','niga','nigar',
-    'chink','chinc','gook','zipperhead','slant','slanteye',
-    'spic','spick','beaner','wetback',
-    'kike','hymie','heeb',
-    'cracker','honky','whitey',
-    'towelhead','raghead','sandnigger','cameljockey',
-    'paki','pakis','jap','japs','redskin','injun',
-    'coonass','coony','sambo','darkie','darky',
-    'gringo','gringos','wop','dago','guido','kraut','krauts',
-    'polack','polacks','mick','micks','cholo','cholos'
-  ];
-  const lgbtSlurs = [
-    'faggot','fagot','fag','fags','fagg',
-    'dyke','dykes','tranny','trannies',
-    'homo','homos','queer',
-    'shemale','heshe','ladyboy','sissy','sissies'
-  ];
-  const genderSlurs = [
-    'cunt','cunts','whore','whores','whor',
-    'slut','sluts','skank','skanks',
-    'bitch','bitches','hoe','hoes','thot','twat','twats'
-  ];
-  const sexualTerms = [
-    'porn','porno','pornography','xxx','hentai','nsfw','onlyfans',
-    'nude','nudes','nudity','naked',
-    'penis','vagina','vulva','anus','rectum','butthole','asshole','arsehole',
-    'cock','cocks','dick','dicks','pussy','pussies',
-    'boob','boobs','tits','tit','titties','titty',
-    'cum','cumshot','cumming',
-    'sex','sexy','sexting',
-    'masturbat','masterbat','orgasm','orgasms','erection',
-    'blowjob','handjob','footjob','dildo','vibrator',
-    'rape','raped','raping','rapist','molestation','molest','incest',
-    'pedophile','paedophile','pedo','paedo','pedophilia','lolita','loli',
-    'child porn','cp '
-  ];
-  const violenceTerms = [
-    'kill yourself','kys','kill urself',
-    'i will kill','im gonna kill','gonna kill you',
-    'die bitch','die you','you should die','hope you die',
-    'shoot up','mass shooting','school shooting',
-    'bomb threat','i have a bomb','gonna bomb',
-    'terrorist','terrorism','isis','alqaeda','al-qaeda','jihad',
-    'genocide','ethnic cleansing',
-    'neo nazi','neonazi','nsdap','heil hitler','sieg heil','14 words','88',
-    'white power','white supremacy','kkk',
-    'lynch','lynching','assault','stab you','gonna stab'
-  ];
-  const selfHarmTerms = [
-    'kill myself','kms','commit suicide','end my life','end it all',
-    'slit my','cut myself','how to kill','ways to die',
-    'neck yourself','rope yourself','drink bleach','selfharm','self harm'
-  ];
-  const drugTerms = [
-    'heroin','meth','methamphetamine','cocaine','crack cocaine',
-    'fentanyl','oxycontin','opioid',
-    'buy drugs','sell drugs','drug deal',
-    'weed for sale','weed dealer','mdma','ecstasy','molly pill'
-  ];
-  const spamPatterns = [
-    'free robux','free vbucks','free gift card','free money',
-    'click here','click this link','check out my',
-    'subscribe to my','follow me on',
-    'use code ','promo code',
-    'cashapp me','venmo me','paypal me','send me money',
-    'join my server','join our discord','dm me','dms open'
-  ];
-
-  const allTerms = [
-    ...racialSlurs, ...lgbtSlurs, ...genderSlurs,
-    ...sexualTerms, ...violenceTerms, ...selfHarmTerms,
-    ...drugTerms, ...spamPatterns
-  ];
-
-  for (const term of allTerms) {
-    const normTerm = term.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
-    if (normTerm && s.includes(normTerm)) return true;
-  }
-
-  for (const term of [...spamPatterns, ...violenceTerms, ...selfHarmTerms, ...sexualTerms]) {
-    if (rawLower.includes(term.toLowerCase())) return true;
-  }
-
-  return false;
+    .replace(/\\s+/g,'').replace(/[^a-z0-9]/g,'');
 }
 
-// ── Client validation using the exact same filter ──
-function validateUsername(name) {
-  const trimmed = (name || '').trim();
-  if (!trimmed) return { valid: null, msg: null };
-  if (trimmed.length < 2) return { valid: false, msg: '❌ Username is too short — minimum 2 characters.' };
-  if (trimmed.length > 16) return { valid: false, msg: '❌ Username is too long — maximum 16 characters.' };
-  if (isBlockedClient(trimmed)) {
-    return { valid: false, msg: '❌ Username contains inappropriate content — please choose a different username.' };
+function validateUsername(name){
+  const trimmed=(name||'').trim();
+  if(!trimmed) return {valid:null, msg:null};
+  if(trimmed.length<2) return {valid:false, msg:'❌ Username is too short — minimum 2 characters.'};
+  if(trimmed.length>16) return {valid:false, msg:'❌ Username is too long — maximum 16 characters.'};
+  const s=normUsername(trimmed);
+  for(const term of USERNAME_BAD_TERMS){
+    const n=term.replace(/\\s+/g,'').replace(/[^a-z0-9]/g,'');
+    if(n&&s.includes(n)) return {valid:false, msg:'❌ Username contains inappropriate content — please choose a different username.'};
   }
-  return { valid: true, msg: '✅ Username looks good — you\'re all set to join!' };
+  return {valid:true, msg:'✅ Username looks good — you\\'re all set to join!'};
 }
 
-function liveCheckName(val) {
-  const inp = document.getElementById('nameInp');
-  const msg = document.getElementById('nameValidMsg');
-  const { valid, msg: txt } = validateUsername(val);
-  if (valid === null) {
+function liveCheckName(val){
+  const inp=document.getElementById('nameInp');
+  const msg=document.getElementById('nameValidMsg');
+  const {valid,msg:txt}=validateUsername(val);
+  if(valid===null){
     inp.classList.remove('name-ok','name-bad');
-    msg.style.display = 'none';
-  } else if (valid) {
-    inp.classList.remove('name-bad'); inp.classList.add('name-ok');
-    msg.className = 'name-valid-msg valid';
-    msg.textContent = txt;
-    msg.style.display = 'block';
+    msg.style.display='none';
+  } else if(valid){
+    inp.classList.remove('name-bad');inp.classList.add('name-ok');
+    msg.className='name-valid-msg valid';msg.textContent=txt;msg.style.display='block';
   } else {
-    inp.classList.remove('name-ok'); inp.classList.add('name-bad');
-    msg.className = 'name-valid-msg invalid';
-    msg.textContent = txt;
-    msg.style.display = 'block';
+    inp.classList.remove('name-ok');inp.classList.add('name-bad');
+    msg.className='name-valid-msg invalid';msg.textContent=txt;msg.style.display='block';
   }
   saveP();
 }
 
 // ═══════════════════════════════════════
 //  EXTENSION / AD-BLOCKER HARDENING
+//  Some browser extensions (ad blockers, "annoyance" filter
+//  lists, privacy tools) automatically hide fixed-position,
+//  semi-transparent, high-z-index elements because that's the
+//  visual signature of a popup ad — even though our overlays
+//  (kick notice, disconnect notice) are core gameplay UI, not
+//  ads. forceShow() sets display with !important (which beats
+//  any external stylesheet rule an extension injects) and
+//  re-asserts it for 1.5s in case the extension's hiding rule
+//  is applied on a delay.
 // ═══════════════════════════════════════
 function forceShow(el,val){
   if(!el)return;
@@ -746,17 +685,28 @@ function acceptAgeGate(){
 }
 
 // ═══════════════════════════════════════
-//  KICK NOTICE
+//  KICK NOTICE — shown on fresh page load after a hard-reload kick.
+//  Checked at the very top of execution, same reliable pattern as
+//  the age gate above. This is what GUARANTEES the notice appears:
+//  it runs before the socket connects, before any game state exists,
+//  on a completely fresh page — nothing can interfere with it.
 // ═══════════════════════════════════════
 (function(){
   try{
     const raw = localStorage.getItem('cg_kicked_notice');
     if(!raw) return;
-    localStorage.removeItem('cg_kicked_notice');
+    localStorage.removeItem('cg_kicked_notice'); // one-time show
     const data = JSON.parse(raw);
+    // Ignore stale flags older than 30s (e.g. from a previous session
+    // that never got a chance to display it, to avoid ever re-showing
+    // an old kick message on an unrelated later visit)
     if(!data || Date.now() - data.shownAt > 30000) return;
     window._kickedFromCode = data.lobbyCode;
     window._kickedUntil = data.until;
+    // The kickNotice element already exists in the DOM at this point —
+    // this script runs near the end of <body>, after all HTML above it
+    // (including #kickNotice) has already been parsed. No need to wait
+    // for any event; setting it directly here is the most reliable option.
     const kn = document.getElementById('kickNotice');
     const km = document.getElementById('kickMsg');
     if(km) km.textContent = 'You were kicked from this lobby. You cannot rejoin it for 10 minutes — but you can join any other lobby.';
@@ -808,25 +758,30 @@ window.addEventListener('orientationchange',()=>setTimeout(sizeRoom,60));
 
 // ═══════════════════════════════════════
 //  CEILING FAN + LIGHT SWITCH + WALL CLOCK
+//  All synced across every player in the lobby via socket state —
+//  identical fan speed/light and clock color for everyone at once.
 // ═══════════════════════════════════════
 let fanOn=false, clockColor='red', clockOffset=0;
 let fanAngle=0, fanSpeed=0, fanAnimId=null, fanWindNode=null;
 let clockIntervalId=null;
 
 function fanAnimLoop(){
-  const targetSpeed=fanOn?3:0; // slower, realistic spin
+  const targetSpeed=fanOn?7:0;
+  // Ease current speed toward target — real "spins up" / "winds down" feel,
+  // not an instant on/off snap.
   fanSpeed+=(targetSpeed-fanSpeed)*0.02;
   if(Math.abs(fanSpeed)<0.01&&targetSpeed===0)fanSpeed=0;
   fanAngle=(fanAngle+fanSpeed)%360;
   const bladesEl=document.getElementById('fanBladesG');
   if(bladesEl)bladesEl.setAttribute('transform','rotate('+fanAngle.toFixed(1)+',320,30)');
   if(fanSpeed!==0||fanOn){ fanAnimId=requestAnimationFrame(fanAnimLoop); }
-  else{ fanAnimId=null; }
+  else{ fanAnimId=null; } // fully stopped — no wasted CPU on a static frame
 }
 function applyFanState(){
   const bulb=document.getElementById('fanBulb');
   if(bulb)bulb.setAttribute('fill',fanOn?'#FFD966':'#999');
-  // Light switch toggle stays static — no animation
+  const toggle=document.getElementById('fanToggle');
+  if(toggle)toggle.setAttribute('transform',fanOn?'rotate(-22,394,179)':'rotate(0,394,179)');
   if(!fanAnimId)fanAnimId=requestAnimationFrame(fanAnimLoop);
   if(fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
   else if(!fanOn&&fanWindNode){ stopNode(fanWindNode); fanWindNode=null; }
@@ -865,12 +820,16 @@ function fallbackCopy(text,cb){
 function toggleFanClick(){ try{getAC();}catch(e){} socket.emit('toggleFan'); }
 function clockButtonClick(color){ try{getAC();}catch(e){} socket.emit('toggleClockColor',{color}); }
 
+// ── Wall clock: pure Date.now()-based math, synced per-lobby via a random
+//    offset assigned once when the lobby is created — same technique as
+//    the cat's deterministic movement, so every player always computes
+//    the exact same clock time without needing constant server ticks.
 function getClockDisplay(){
-  const cycleSeconds=660*20;
+  const cycleSeconds=660*20; // 11 hours × 60 min × 20s-per-displayed-minute
   const t=Math.floor(Date.now()/1000);
   const cyclePos=((t+clockOffset*20)%cycleSeconds+cycleSeconds)%cycleSeconds;
   const minutesElapsed=Math.floor(cyclePos/20);
-  const totalMin=(19*60+minutesElapsed)%1440;
+  const totalMin=(19*60+minutesElapsed)%1440; // baseline 19:00 = 7:00 PM
   const hour24=Math.floor(totalMin/60),min=totalMin%60;
   const period=hour24<12?'AM':'PM';
   let hour12=hour24%12; if(hour12===0)hour12=12;
@@ -911,7 +870,7 @@ function toggleDark(on){
 (function(){const d=localStorage.getItem('cg_dark');if(d==='1')toggleDark(true);})();
 
 // ═══════════════════════════════════════
-//  FEATURE LISTS & AVATAR
+//  FEATURE LISTS
 // ═══════════════════════════════════════
 const SKINS=[
   {v:'#FF4444',n:'Red'},      {v:'#FF8C42',n:'Orange'},  {v:'#FFD93D',n:'Yellow'},
@@ -954,6 +913,7 @@ function next(feat){
   drawHome();saveP();
 }
 function resetAvatar(){
+  // Random skin color, default eyes/mouth, no accessory
   skinIdx=Math.floor(Math.random()*SKINS.length);
   eyesIdx=0;mouthIdx=0;hatIdx=0;
   AV={skin:SKINS[skinIdx].v,eyes:EYES_LIST[0],mouth:MOUTH_LIST[0],hat:HAT_LIST[0]};
@@ -965,7 +925,7 @@ function resetAvatar(){
 }
 
 // ═══════════════════════════════════════
-//  AVATAR DRAWING (unchanged)
+//  AVATAR DRAWING
 // ═══════════════════════════════════════
 function sCol(s){
   if(s==='sRB')return['#FF3333','#3333FF'];if(s==='sGR')return['#33AA33','#FFDD00'];
@@ -995,17 +955,457 @@ function drawAV(ctx,av,cx,cy,R){
   // Head
   applyFill(ctx,av,()=>{ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);},cx-R,cy-R,R*2,R*2);
   ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  // No ears — clean round head
   drawEyes(ctx,av.eyes||'Round',cx,cy,R,LW);
   drawMouth(ctx,av.mouth||'Smile',cx,cy,R,LW);
   drawHat(ctx,av.hat||'None',cx,cy,R,LW);
 }
 
-// ... (drawEyes, drawMouth, drawHat, drawOnCanvas, saveP, loadP remain identical) ...
-// To keep the response manageable, I'm truncating the repeated code here.
-// In the actual output, the complete file is provided.
-// I'll include the rest of the functions and the buildRoom with the updated fan blades and fireplace.
+function drawEyes(ctx,style,cx,cy,R,LW){
+  const ey=cy-R*.1,exL=cx-R*.3,exR=cx+R*.3;
+  ctx.save();
+  const eye1=(x,wink)=>{
+    if(wink){ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-R*.14,ey);ctx.quadraticCurveTo(x,ey+R*.12,x+R*.14,ey);ctx.stroke();return;}
+    switch(style){
+      case'Round':default:
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey,R*.12,R*.16,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+R*.04,ey-R*.05,R*.045,0,Math.PI*2);ctx.fill();break;
+      case'Wide':
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(x,ey,R*.17,R*.22,0,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*.9;ctx.beginPath();ctx.ellipse(x,ey,R*.17,R*.22,0,0,Math.PI*2);ctx.stroke();
+        ctx.fillStyle='#4488FF';ctx.beginPath();ctx.ellipse(x,ey+R*.03,R*.1,R*.14,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.ellipse(x,ey+R*.03,R*.06,R*.09,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+R*.04,ey-R*.03,R*.04,0,Math.PI*2);ctx.fill();break;
+      case'Dot':ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(x,ey,R*.09,0,Math.PI*2);ctx.fill();break;
+      case'Star':starPoly(ctx,x,ey,R*.22,'#FFD700');break;
+      case'Shut':
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.2;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(x-R*.14,ey);ctx.quadraticCurveTo(x,ey+R*.12,x+R*.14,ey);ctx.stroke();break;
+      case'Anime':
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey,R*.14,R*.21,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#5577FF';ctx.beginPath();ctx.ellipse(x,ey+R*.02,R*.1,R*.15,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#111';ctx.beginPath();ctx.ellipse(x,ey+R*.03,R*.065,R*.1,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+R*.05,ey-R*.05,R*.04,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(x-R*.04,ey+R*.06,R*.025,0,Math.PI*2);ctx.fill();break;
+      case'Tired':
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey+R*.04,R*.11,R*.1,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(40,40,40,.5)';ctx.beginPath();ctx.ellipse(x,ey,R*.13,R*.1,0,Math.PI,0,true);ctx.fill();break;
+      case'Angry':
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey+R*.02,R*.12,R*.14,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+R*.04,ey-R*.02,R*.04,0,Math.PI*2);ctx.fill();break;
+      case'Happy':
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(x-R*.13,ey+R*.04);ctx.quadraticCurveTo(x,ey-R*.13,x+R*.13,ey+R*.04);ctx.stroke();break;
+      case'Heart':
+        ctx.save();ctx.translate(x,ey-.5);ctx.scale(R*.09,R*.09);ctx.fillStyle='#FF3366';
+        ctx.beginPath();ctx.moveTo(0,1);ctx.bezierCurveTo(-1,-.5,-2.5,.5,-1.5,2);ctx.bezierCurveTo(-1,3,0,3.8,0,4);
+        ctx.bezierCurveTo(0,3.8,1,3,1.5,2);ctx.bezierCurveTo(2.5,.5,1,-.5,0,1);ctx.fill();ctx.restore();break;
+      case'Spiral':
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*.8;ctx.beginPath();
+        for(let t=0;t<6.5;t+=.12){const r2=R*.022*t;ctx.lineTo(x+r2*Math.cos(t*1.4),ey+r2*Math.sin(t*1.4));}
+        ctx.stroke();break;
+      case'Squint':
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+        ctx.beginPath();ctx.moveTo(x-R*.14,ey-R*.04);ctx.lineTo(x+R*.14,ey-R*.04);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x-R*.12,ey+R*.04);ctx.lineTo(x+R*.12,ey+R*.04);ctx.stroke();break;
+      case'Cyclops':
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey,R*.18,R*.18,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+R*.06,ey-R*.06,R*.06,0,Math.PI*2);ctx.fill();break;
+      case'Dizzy':
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*.9;
+        [0,1].forEach(i=>{const ang=i*Math.PI*.5+.3;ctx.beginPath();ctx.moveTo(x-R*.12*Math.cos(ang),ey-R*.12*Math.sin(ang));ctx.lineTo(x+R*.12*Math.cos(ang),ey+R*.12*Math.sin(ang));ctx.stroke();});break;
+      case'Sparkle':
+        [[x,ey],[x-R*.09,ey-R*.07],[x+R*.08,ey+R*.07]].forEach(([px,py],i)=>starPoly(ctx,px,py,R*.13*(1-i*.2),'#FFD700'));break;
+      case'Cute':
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(x,ey,R*.09,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#FF88BB';ctx.lineWidth=LW*.8;
+        ctx.beginPath();ctx.arc(x-R*.1,ey+R*.1,R*.08,0,Math.PI*2);ctx.stroke();
+        ctx.beginPath();ctx.arc(x+R*.1,ey+R*.1,R*.08,0,Math.PI*2);ctx.stroke();break;
+      case'Pixel':
+        ctx.fillStyle='#1a1a1a';
+        [[x-R*.06,ey-R*.04],[x,ey-R*.04],[x-R*.06,ey+R*.04],[x,ey+R*.04]].forEach(([px,py])=>{ctx.fillRect(px,py,R*.08,R*.08);});break;
+      case'Hollow':
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+        ctx.beginPath();ctx.ellipse(x,ey,R*.13,R*.16,0,0,Math.PI*2);ctx.stroke();break;
+      case'Cross':
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(x-R*.1,ey-R*.1);ctx.lineTo(x+R*.1,ey+R*.1);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x+R*.1,ey-R*.1);ctx.lineTo(x-R*.1,ey+R*.1);ctx.stroke();break;
+      case'Sleepy':
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.1;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(x-R*.13,ey-R*.04);ctx.lineTo(x+R*.13,ey-R*.04);ctx.stroke();
+        ctx.fillStyle='#aaddff';ctx.beginPath();ctx.ellipse(x,ey+R*.04,R*.1,R*.06,0,0,Math.PI*2);ctx.fill();break;
+      case'Curious':
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.ellipse(x,ey+R*.02,R*.1,R*.13,0,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*.9;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(x-R*.13,ey-R*.22);ctx.quadraticCurveTo(x,ey-R*.3,x+R*.13,ey-R*.24);ctx.stroke();break;
+      case'Laser':
+        ctx.fillStyle='#FF3333';ctx.beginPath();ctx.arc(x,ey,R*.09,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='rgba(255,50,50,.5)';ctx.lineWidth=R*.05;
+        ctx.beginPath();ctx.moveTo(x,ey);ctx.lineTo(x+(x>cx?R*.7:-R*.7),ey+R*.02);ctx.stroke();break;
+    }
+  };
+  if(style==='Wink'){eye1(exL,false);eye1(exR,true);}
+  else if(style==='Sunglasses'){
+    ctx.fillStyle='#111';ctx.strokeStyle='#333';ctx.lineWidth=LW*.8;
+    rrect(ctx,exL-R*.16,ey-R*.12,R*.32,R*.22,R*.07);ctx.fill();ctx.stroke();
+    rrect(ctx,exR-R*.16,ey-R*.12,R*.32,R*.22,R*.07);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(exL+R*.16,ey);ctx.lineTo(exR-R*.16,ey);ctx.strokeStyle='#555';ctx.lineWidth=LW*.7;ctx.stroke();
+    ctx.fillStyle='rgba(0,0,0,.25)';
+    rrect(ctx,exL-R*.16,ey-R*.12,R*.32,R*.22,R*.07);ctx.fill();
+    rrect(ctx,exR-R*.16,ey-R*.12,R*.32,R*.22,R*.07);ctx.fill();
+  }else if(style==='Cyclops'){
+    // Cyclops = 1 big eye in center
+    eye1((exL+exR)/2);
+  }else{eye1(exL);eye1(exR);}
+  ctx.restore();
+}
 
-// ... (all existing avatar drawing functions: drawEyes, drawMouth, drawHat, etc.) ...
+function starPoly(ctx,cx,cy,R,col){
+  ctx.save();ctx.fillStyle=col||'#FFD700';ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=.6;
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a=i*4*Math.PI/5-Math.PI/2,a2=(i*4+2)*Math.PI/5-Math.PI/2;
+    i===0?ctx.moveTo(cx+R*Math.cos(a),cy+R*Math.sin(a)):ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+    ctx.lineTo(cx+R*.42*Math.cos(a2),cy+R*.42*Math.sin(a2));
+  }
+  ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+}
+
+function drawMouth(ctx,style,cx,cy,R,LW){
+  const my=cy+R*.32;
+  ctx.save();ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW*1.05;ctx.lineCap='round';
+  switch(style){
+    case'Smile':ctx.beginPath();ctx.moveTo(cx-R*.28,my-R*.04);ctx.quadraticCurveTo(cx,my+R*.24,cx+R*.28,my-R*.04);ctx.stroke();break;
+    case'Grin':
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(cx-R*.28,my);ctx.quadraticCurveTo(cx,my+R*.28,cx+R*.28,my);ctx.quadraticCurveTo(cx,my+R*.1,cx-R*.28,my);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(cx-R*.28,my);ctx.quadraticCurveTo(cx,my+R*.28,cx+R*.28,my);ctx.stroke();break;
+    case'Flat':ctx.beginPath();ctx.moveTo(cx-R*.22,my);ctx.lineTo(cx+R*.22,my);ctx.stroke();break;
+    case'Sad':ctx.beginPath();ctx.moveTo(cx-R*.27,my+R*.12);ctx.quadraticCurveTo(cx,my-R*.14,cx+R*.27,my+R*.12);ctx.stroke();break;
+    case'Wow':ctx.fillStyle='#333';ctx.strokeStyle='#111';ctx.lineWidth=LW*.8;ctx.beginPath();ctx.ellipse(cx,my+R*.07,R*.12,R*.16,0,0,Math.PI*2);ctx.fill();ctx.stroke();break;
+    case'Tongue':
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(cx-R*.27,my);ctx.quadraticCurveTo(cx,my+R*.22,cx+R*.27,my);ctx.quadraticCurveTo(cx,my+R*.08,cx-R*.27,my);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(cx-R*.27,my);ctx.quadraticCurveTo(cx,my+R*.22,cx+R*.27,my);ctx.stroke();
+      ctx.fillStyle='#FF7799';ctx.beginPath();ctx.ellipse(cx,my+R*.2,R*.1,R*.1,0,0,Math.PI);ctx.fill();break;
+    case'Smirk':ctx.beginPath();ctx.moveTo(cx-R*.12,my+R*.06);ctx.quadraticCurveTo(cx+R*.1,my+R*.2,cx+R*.27,my-R*.02);ctx.stroke();break;
+    case'Teeth':
+      ctx.fillStyle='#fff';rrect(ctx,cx-R*.22,my-R*.02,R*.44,R*.19,R*.04);ctx.fill();ctx.stroke();
+      ctx.strokeStyle='#ccc';ctx.lineWidth=LW*.5;
+      for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(cx-R*.22+i*R*.44/4,my-R*.02);ctx.lineTo(cx-R*.22+i*R*.44/4,my+R*.17);ctx.stroke();}break;
+    case'Kiss':ctx.fillStyle='#FF6699';ctx.strokeStyle='#CC3366';ctx.lineWidth=LW*.7;ctx.beginPath();ctx.arc(cx,my+R*.05,R*.1,0,Math.PI*2);ctx.fill();ctx.stroke();break;
+    case'Wavy':
+      ctx.beginPath();ctx.moveTo(cx-R*.27,my);
+      for(let i=0;i<=4;i++)ctx.quadraticCurveTo(cx-R*.27+i*R*.135+R*.067,my+(i%2?R*.15:-R*.05),cx-R*.27+(i+1)*R*.135,my);
+      ctx.stroke();break;
+    case'Oof':
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(cx,my+R*.1,R*.21,R*.15,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#888';ctx.beginPath();ctx.arc(cx,my+R*.12,R*.07,0,Math.PI*2);ctx.fill();break;
+    case'Beam':
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(cx-R*.28,my-R*.02);ctx.quadraticCurveTo(cx,my+R*.3,cx+R*.28,my-R*.02);ctx.fill();
+      ctx.beginPath();ctx.moveTo(cx-R*.28,my-R*.02);ctx.quadraticCurveTo(cx,my+R*.3,cx+R*.28,my-R*.02);ctx.stroke();
+      ctx.fillStyle='#FFD700';[[cx-R*.1,my+R*.06],[cx+R*.1,my+R*.06]].forEach(([px,py])=>{ctx.beginPath();ctx.arc(px,py,R*.05,0,Math.PI*2);ctx.fill();});break;
+    case'Fangs':
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(cx-R*.27,my);ctx.quadraticCurveTo(cx,my+R*.22,cx+R*.27,my);ctx.quadraticCurveTo(cx,my+R*.08,cx-R*.27,my);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(cx-R*.27,my);ctx.quadraticCurveTo(cx,my+R*.22,cx+R*.27,my);ctx.stroke();
+      ctx.fillStyle='#fff';ctx.strokeStyle='#ccc';ctx.lineWidth=LW*.5;
+      [[cx-R*.14,my],[cx+R*.05,my]].forEach(([fx,fy])=>{ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(fx+R*.05,fy+R*.12);ctx.lineTo(fx+R*.1,fy);ctx.closePath();ctx.fill();ctx.stroke();});break;
+    case'Whistle':
+      ctx.beginPath();ctx.arc(cx,my+R*.06,R*.09,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='#aaa';ctx.beginPath();ctx.arc(cx,my+R*.06,R*.05,0,Math.PI*2);ctx.fill();break;
+    case'Drool':
+      ctx.beginPath();ctx.moveTo(cx-R*.22,my-R*.04);ctx.quadraticCurveTo(cx,my+R*.2,cx+R*.22,my-R*.04);ctx.stroke();
+      ctx.strokeStyle='#AADDFF';ctx.lineWidth=LW*.9;
+      ctx.beginPath();ctx.moveTo(cx+R*.1,my+R*.1);ctx.quadraticCurveTo(cx+R*.14,my+R*.28,cx+R*.1,my+R*.38);ctx.stroke();
+      ctx.fillStyle='#AADDFF';ctx.beginPath();ctx.ellipse(cx+R*.1,my+R*.42,R*.05,R*.07,0,0,Math.PI*2);ctx.fill();break;
+    case'BigSmile':
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(cx-R*.35,my-R*.04);ctx.quadraticCurveTo(cx,my+R*.38,cx+R*.35,my-R*.04);ctx.quadraticCurveTo(cx,my+R*.1,cx-R*.35,my-R*.04);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(cx-R*.35,my-R*.04);ctx.quadraticCurveTo(cx,my+R*.38,cx+R*.35,my-R*.04);ctx.stroke();break;
+    case'Grimace':
+      ctx.fillStyle='#fff';rrect(ctx,cx-R*.25,my-R*.02,R*.5,R*.2,R*.04);ctx.fill();ctx.stroke();
+      ctx.strokeStyle='#999';ctx.lineWidth=LW*.5;
+      for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(cx-R*.25+i*R*.5/5,my);ctx.lineTo(cx-R*.25+i*R*.5/5,my+R*.18);ctx.stroke();}break;
+    case'Pout':
+      ctx.beginPath();ctx.moveTo(cx-R*.2,my+R*.1);ctx.quadraticCurveTo(cx,my+R*.02,cx+R*.2,my+R*.1);ctx.stroke();
+      ctx.fillStyle='#FF99AA';ctx.beginPath();ctx.ellipse(cx,my+R*.06,R*.12,R*.07,0,0,Math.PI*2);ctx.fill();break;
+    case'Zipper':
+      ctx.beginPath();ctx.moveTo(cx-R*.22,my);ctx.lineTo(cx+R*.22,my);ctx.stroke();
+      ctx.lineWidth=LW*.6;ctx.strokeStyle='#888';
+      for(let i=0;i<5;i++){const xi=cx-R*.2+i*R*.1;ctx.beginPath();ctx.moveTo(xi,my);ctx.lineTo(xi,my+R*.1);ctx.stroke();}break;
+    case'Cat':
+      ctx.beginPath();ctx.moveTo(cx-R*.22,my);ctx.quadraticCurveTo(cx-R*.1,my+R*.15,cx,my);ctx.quadraticCurveTo(cx+R*.1,my+R*.15,cx+R*.22,my);ctx.stroke();
+      ctx.fillStyle='#FF9999';ctx.beginPath();ctx.ellipse(cx,my+R*.06,R*.06,R*.05,0,0,Math.PI*2);ctx.fill();break;
+    case'Beak':
+      ctx.fillStyle='#FFA500';ctx.strokeStyle='#CC7700';ctx.lineWidth=LW*.8;
+      ctx.beginPath();ctx.moveTo(cx-R*.12,my);ctx.lineTo(cx,my+R*.16);ctx.lineTo(cx+R*.12,my);ctx.closePath();ctx.fill();ctx.stroke();break;
+    case'Derp':
+      ctx.beginPath();ctx.moveTo(cx-R*.2,my+R*.04);ctx.quadraticCurveTo(cx-R*.05,my+R*.18,cx+R*.1,my+R*.06);ctx.quadraticCurveTo(cx+R*.2,my,cx+R*.25,my+R*.1);ctx.stroke();break;
+    case'Bubblegum':
+      ctx.beginPath();ctx.moveTo(cx-R*.25,my);ctx.quadraticCurveTo(cx,my+R*.2,cx+R*.25,my);ctx.stroke();
+      ctx.fillStyle='#FF6FD8';ctx.strokeStyle='#CC3DA0';ctx.lineWidth=LW*.7;
+      ctx.beginPath();ctx.arc(cx,my-R*.14,R*.13,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.5)';ctx.beginPath();ctx.arc(cx-R*.04,my-R*.18,R*.04,0,Math.PI*2);ctx.fill();break;
+    case'Yawn':
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(cx,my+R*.1,R*.16,R*.2,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#FF99AA';ctx.beginPath();ctx.ellipse(cx,my+R*.16,R*.08,R*.08,0,0,Math.PI*2);ctx.fill();break;
+  }
+  ctx.restore();
+}
+
+function drawHat(ctx,style,cx,cy,R,LW){
+  if(style==='None')return;
+  ctx.save();const hy=cy-R;
+  switch(style){
+    case'Cap':
+      ctx.fillStyle='#2255CC';ctx.strokeStyle='#111';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,hy-R*.08,R*.55,Math.PI,0,false);ctx.lineTo(cx+R*.55,hy+R*.22);ctx.lineTo(cx-R*.55,hy+R*.22);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx+R*.32,hy+R*.22,R*.4,R*.11,-.15,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.22)';ctx.fillRect(cx-R*.52,hy+R*.05,R*1.04,R*.1);
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,hy-R*.6,R*.06,0,Math.PI*2);ctx.fill();break;
+    case'TopHat':
+      ctx.fillStyle='#111';ctx.strokeStyle='#444';ctx.lineWidth=LW;
+      rrect(ctx,cx-R*.42,hy-R*.7,R*.84,R*.76,R*.06);ctx.fill();ctx.stroke();
+      ctx.fillRect(cx-R*.58,hy+R*.04,R*1.16,R*.18);ctx.strokeRect(cx-R*.58,hy+R*.04,R*1.16,R*.18);
+      ctx.fillStyle='#FF4444';ctx.fillRect(cx-R*.42,hy-R*.08,R*.84,R*.1);break;
+    case'Beanie':
+      ctx.fillStyle='#CC1133';ctx.strokeStyle='#111';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,hy-R*.08,R*.74,Math.PI,0,false);ctx.lineTo(cx+R*.74,hy+R*.3);ctx.lineTo(cx-R*.74,hy+R*.3);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,hy-R*.78,R*.17,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillRect(cx-R*.74,hy+R*.12,R*1.48,R*.13);break;
+    case'Crown':
+      ctx.fillStyle='#FFD700';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(cx-R*.55,hy+R*.16);ctx.lineTo(cx-R*.55,hy-R*.3);ctx.lineTo(cx-R*.26,hy+R*.02);ctx.lineTo(cx,hy-R*.52);ctx.lineTo(cx+R*.26,hy+R*.02);ctx.lineTo(cx+R*.55,hy-R*.3);ctx.lineTo(cx+R*.55,hy+R*.16);ctx.closePath();ctx.fill();ctx.stroke();
+      ['#F00','#0F0','#00F'].forEach((c,i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(cx-R*.24+i*R*.24,hy-R*.04,R*.08,0,Math.PI*2);ctx.fill();});break;
+    case'Bow':
+      ctx.fillStyle='#FF69B4';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      [[cx-R*.3,hy-R*.2,-.5],[cx+R*.3,hy-R*.2,.5]].forEach(([bx,by,a])=>{ctx.beginPath();ctx.ellipse(bx,by,R*.26,R*.16,a,0,Math.PI*2);ctx.fill();ctx.stroke();});
+      ctx.fillStyle='#FF1493';ctx.beginPath();ctx.arc(cx,hy-R*.2,R*.1,0,Math.PI*2);ctx.fill();break;
+    case'Halo':
+      ctx.strokeStyle='#FFD700';ctx.lineWidth=R*.13;ctx.shadowColor='#FFD700';ctx.shadowBlur=8;
+      ctx.beginPath();ctx.ellipse(cx,hy-R*.24,R*.54,R*.16,0,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;break;
+    case'Party':
+      ctx.fillStyle='#FF5500';ctx.strokeStyle='#111';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(cx-R*.35,hy+R*.1);ctx.lineTo(cx,hy-R*.72);ctx.lineTo(cx+R*.35,hy+R*.1);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#FFD700';[[cx-R*.12,hy-R*.18],[cx+R*.1,hy-R*.35],[cx,hy-R*.06]].forEach(([px,py])=>{ctx.beginPath();ctx.arc(px,py,R*.055,0,Math.PI*2);ctx.fill();});
+      ctx.fillStyle='#FF00FF';ctx.beginPath();ctx.arc(cx,hy-R*.76,R*.09,0,Math.PI*2);ctx.fill();break;
+    case'Cowboy':
+      ctx.fillStyle='#8B5E3C';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,hy-R*.04,R*.52,Math.PI,0,false);ctx.lineTo(cx+R*.52,hy+R*.2);ctx.lineTo(cx-R*.52,hy+R*.2);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx,hy+R*.2,R*.78,R*.19,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#CCAA33';ctx.beginPath();ctx.ellipse(cx,hy+R*.06,R*.36,R*.08,0,0,Math.PI*2);ctx.fill();break;
+    case'Helmet':
+      ctx.fillStyle='#3388CC';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,hy-R*.04,R*.7,Math.PI,0,false);ctx.lineTo(cx+R*.7,hy+R*.26);ctx.lineTo(cx-R*.7,hy+R*.26);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(180,220,255,.45)';ctx.beginPath();ctx.ellipse(cx-R*.16,hy-R*.22,R*.21,R*.36,-.4,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#CC2222';ctx.fillRect(cx-R*.7,hy+R*.14,R*1.4,R*.12);break;
+    case'Witch':
+      ctx.fillStyle='#1a1a1a';ctx.strokeStyle='#333';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(cx,hy-R*1.05);ctx.lineTo(cx-R*.4,hy+R*.14);ctx.lineTo(cx+R*.4,hy+R*.14);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx,hy+R*.14,R*.66,R*.17,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#9933CC';ctx.beginPath();ctx.ellipse(cx,hy+R*.14,R*.56,R*.1,0,0,Math.PI*2);ctx.fill();break;
+    case'Flower':
+      ['#FF6699','#FF9933','#FFDD00','#99FF66','#66AAFF'].forEach((c,i)=>{
+        const a=i*Math.PI*2/5;ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(cx+R*.34*Math.cos(a),hy-R*.22+R*.34*Math.sin(a),R*.19,R*.13,a,0,Math.PI*2);ctx.fill();
+      });
+      ctx.fillStyle='#FFD700';ctx.beginPath();ctx.arc(cx,hy-R*.22,R*.14,0,Math.PI*2);ctx.fill();break;
+    case'Glasses':
+      ctx.strokeStyle='#8B4513';ctx.lineWidth=LW*.9;ctx.fillStyle='rgba(150,220,255,.3)';
+      [[cx-R*.3],[cx+R*.3]].forEach(([gx])=>{ctx.beginPath();ctx.arc(gx,cy-R*.1,R*.19,0,Math.PI*2);ctx.fill();ctx.stroke();});
+      ctx.beginPath();ctx.moveTo(cx-R*.11,cy-R*.1);ctx.lineTo(cx+R*.11,cy-R*.1);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx-R*.49,cy-R*.1);ctx.lineTo(cx-R*.62,cy-R*.04);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx+R*.49,cy-R*.1);ctx.lineTo(cx+R*.62,cy-R*.04);ctx.stroke();break;
+    case'Headband':
+      ctx.fillStyle='#FF3366';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.ellipse(cx,hy+R*.35,R*.8,R*.22,0,Math.PI,0,true);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#FF99AA';ctx.beginPath();ctx.arc(cx,hy+R*.14,R*.14,0,Math.PI*2);ctx.fill();
+      starPoly(ctx,cx,hy+R*.14,R*.1,'#FF3366');break;
+    case'Chef':
+      ctx.fillStyle='#fff';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      // Puffy cloud-like top: several overlapping circles for a classic
+      // chef's toque silhouette — taller and poofier than a flat dome.
+      ctx.beginPath();
+      ctx.arc(cx-R*.26,hy-R*.36,R*.24,0,Math.PI*2);
+      ctx.arc(cx+R*.26,hy-R*.36,R*.24,0,Math.PI*2);
+      ctx.arc(cx-R*.12,hy-R*.58,R*.22,0,Math.PI*2);
+      ctx.arc(cx+R*.12,hy-R*.58,R*.22,0,Math.PI*2);
+      ctx.arc(cx,hy-R*.7,R*.2,0,Math.PI*2);
+      ctx.arc(cx,hy-R*.32,R*.32,0,Math.PI*2);
+      ctx.fill();ctx.stroke();
+      // Narrow band at the base — clearly distinct from the poof above it
+      ctx.fillStyle='#fff';ctx.strokeStyle='#1a1a1a';
+      ctx.beginPath();ctx.rect(cx-R*.42,hy-R*.14,R*.84,R*.26);ctx.fill();ctx.stroke();
+      break;
+    case'Antlers':
+      ctx.strokeStyle='#8B5E3C';ctx.lineWidth=R*.09;ctx.lineCap='round';
+      [-1,1].forEach(s=>{
+        const ax=cx+s*R*.3,ay=hy+R*.03;
+        ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax+s*R*.1,ay-R*.6);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(ax+s*R*.05,ay-R*.3);ctx.lineTo(ax+s*R*.3,ay-R*.5);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(ax+s*R*.08,ay-R*.45);ctx.lineTo(ax+s*R*.28,ay-R*.62);ctx.stroke();
+      });break;
+    case'Viking':
+      ctx.fillStyle='#777';ctx.strokeStyle='#444';ctx.lineWidth=LW;
+      rrect(ctx,cx-R*.6,hy-R*.6,R*1.2,R*.72,R*.1);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#FFD700';
+      ctx.beginPath();ctx.ellipse(cx-R*.6,hy,R*.1,R*.24,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx+R*.6,hy,R*.1,R*.24,0,0,Math.PI*2);ctx.fill();ctx.stroke();break;
+    case'Propeller':
+      ctx.fillStyle='#CC3311';ctx.strokeStyle='#111';ctx.lineWidth=LW*.8;
+      ctx.beginPath();ctx.arc(cx,hy-R*.3,R*.12,0,Math.PI*2);ctx.fill();ctx.stroke();
+      [0,1,2].forEach(i=>{
+        const a=i*Math.PI*2/3;ctx.save();ctx.translate(cx,hy-R*.3);ctx.rotate(a);
+        ctx.fillStyle=['#FF4444','#4444FF','#44AA44'][i];
+        ctx.beginPath();ctx.ellipse(R*.18,0,R*.18,R*.08,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+      });break;
+    case'Tiara':
+      ctx.fillStyle='#FFD700';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(cx-R*.5,hy+R*.2);ctx.lineTo(cx-R*.5,hy-R*.1);ctx.lineTo(cx-R*.25,hy+R*.05);ctx.lineTo(cx,hy-R*.32);ctx.lineTo(cx+R*.25,hy+R*.05);ctx.lineTo(cx+R*.5,hy-R*.1);ctx.lineTo(cx+R*.5,hy+R*.2);ctx.stroke();
+      ctx.fillStyle='#FF88BB';ctx.beginPath();ctx.arc(cx,hy-R*.32,R*.07,0,Math.PI*2);ctx.fill();break;
+    case'Beret':
+      ctx.fillStyle='#AA3322';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.ellipse(cx+R*.15,hy+R*.08,R*.62,R*.32,-.2,Math.PI,0,true);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#CC4433';ctx.beginPath();ctx.arc(cx+R*.42,hy-R*.05,R*.08,0,Math.PI*2);ctx.fill();break;
+    case'Pirate':
+      ctx.fillStyle='#111';ctx.strokeStyle='#333';ctx.lineWidth=LW;
+      rrect(ctx,cx-R*.42,hy-R*.7,R*.84,R*.74,R*.06);ctx.fill();ctx.stroke();
+      ctx.fillRect(cx-R*.58,hy+R*.02,R*1.16,R*.18);ctx.strokeRect(cx-R*.58,hy+R*.02,R*1.16,R*.18);
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(cx-R*.2,hy-R*.5);ctx.lineTo(cx,hy-R*.1);ctx.lineTo(cx+R*.2,hy-R*.5);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#111';ctx.beginPath();ctx.arc(cx,hy-R*.3,R*.08,0,Math.PI*2);ctx.fill();break;
+    case'Santa':
+      ctx.fillStyle='#CC1111';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,hy-R*.08,R*.7,Math.PI,0,false);ctx.lineTo(cx+R*.7,hy+R*.28);ctx.lineTo(cx-R*.7,hy+R*.28);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#fff';ctx.fillRect(cx-R*.72,hy+R*.14,R*1.44,R*.16);
+      ctx.beginPath();ctx.arc(cx-R*.1,hy-R*.72,R*.13,0,Math.PI*2);ctx.fill();break;
+    case'Fedora':
+      ctx.fillStyle='#4A3020';ctx.strokeStyle='#2A1A0A';ctx.lineWidth=LW;
+      rrect(ctx,cx-R*.4,hy-R*.5,R*.8,R*.55,R*.08);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx,hy+R*.06,R*.7,R*.16,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#8B6B3D';ctx.fillRect(cx-R*.4,hy-R*.04,R*.8,R*.1);break;
+    case'Bucket':
+      ctx.fillStyle='#5577AA';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      rrect(ctx,cx-R*.44,hy-R*.55,R*.88,R*.62,R*.08);ctx.fill();ctx.stroke();
+      ctx.fillRect(cx-R*.5,hy+R*.04,R*1.0,R*.12);ctx.strokeRect(cx-R*.5,hy+R*.04,R*1.0,R*.12);break;
+    case'Fez':
+      ctx.fillStyle='#AA2211';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(cx-R*.35,hy+R*.1);ctx.lineTo(cx-R*.28,hy-R*.52);ctx.lineTo(cx+R*.28,hy-R*.52);ctx.lineTo(cx+R*.35,hy+R*.1);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx,hy+R*.1,R*.35,R*.1,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#FFD700';ctx.fillRect(cx-R*.02,hy-R*.52,R*.04,R*.14);
+      ctx.fillStyle='#111';ctx.beginPath();ctx.arc(cx,hy-R*.52,R*.04,0,Math.PI*2);ctx.fill();break;
+    case'Hardhat':
+      ctx.fillStyle='#FFCC00';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,hy-R*.05,R*.62,Math.PI,0,false);ctx.lineTo(cx+R*.62,hy+R*.18);ctx.lineTo(cx-R*.62,hy+R*.18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx,hy+R*.18,R*.72,R*.15,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(cx-R*.15,hy-R*.2,R*.18,R*.3,-.3,0,Math.PI*2);ctx.fill();break;
+    case'Mohawk':
+      ['#FF3333','#FF8800','#FFDD00','#33DD33','#3388FF'].forEach((c,i)=>{
+        ctx.fillStyle=c;ctx.strokeStyle='#111';ctx.lineWidth=LW*.6;
+        ctx.beginPath();ctx.moveTo(cx-R*.06+i*R*.03,hy+R*.05);ctx.lineTo(cx-R*.12+i*R*.06,hy-R*.5-i*R*.08);ctx.lineTo(cx+R*.12-i*R*.06+R*.06,hy-R*.5-i*R*.08);ctx.lineTo(cx+R*.06+i*R*.03,hy+R*.05);ctx.closePath();ctx.fill();ctx.stroke();
+      });break;
+    case'Bunny':
+      // Headband arc across the head, like a real bunny-ear headband
+      ctx.fillStyle='#E8E8E8';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,cy,R*1.06,Math.PI,Math.PI*2,false);ctx.stroke();
+      // Two perky upright ears near the top-center, angled slightly OUTWARD
+      // (not inward/drooping) so they read as cute and alert, not sad.
+      [-1,1].forEach(s=>{
+        ctx.save();
+        ctx.translate(cx+s*R*.22,hy+R*.05);
+        ctx.rotate(s*.16);
+        ctx.fillStyle='#E8E8E8';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+        ctx.beginPath();ctx.ellipse(0,-R*.46,R*.16,R*.48,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#FFB6C1';
+        ctx.beginPath();ctx.ellipse(0,-R*.44,R*.08,R*.34,0,0,Math.PI*2);ctx.fill();
+        ctx.restore();
+      });
+      // Small pink accent dots at the headband ends (matching the reference)
+      ctx.fillStyle='#FF9EAE';
+      ctx.beginPath();ctx.arc(cx-R*1.02,cy+R*.18,R*.055,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(cx+R*1.02,cy+R*.18,R*.055,0,Math.PI*2);ctx.fill();
+      break;
+    case'Space Helm':
+      ctx.fillStyle='rgba(51,68,85,.6)';ctx.strokeStyle='#1a2233';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,cy,R*1.18,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(100,200,255,.3)';ctx.beginPath();ctx.arc(cx,cy,R*1.18,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#445566';ctx.lineWidth=LW*1.2;
+      ctx.beginPath();ctx.arc(cx,cy,R*1.18,0,Math.PI*2);ctx.stroke();break;
+    case'Burger':
+      ctx.fillStyle='#E8A85C';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.arc(cx,hy-R*.14,R*.5,Math.PI,0,false);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#6BA83A';ctx.fillRect(cx-R*.5,hy-R*.16,R*1.0,R*.1);
+      ctx.strokeRect(cx-R*.5,hy-R*.16,R*1.0,R*.1);
+      ctx.fillStyle='#7A4A20';ctx.fillRect(cx-R*.5,hy-R*.04,R*1.0,R*.12);
+      ctx.strokeRect(cx-R*.5,hy-R*.04,R*1.0,R*.12);
+      ctx.fillStyle='#E8A85C';ctx.fillRect(cx-R*.5,hy+R*.1,R*1.0,R*.1);
+      ctx.strokeRect(cx-R*.5,hy+R*.1,R*1.0,R*.1);
+      ctx.fillStyle='#FFD700';[[cx-R*.25,hy-R*.32],[cx,hy-R*.38],[cx+R*.25,hy-R*.32]].forEach(([sx,sy])=>{ctx.beginPath();ctx.arc(sx,sy,R*.04,0,Math.PI*2);ctx.fill();});
+      break;
+    case'Pizza':
+      ctx.save();ctx.translate(cx,hy-R*.1);ctx.rotate(-.15);
+      ctx.fillStyle='#F0C060';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-R*.42,-R*.5);ctx.arc(0,0,R*.65,Math.PI*1.13,Math.PI*1.37);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#CC3322';[[-R*.1,-R*.2],[R*.05,-R*.35],[-R*.22,-R*.38]].forEach(([px,py])=>{ctx.beginPath();ctx.arc(px,py,R*.055,0,Math.PI*2);ctx.fill();});
+      ctx.restore();break;
+    case'Cupcake':
+      ctx.fillStyle='#FFB6D9';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      ctx.beginPath();ctx.moveTo(cx-R*.32,hy+R*.1);ctx.quadraticCurveTo(cx-R*.4,hy-R*.35,cx,hy-R*.42);ctx.quadraticCurveTo(cx+R*.4,hy-R*.35,cx+R*.32,hy+R*.1);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#E85DA0';ctx.beginPath();ctx.arc(cx,hy-R*.42,R*.14,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#FF3366';ctx.beginPath();ctx.arc(cx,hy-R*.56,R*.05,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#7A4A20';ctx.fillRect(cx-R*.34,hy+R*.08,R*.68,R*.12);ctx.strokeRect(cx-R*.34,hy+R*.08,R*.68,R*.12);
+      break;
+    case'Frog':
+      ctx.fillStyle='#5CB85C';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      [-1,1].forEach(s=>{
+        ctx.beginPath();ctx.arc(cx+s*R*.32,hy-R*.02,R*.16,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+s*R*.32,hy-R*.02,R*.09,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(cx+s*R*.32,hy-R*.02,R*.045,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#5CB85C';
+      });
+      ctx.beginPath();ctx.ellipse(cx,hy+R*.1,R*.42,R*.16,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      break;
+    case'BearEars':
+      ctx.fillStyle='#8B5E3C';ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;
+      [-1,1].forEach(s=>{
+        ctx.beginPath();ctx.arc(cx+s*R*.4,hy-R*.02,R*.22,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#C89468';ctx.beginPath();ctx.arc(cx+s*R*.4,hy-R*.02,R*.12,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#8B5E3C';
+      });break;
+  }
+  ctx.restore();
+}
+
+function drawOnCanvas(canvas,av,R){
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawAV(ctx,av,canvas.width/2,canvas.height*.46,R||canvas.width*.3);
+}
+function drawHome(){drawOnCanvas(document.getElementById('avCanvas'),AV,96);}
+
+// ── Persist
+function saveP(){
+  localStorage.setItem('cg_n',document.getElementById('nameInp').value);
+  localStorage.setItem('cg_av',JSON.stringify({...AV,skinIdx,eyesIdx,mouthIdx,hatIdx}));
+}
+function loadP(){
+  const n=localStorage.getItem('cg_n'),a=localStorage.getItem('cg_av');
+  if(n)document.getElementById('nameInp').value=n;
+  if(a){
+    try{
+      const p=JSON.parse(a);
+      AV={skin:p.skin||'#F5C28A',eyes:p.eyes||'Round',mouth:p.mouth||'Smile',hat:p.hat||'None'};
+      skinIdx=Math.max(0,SKINS.findIndex(s=>s.v===AV.skin));
+      eyesIdx=Math.max(0,EYES_LIST.indexOf(AV.eyes));
+      mouthIdx=Math.max(0,MOUTH_LIST.indexOf(AV.mouth));
+      hatIdx=Math.max(0,HAT_LIST.indexOf(AV.hat));
+    }catch(e){}
+  }
+  updSkinLbl();
+  liveCheckName(document.getElementById('nameInp').value);
+  document.getElementById('eyesLbl').textContent=AV.eyes;
+  document.getElementById('mouthLbl').textContent=AV.mouth;
+  document.getElementById('hatLbl').textContent=AV.hat;
+  drawHome();
+}
+loadP();
+document.getElementById('nameInp').addEventListener('input',saveP);
 
 // ═══════════════════════════════════════
 //  LIVING ROOM — viewBox 640×400
@@ -1034,7 +1434,7 @@ function buildRoom(){
 <rect x="35" y="119" width="58" height="81" fill="#0E1E38" rx="2"/>
 <rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2"/>
 <rect id="lFlash" x="35" y="37" width="117" height="161" fill="white" opacity="0" rx="2"/>
-<!-- Curtains -->
+<!-- Curtains, open style, drawn back on each side of the window -->
 <path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#0F4D92" stroke="#082A52" stroke-width="1.5"/>
 <path d="M174,26 Q186,90 168,170 Q160,182 172,206 L150,206 Q158,182 152,170 Q172,90 150,26 Z" fill="#0F4D92" stroke="#082A52" stroke-width="1.5"/>
 <rect x="12" y="22" width="164" height="8" rx="3" fill="#082A52"/>
@@ -1064,13 +1464,13 @@ function buildRoom(){
 <line x1="237" y1="69" x2="240" y2="68.5" stroke="#666" stroke-width=".6"/>
 <line x1="237" y1="70.5" x2="240" y2="70.5" stroke="#666" stroke-width=".6"/>
 <line x1="201" y1="79" x2="241" y2="79" stroke="#B09060" stroke-width=".8" opacity=".5"/>
-<!-- Mirror -->
+<!-- Mirror above the middle couch: landscape rectangle, fancy frame + glass -->
 <rect x="248" y="142" width="120" height="76" rx="6" fill="#B8860B" stroke="#7A5A08" stroke-width="2.5"/>
 <rect x="256" y="149" width="104" height="62" rx="3" fill="#DCE8F0" stroke="#8FA8B8" stroke-width="1.5"/>
 <polygon points="264,154 288,154 268,205 258,205" fill="rgba(255,255,255,.35)"/>
 <polygon points="300,154 316,154 296,205 284,205" fill="rgba(255,255,255,.22)"/>
 <circle cx="308" cy="140" r="3" fill="#B8860B" stroke="#7A5A08" stroke-width="1"/>
-<!-- Light switch, wall-mounted, static (no animation) -->
+<!-- Light switch, wall-mounted, next to the mirror on its right side -->
 <g id="fanSwitchG" style="cursor:pointer;" onclick="toggleFanClick()">
   <rect x="380" y="155" width="28" height="40" rx="3" fill="#F0F0EC" stroke="#333" stroke-width="1.3"/>
   <rect x="385" y="160" width="18" height="30" rx="2" fill="#FAFAF8" stroke="#999" stroke-width=".7"/>
@@ -1080,11 +1480,11 @@ function buildRoom(){
   <circle cx="405" cy="158" r="1" fill="#777"/>
   <circle cx="383" cy="192" r="1" fill="#777"/>
   <circle cx="405" cy="192" r="1" fill="#777"/>
-  <!-- Lever stays in place, no transform change -->
-  <rect id="fanToggle" x="391" y="167" width="6" height="12" rx="2.5" fill="#888" stroke="#333" stroke-width=".7"/>
+  <!-- Lever pivots from its base (bottom point) like a real toggle, not its center -->
+  <rect id="fanToggle" x="391" y="167" width="6" height="12" rx="2.5" fill="#888" stroke="#333" stroke-width=".7" transform="rotate(0,394,179)"/>
 </g>
-<!-- Fireplace: moved left, cropped, scaled to look sideways -->
-<g transform="translate(-260,0) scale(0.7,1)">
+<!-- Fireplace: moved to the left wall, turned/cropped -->
+<g transform="translate(-150,0) skewY(-6) scale(0.82,1)">
 <rect x="216" y="200" width="128" height="14" rx="3" fill="#7A3E10"/>
 <rect x="206" y="214" width="148" height="88" rx="5" fill="#5A2E0A"/>
 <rect x="224" y="220" width="112" height="78" rx="4" fill="#160800"/>
@@ -1127,27 +1527,30 @@ function buildRoom(){
 <rect x="466" y="244" width="162" height="14" rx="4" fill="#7A5E30"/>
 <rect x="476" y="258" width="9" height="58" rx="2" fill="#5A4020"/>
 <rect x="610" y="258" width="9" height="58" rx="2" fill="#5A4020"/>
-<!-- TV -->
+<!-- Realistic flat-screen TV: black frame, blue screen with light streaks -->
 <rect x="478" y="138" width="150" height="96" rx="8" fill="#111111"/>
 <rect x="485" y="144" width="136" height="82" rx="4" fill="#87CEEB"/>
+<!-- Screen light streaks (identical to before) -->
 <polygon points="485,144 512,144 490,226 485,226" fill="rgba(255,255,255,.22)"/>
 <polygon points="524,144 562,144 540,226 502,226" fill="rgba(255,255,255,.15)"/>
 <polygon points="578,144 621,144 621,196 603,226 582,226" fill="rgba(255,255,255,.20)"/>
+<!-- Grey tint overlay on top, screen content underneath stays identical -->
 <rect x="485" y="144" width="136" height="82" rx="4" fill="#808080" opacity=".35"/>
+<!-- TV stand center foot -->
 <rect x="541" y="234" width="24" height="10" rx="2" fill="#222"/>
 <rect x="528" y="242" width="50" height="4" rx="2" fill="#333"/>
-<!-- Mouse and keyboard -->
+<!-- Mouse and keyboard on the desk -->
 <rect x="486" y="246" width="46" height="9" rx="2" fill="#3A3A3A" stroke="#222" stroke-width=".8"/>
 <rect x="488" y="248" width="9" height="5" rx="1" fill="#555"/>
 <rect x="499" y="248" width="9" height="5" rx="1" fill="#555"/>
 <ellipse cx="605" cy="249" rx="8" ry="11" fill="#3A3A3A" stroke="#222" stroke-width=".8"/>
 <line x1="605" y1="242" x2="605" y2="249" stroke="#222" stroke-width=".8"/>
-<!-- Lamp -->
+<!-- Lamp (keep) -->
 <rect x="473" y="228" width="5" height="18" rx="2" fill="#999"/>
 <line x1="475" y1="228" x2="468" y2="210" stroke="#888" stroke-width="2.5"/>
 <ellipse cx="466" cy="208" rx="16" ry="6" fill="#FFD870" opacity=".85"/>
 <ellipse cx="466" cy="206" rx="11" ry="4" fill="#FFEEAA"/>
-<!-- Plant -->
+<!-- Plant (keep) -->
 <rect x="614" y="232" width="14" height="14" rx="3" fill="#8B5E3C" stroke="#6B3E1C" stroke-width="1"/>
 <ellipse cx="621" cy="226" rx="12" ry="9" fill="#228B22"/>
 <ellipse cx="615" cy="222" rx="8" ry="7" fill="#2EAA2E"/>
@@ -1184,11 +1587,11 @@ function buildRoom(){
 <rect x="180" y="331" width="256" height="22" rx="6" fill="#7A5028"/>
 <rect x="186" y="357" width="9" height="12" rx="3" fill="#4A2006"/>
 <rect x="429" y="357" width="9" height="12" rx="3" fill="#4A2006"/>
-<!-- Red mug -->
+<!-- Red mug on the coffee table -->
 <rect x="240" y="322" width="15" height="14" rx="2" fill="#CC2222" stroke="#8B1111" stroke-width="1"/>
 <path d="M255,325 Q262,325 262,330 Q262,335 255,335" fill="none" stroke="#8B1111" stroke-width="1.8"/>
 <ellipse cx="247.5" cy="322" rx="7.5" ry="2" fill="#8B1111"/>
-<!-- TV remote -->
+<!-- TV remote on the coffee table, angled naturally -->
 <g transform="rotate(28,347,340)">
 <rect x="340" y="323" width="14" height="34" rx="4" fill="#2A2A2A" stroke="#111" stroke-width="1"/>
 <circle cx="347" cy="330" r="2.3" fill="#555"/>
@@ -1198,20 +1601,20 @@ function buildRoom(){
 <circle cx="347" cy="353" r="1.6" fill="#CC3333"/>
 </g>
 
-<!-- Ceiling fan: 5 evenly spaced blades, realistic paddle shape -->
+<!-- Ceiling fan, mounted at the top-center of the room -->
 <g id="fanG">
   <rect x="317" y="0" width="6" height="16" fill="#555" stroke="#333" stroke-width=".8"/>
   <g id="fanBladesG">
-    <polygon points="320,28 312,14 308,6 332,6 328,14" fill="#C99552" stroke="#7A5220" stroke-width="1" transform="rotate(0,320,30)"/>
-    <polygon points="320,28 312,14 308,6 332,6 328,14" fill="#C99552" stroke="#7A5220" stroke-width="1" transform="rotate(72,320,30)"/>
-    <polygon points="320,28 312,14 308,6 332,6 328,14" fill="#C99552" stroke="#7A5220" stroke-width="1" transform="rotate(144,320,30)"/>
-    <polygon points="320,28 312,14 308,6 332,6 328,14" fill="#C99552" stroke="#7A5220" stroke-width="1" transform="rotate(216,320,30)"/>
-    <polygon points="320,28 312,14 308,6 332,6 328,14" fill="#C99552" stroke="#7A5220" stroke-width="1" transform="rotate(288,320,30)"/>
+    <polygon points="325.0,27.5 323.5,6.5 316.5,6.5 315.0,27.5" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="327.3,31.2 374.3,24.1 372.2,21.3 324.2,27.2" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="319.5,33.3 350.1,49.9 355.7,48.2 327.6,30.8" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="312.4,30.8 284.3,48.2 289.9,49.9 320.5,33.3" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
+    <polygon points="315.8,27.2 267.8,21.3 265.7,24.1 312.7,31.2" fill="#C99552" stroke="#7A5220" stroke-width="1"/>
   </g>
   <circle cx="320" cy="30" r="10" fill="#B23A3A" stroke="#7A2222" stroke-width="1.5"/>
   <circle id="fanBulb" cx="320" cy="35" r="7" fill="#999" stroke="#666" stroke-width="1"/>
 </g>
-<!-- Wall clock -->
+<!-- Wall clock above the TV -->
 <g id="clockG">
   <rect x="518" y="66" width="70" height="46" rx="6" fill="#1a1a1a" stroke="#000" stroke-width="1.5"/>
   <rect x="524" y="72" width="58" height="28" rx="3" fill="#DDE5E0"/>
@@ -1222,10 +1625,730 @@ function buildRoom(){
 <g id="catG"></g>\`;
 }
 
-// ... (rest of the JavaScript: animFire, flash, rain, sound, cat, game state, socket events, etc.) ...
-// The rest of the client-side code (rain, sound, cat, game state, socket handlers) remains unchanged.
+let fT=0;
+function animFire(){
+  fT+=.026;
+  const sc=1+Math.sin(fT)*.015+Math.cos(fT*2.3)*.006;
+  const sway=Math.sin(fT*1.4)*1.1+Math.sin(fT*3.7)*.4;
+  document.getElementById('fireG')?.setAttribute('transform',\`translate(\${280+sway},290) scale(1,\${sc})\`);
+  requestAnimationFrame(animFire);
+}
+function flash(){
+  const el=document.getElementById('lFlash');if(!el)return;
+  el.setAttribute('opacity','.8');setTimeout(()=>el.setAttribute('opacity','0'),70);
+  setTimeout(()=>{el.setAttribute('opacity','.45');setTimeout(()=>el.setAttribute('opacity','0'),55);},140);
+}
 
-// ── Finalize
+// ═══════════════════════════════════════
+//  RAIN — strictly inside window
+// ═══════════════════════════════════════
+// SVG glass panes: top panes y37-115, bottom panes y119-199, x35-153
+const WIN={x1:36,y1:38,x2:153,y2:199};
+let rDrops=[],rCtx=null,rAF=null;
+function initRain(){
+  const c=document.getElementById('rainCanvas'),room=document.getElementById('livingRoom');
+  c.width=room.clientWidth;c.height=room.clientHeight;
+  rCtx=c.getContext('2d');rDrops=[];
+  for(let i=0;i<65;i++) rDrops.push({xf:Math.random(),yf:Math.random()-.1,sp:.006+Math.random()*.009,len:.055+Math.random()*.07,op:.35+Math.random()*.5});
+  if(rAF)cancelAnimationFrame(rAF);rainLoop();
+}
+function svgToPx(sx,sy){
+  // preserveAspectRatio="none" means SVG fills the container exactly.
+  // Simple linear mapping — no letterboxing offset needed.
+  const c=document.getElementById('rainCanvas');
+  return{x:sx/640*c.width, y:sy/400*c.height};
+}
+function rainLoop(){
+  if(!rCtx)return;
+  const c=document.getElementById('rainCanvas');if(!c)return;
+  const tl=svgToPx(WIN.x1,WIN.y1),br=svgToPx(WIN.x2,WIN.y2);
+  const wW=br.x-tl.x,wH=br.y-tl.y;
+  rCtx.clearRect(0,0,c.width,c.height);
+  rCtx.save();
+  // Hard clip to the exact glass pane area only
+  rCtx.beginPath();rCtx.rect(tl.x,tl.y,wW,wH);rCtx.clip();
+  rDrops.forEach(d=>{
+    const x=tl.x+d.xf*wW,y=tl.y+d.yf*wH;
+    rCtx.save();rCtx.globalAlpha=d.op;rCtx.strokeStyle='#88BBFF';rCtx.lineWidth=1.1;
+    rCtx.beginPath();rCtx.moveTo(x,y);rCtx.lineTo(x-wW*.022,y+d.len*wH);rCtx.stroke();
+    rCtx.restore();
+    d.yf+=d.sp;if(d.yf>1+d.len){d.yf=-(d.len+Math.random()*.08);d.xf=Math.random();}
+  });
+  rCtx.restore();rAF=requestAnimationFrame(rainLoop);
+}
+window.addEventListener('resize',()=>{
+  checkOrientation();
+  if(document.getElementById('gamePage').style.display!=='none'){
+    const c=document.getElementById('rainCanvas'),r=document.getElementById('livingRoom');
+    c.width=r.clientWidth;c.height=r.clientHeight;
+  }
+});
+
+// ═══════════════════════════════════════
+//  SOUND
+// ═══════════════════════════════════════
+let AC=null,sndMuted=false,rainNode=null,thunderInt=null,masterGain=null;
+// Master volume (0–1) — drives the slider next to the dark/light switch and
+// controls ALL audio on this tab: notification dings, rain, and thunder.
+let volumeLevel=.7;
+(function(){
+  const v=localStorage.getItem('cg_vol');
+  if(v!==null){const n=parseInt(v,10);if(!isNaN(n))volumeLevel=Math.max(0,Math.min(100,n))/100;}
+})();
+function setVolume(v){
+  volumeLevel=Math.max(0,Math.min(100,Number(v)))/100;
+  sndMuted=(volumeLevel===0);
+  if(masterGain&&AC)masterGain.gain.setValueAtTime(volumeLevel,AC.currentTime);
+  localStorage.setItem('cg_vol',String(Math.round(volumeLevel*100)));
+  const sl=document.getElementById('volSlider');if(sl&&Number(sl.value)!==Math.round(volumeLevel*100))sl.value=Math.round(volumeLevel*100);
+  const mb=document.getElementById('volMuteBtn');if(mb)mb.textContent=volumeLevel>0?'🔈':'🔇';
+  // also pause/resume ambience when muting in-game
+  if(document.getElementById('gamePage')&&document.getElementById('gamePage').style.display!=='none'){
+    if(sndMuted)stopAmbience(); else if(!sndMuted&&!thunderInt)startAmbience();
+    // Fan wind sound may not have started if it was muted when turned on
+    if(!sndMuted&&typeof fanOn!=='undefined'&&fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
+  }
+}
+let _preMuteVol=0.7;
+function toggleVolMute(){
+  try{getAC();}catch(e){}
+  if(volumeLevel>0){_preMuteVol=volumeLevel;setVolume(0);}
+  else{setVolume(Math.round((_preMuteVol>0?_preMuteVol:0.5)*100));}
+}
+function getAC(){
+  if(!AC){
+    AC=new(window.AudioContext||window.webkitAudioContext)();
+    masterGain=AC.createGain();
+    masterGain.gain.value=volumeLevel;
+    masterGain.connect(AC.destination);
+  }
+  if(AC.state==='suspended')AC.resume();
+  return AC;
+}
+function playTone(f1,f2,dur,vol){
+  if(sndMuted)return;
+  try{const ac=getAC(),o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(masterGain);
+    o.frequency.setValueAtTime(f1,ac.currentTime);if(f2)o.frequency.setValueAtTime(f2,ac.currentTime+dur*.4);
+    g.gain.setValueAtTime(vol||.14,ac.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);
+    o.start();o.stop(ac.currentTime+dur);}catch(e){}
+}
+function makeNoise(dur,lpHz,vol){
+  if(sndMuted)return null;
+  try{const ac=getAC(),buf=ac.createBuffer(1,ac.sampleRate*dur,ac.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    const src=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();
+    f.type='bandpass';f.frequency.value=lpHz;f.Q.value=.5;
+    src.buffer=buf;src.loop=true;src.connect(f);f.connect(g);g.connect(masterGain);
+    g.gain.setValueAtTime(.0001,ac.currentTime);g.gain.linearRampToValueAtTime(vol,ac.currentTime+.6);
+    src.start();return{src,gain:g,ac};}catch(e){return null;}
+}
+function stopNode(n){if(!n)return;try{n.gain.gain.linearRampToValueAtTime(.0001,n.ac.currentTime+.4);setTimeout(()=>{try{n.src.stop();}catch(e){}},500);}catch(e){}}
+function playThunder(){
+  if(sndMuted)return;
+  try{const ac=getAC(),dur=2.2,buf=ac.createBuffer(1,ac.sampleRate*dur,ac.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(Math.max(0,1-i/(d.length*.65)),1.5);
+    const src=ac.createBufferSource(),lp=ac.createBiquadFilter(),g=ac.createGain();
+    lp.type='lowpass';lp.frequency.value=190;src.buffer=buf;src.connect(lp);lp.connect(g);g.connect(masterGain);
+    g.gain.setValueAtTime(.0001,ac.currentTime);g.gain.linearRampToValueAtTime(.5,ac.currentTime+.06);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);src.start();}catch(e){}
+}
+function startAmbience(){
+  stopAmbience();rainNode=makeNoise(4,2600,.055);
+  thunderInt=setInterval(()=>{if(Math.random()<.55){const dl=Math.random()*1800;setTimeout(()=>{flash();setTimeout(playThunder,90+Math.random()*180);},dl);}},3000);
+}
+function stopAmbience(){clearInterval(thunderInt);thunderInt=null;stopNode(rainNode);rainNode=null;}
+// muting now via toggleVolMute()+volMuteBtn in header
+(function(){const vs=document.getElementById('volSlider');if(vs)vs.value=Math.round(volumeLevel*100);})();
+
+// ═══════════════════════════════════════
+//  CAT
+// ═══════════════════════════════════════
+const SURFS=[[0,640,314],[174,442,326],[150,466,270],[30,143,276],[496,612,276],[216,350,198],[466,628,242]];
+const JUMPS=[[1,2,3,4],[0,2],[0,1,3,4],[0,2],[0,2],[0],[0]];
+let cat={x:150,y:SURFS[0][2],surf:0,vx:0,state:'idle',timer:60,dir:1,frame:0,ft:0,jp:0,jfx:0,jfy:0,jtx:0,jty:0,vis:true,offTimer:0};
+
+function catNameBlock(x,y){
+  for(const s of SEATS){if(Math.abs(x-s.cx)<30&&y>s.sy&&y<s.sy+22)return true;}return false;
+}
+function catTick(){
+  // Deterministic position from UTC time: identical on ALL clients simultaneously.
+  // The cat now visits 4 different spots around the room in a loop (with a
+  // pause at each) instead of simply pacing back and forth between 2 points.
+  const WAYPOINTS=[70,240,410,560]; // 4 distinct floor positions
+  const WALK_MS=3500, PAUSE_MS=2200;
+  const SEGMENT_MS=WALK_MS+PAUSE_MS;
+  const PERIOD=SEGMENT_MS*WAYPOINTS.length;
+  const t=Date.now()%PERIOD;
+  const segIdx=Math.floor(t/SEGMENT_MS);
+  const segT=t%SEGMENT_MS;
+  const fromX=WAYPOINTS[segIdx];
+  const toX=WAYPOINTS[(segIdx+1)%WAYPOINTS.length];
+  cat.surf=0;cat.y=SURFS[0][2];cat.vis=true;
+  cat.ft++;if(cat.ft>6){cat.ft=0;cat.frame=(cat.frame+1)%4;}
+  if(segT<WALK_MS){
+    const prog=segT/WALK_MS;
+    cat.x=fromX+(toX-fromX)*prog;
+    cat.dir=toX>fromX?1:-1;
+    cat.state='walk';
+  }else{
+    cat.x=toX;
+    cat.dir=toX>fromX?1:-1;
+    cat.state='idle';cat.frame=0;cat.ft=0;
+  }
+}
+function catDecide(){
+  const surf=SURFS[cat.surf],r=Math.random();
+  if(r<.1&&JUMPS[cat.surf].length){
+    const ti=JUMPS[cat.surf][Math.floor(Math.random()*JUMPS[cat.surf].length)];
+    const ts=SURFS[ti];
+    let tx=ts[0]+(ts[1]-ts[0])*(.2+Math.random()*.6);
+    if(catNameBlock(tx,ts[2]))tx+=(tx>320?30:-30);
+    tx=Math.max(ts[0]+26,Math.min(ts[1]-26,tx));
+    cat.jfx=cat.x;cat.jfy=cat.y;cat.jtx=tx;cat.jty=ts[2];cat.jp=0;
+    cat.surf=ti;cat.dir=tx>cat.x?1:-1;cat.state='jump';cat.timer=30;
+  } else if(r<.3){cat.state='idle';cat.timer=40+Math.floor(Math.random()*100);cat.vx=0;}
+  else{cat.dir=Math.random()<.5?1:-1;cat.vx=cat.dir*(0.7+Math.random()*.9);cat.state='walk';cat.timer=30+Math.floor(Math.random()*70);}
+}
+function drawCat(){
+  const g=document.getElementById('catG');if(!g)return;g.innerHTML='';if(!cat.vis)return;
+  const x=Math.round(cat.x),y=Math.round(cat.y),sc=cat.dir;
+  const walk=cat.state==='walk'||cat.state==='jump';
+  const lsw=walk?Math.sin(cat.frame*Math.PI/2)*4:0;
+  const mk=(tag,attrs)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,v);g.appendChild(el);return el;};
+  // Tail
+  const curl=Math.sin(cat.ft*.5)*5;
+  mk('path',{d:\`M\${x-sc*13},\${y-8} Q\${x-sc*20},\${y-18+curl} \${x-sc*14},\${y-26}\`,fill:'none',stroke:'#D4722A','stroke-width':'3.5','stroke-linecap':'round'});
+  // Legs
+  [[x-8+lsw,y],[x-3-lsw,y],[x+3+lsw,y],[x+8-lsw,y]].forEach(([lx,ly])=>{
+    mk('line',{x1:lx,y1:ly-2,x2:lx,y2:ly+7,stroke:'#9B5520','stroke-width':'3','stroke-linecap':'round'});
+    mk('ellipse',{cx:lx,cy:ly+7,rx:'3',ry:'2',fill:'#C06020'});
+  });
+  // Body
+  mk('ellipse',{cx:x,cy:y-9,rx:'13',ry:'9',fill:'#E8813A',stroke:'#9B5520','stroke-width':'1.5'});
+  // Body stripes
+  [{x1:x-4,y1:y-16,x2:x-4,y2:y-12},{x1:x,y1:y-17,x2:x,y2:y-13},{x1:x+4,y1:y-16,x2:x+4,y2:y-12}].forEach(a=>mk('line',{...a,stroke:'#C06830','stroke-width':'1.5','stroke-linecap':'round'}));
+  // Head
+  const hx=x+sc*9,hy=y-16;
+  mk('ellipse',{cx:hx,cy:hy,rx:'9',ry:'8.5',fill:'#E8813A',stroke:'#9B5520','stroke-width':'1.5'});
+  // Ears — two triangles on top of head, close together, centered on head
+  // Head center is hx,hy. Ear bases sit on top of head at hy-8.
+  // Left ear (from viewer): slightly left of head center
+  // Right ear: slightly right of head center
+  // Independent of sc (direction) so they always look correct
+  const earCy=hy-8;
+  const ear1x=hx-4, ear2x=hx+4; // base centers, 8px apart
+  [[ear1x],[ear2x]].forEach(([ecx])=>{
+    mk('polygon',{
+      points:\`\${ecx-4},\${earCy} \${ecx},\${earCy-10} \${ecx+4},\${earCy}\`,
+      fill:'#E8813A',stroke:'#9B5520','stroke-width':'1.2'
+    });
+    mk('polygon',{
+      points:\`\${ecx-2.5},\${earCy-.5} \${ecx},\${earCy-7.5} \${ecx+2.5},\${earCy-.5}\`,
+      fill:'#FFB0A0'
+    });
+  });
+  // Eyes with irises
+  const ex1=hx+sc*3.5,ex2=hx-sc*2,ey3=hy-2;
+  [ex1,ex2].forEach(ex=>{
+    mk('ellipse',{cx:ex,cy:ey3,rx:'2.5',ry:'3',fill:'#fff'});
+    mk('ellipse',{cx:ex,cy:ey3+.5,rx:'1.6',ry:'2',fill:'#55AA22'});
+    mk('ellipse',{cx:ex,cy:ey3+.5,rx:'.9',ry:'1.4',fill:'#111'});
+    mk('circle',{cx:ex+.8,cy:ey3-.8,r:'0.8',fill:'#fff'});
+    mk('ellipse',{cx:ex,cy:ey3,rx:'2.5',ry:'3',fill:'none',stroke:'#1a1a1a','stroke-width':'1'});
+  });
+  // Nose
+  mk('polygon',{points:\`\${hx+sc*6},\${hy+1.5} \${hx+sc*7.5},\${hy+4} \${hx+sc*4.5},\${hy+4}\`,fill:'#FF9999',stroke:'#DD6666','stroke-width':'.6'});
+  // Mouth
+  mk('path',{d:\`M\${hx+sc*6},\${hy+4} Q\${hx+sc*5},\${hy+6.5} \${hx+sc*3.5},\${hy+5.5}\`,fill:'none',stroke:'#9B5520','stroke-width':'1','stroke-linecap':'round'});
+  mk('path',{d:\`M\${hx+sc*6},\${hy+4} Q\${hx+sc*7},\${hy+6.5} \${hx+sc*8.5},\${hy+5.5}\`,fill:'none',stroke:'#9B5520','stroke-width':'1','stroke-linecap':'round'});
+  // Whiskers
+  [[hx+sc*5,hy+3,sc*9,-1],[hx+sc*5,hy+5,sc*9,1]].forEach(([wx,wy,dx,dy])=>{
+    mk('line',{x1:wx,y1:wy,x2:wx+dx,y2:wy+dy,stroke:'#fff','stroke-width':'.9',opacity:'.85'});
+    mk('line',{x1:wx,y1:wy,x2:wx-dx*.55,y2:wy+dy,stroke:'#fff','stroke-width':'.9',opacity:'.85'});
+  });
+}
+let catInt=null;
+// ── Light cat meow sounds while the cat is active ──
+let _catMeowTimer=null;
+function playCatMeow(){
+  if(sndMuted) return;
+  try{
+    const ac=getAC();
+    const now=ac.currentTime;
+    const g=ac.createGain();g.connect(masterGain);
+    g.gain.setValueAtTime(0,now);
+    g.gain.linearRampToValueAtTime(.13,now+.05);
+    g.gain.setValueAtTime(.13,now+.32);
+    g.gain.linearRampToValueAtTime(0,now+.5);
+
+    // Two slightly detuned triangle oscillators for a richer "vocal cord"
+    // buzz instead of a single thin sine tone.
+    const fil=ac.createBiquadFilter();
+    fil.type='bandpass';fil.Q.value=3.5;
+    fil.frequency.setValueAtTime(700,now);
+    fil.frequency.linearRampToValueAtTime(1400,now+.16);
+    fil.frequency.linearRampToValueAtTime(600,now+.42);
+    fil.connect(g);
+
+    [0,-9].forEach(detune=>{
+      const osc=ac.createOscillator();
+      osc.type='triangle';
+      osc.detune.value=detune;
+      osc.frequency.setValueAtTime(480,now);
+      osc.frequency.linearRampToValueAtTime(980,now+.15);
+      osc.frequency.linearRampToValueAtTime(620,now+.42);
+      osc.connect(fil);
+      osc.start(now);osc.stop(now+.5);
+    });
+
+    // Tiny vibrato for a less robotic, more animal-like wobble
+    const lfo=ac.createOscillator(),lfoGain=ac.createGain();
+    lfo.frequency.value=7;lfoGain.gain.value=18;
+    lfo.connect(lfoGain);lfoGain.connect(fil.frequency);
+    lfo.start(now);lfo.stop(now+.5);
+
+    // Brief breathy noise at the very start (onset of a real meow)
+    const nbuf=ac.createBuffer(1,ac.sampleRate*.08,ac.sampleRate);
+    const nd=nbuf.getChannelData(0);
+    for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*(1-i/nd.length);
+    const nsrc=ac.createBufferSource(),nfil=ac.createBiquadFilter(),ng=ac.createGain();
+    nfil.type='highpass';nfil.frequency.value=2000;
+    ng.gain.value=.05;
+    nsrc.buffer=nbuf;nsrc.connect(nfil);nfil.connect(ng);ng.connect(masterGain);
+    nsrc.start(now);
+  }catch(e){}
+}
+function startCatMeows(){
+  stopCatMeows();
+  const next=()=>{ _catMeowTimer=setTimeout(()=>{ playCatMeow(); next(); },15000+Math.random()*35000); };
+  next();
+}
+function stopCatMeows(){ if(_catMeowTimer){clearTimeout(_catMeowTimer);_catMeowTimer=null;} }
+
+function startCat(){
+  try{startCatMeows();}catch(e){}
+  if(catInt)clearInterval(catInt);
+  cat={x:150,y:SURFS[0][2],surf:0,vx:0,state:'idle',timer:60,dir:1,frame:0,ft:0,jp:0,jfx:0,jfy:0,jtx:0,jty:0,vis:true,offTimer:0};
+  catInt=setInterval(()=>{ try{catTick();drawCat();}catch(e){} },50);
+}
+function stopCat(){ try{stopCatMeows();}catch(e){} clearInterval(catInt);catInt=null; }
+
+// ═══════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════
+// ── Orientation guard (portrait mobile = show rotate message)
+function checkOrientation(){
+  const msg=document.getElementById('rotateMsg');
+  const isMobile=window.innerWidth<1024||('ontouchstart' in window);
+  const isPortrait=window.innerHeight>window.innerWidth;
+  if(isMobile&&isPortrait){
+    msg.style.display='flex';
+  } else {
+    msg.style.display='none';
+  }
+}
+window.addEventListener('resize',checkOrientation);
+window.addEventListener('orientationchange',checkOrientation);
+checkOrientation();
+
+const socket=io({transports:['websocket']});
+let myId=null,mySeat=-1,lobbyCode='';
+let players={};
+let muted=new Set();
+let bubbles={};
+let allLobbies=[];
+let chatCount=0; // for alternating rows
+
+// Instantly drop the connection the moment the tab/app is actually going away
+// (closing the tab, swiping it away, closing the browser, navigating off).
+// This forces a clean WebSocket close right away instead of waiting for the
+// server's heartbeat timeout to notice — so other players see the leave
+// immediately no matter how the page was closed.
+window.addEventListener('pagehide',()=>{
+  _intentionalLeave=true;
+  try{socket.disconnect();}catch(e){}
+});
+
+function updateLobbyCount(){
+  const cnt=Object.keys(players).length;
+  document.getElementById('lobbyCnt').textContent=\`\${cnt}/8\`;
+}
+
+function renderPlayers(){
+  const layer=document.getElementById('avatarLayer');
+  if(!layer)return;
+  layer.innerHTML='';
+  Object.values(players).forEach(p=>{
+    if(p.seat===undefined||p.seat<0||p.seat>=8)return;
+    placeChar(layer,p,SEATS[p.seat].cx,SEATS[p.seat].sy);
+  });
+  updateLobbyCount();
+}
+
+// Avatars are plain HTML (canvas + div), percentage-positioned over the
+// room — NOT SVG foreignObject. Percentage positioning is resolved by the
+// browser's own box layout relative to #roomBox's actual rendered size,
+// identically on every browser, so this can never drift out of sync with
+// the couch artwork the way foreignObject-in-SVG could on Safari/WebKit.
+function placeChar(layer,player,cx,sy){
+  const R=22,dim=R*2+16; // same nominal "room units" as the original design
+  const wrap=document.createElement('div');
+  wrap.className='avatar-wrap';
+  wrap.style.left=(cx/640*100)+'%';
+  wrap.style.top=(sy/400*100)+'%';
+
+  const PX=3; // internal render resolution multiplier, for crisp avatars at any room size
+  const cvs=document.createElement('canvas');
+  cvs.width=dim*PX;cvs.height=(dim+12)*PX;
+  drawAV(cvs.getContext('2d'),player.avatar||{},cvs.width/2,cvs.height*.55,R*PX*.85);
+  wrap.appendChild(cvs);
+
+  const isMe=player.id===myId;
+  const tag=document.createElement('div');
+  tag.className='avatar-nametag'+(isMe?' is-me':'');
+  tag.textContent=isMe?\`\${player.name} (you)\`:player.name;
+  wrap.appendChild(tag);
+
+  layer.appendChild(wrap);
+}
+
+function renderList(){
+  const list=document.getElementById('playerList');list.innerHTML='';
+  Object.values(players).forEach(p=>{
+    const isMe=p.id===myId,isMuted=muted.has(p.id);
+    const div=document.createElement('div');div.className='p-entry'+(isMuted?' muted':'');div.dataset.pid=p.id;
+    const cvs=document.createElement('canvas');cvs.width=132;cvs.height=156;cvs.style.cssText='width:44px;height:52px;display:block;flex-shrink:0;';
+    drawAV(cvs.getContext('2d'),p.avatar||{},66,72,43);
+    const nw=document.createElement('div');nw.className='p-name-wrap';
+    const nm=document.createElement('div');nm.className='p-name';nm.textContent=p.name;
+    nw.appendChild(nm);
+    if(isMe){const y=document.createElement('span');y.className='p-you';y.textContent='(you)';nw.appendChild(y);}
+    div.appendChild(cvs);div.appendChild(nw);
+    if(isMuted){const m=document.createElement('span');m.style.cssText='font-size:.55rem;flex-shrink:0;';m.textContent='🔇';div.appendChild(m);}
+    if(!isMe)div.addEventListener('click',e=>showCtx(e,p));
+    list.appendChild(div);
+  });
+  updateLobbyCount();
+}
+
+let ctxP=null;
+function showCtx(e,p){ctxP=p;const m=document.getElementById('ctxMenu');document.getElementById('ctxName').textContent=p.name;document.getElementById('ctxMute').textContent=muted.has(p.id)?'🔊 Unmute':'🔇 Mute';m.style.display='block';m.style.left=Math.min(e.clientX,window.innerWidth-130)+'px';m.style.top=Math.min(e.clientY,window.innerHeight-90)+'px';e.stopPropagation();}
+document.addEventListener('click',()=>document.getElementById('ctxMenu').style.display='none');
+function ctxDoMute(){if(!ctxP)return;muted.has(ctxP.id)?muted.delete(ctxP.id):muted.add(ctxP.id);renderList();document.getElementById('ctxMenu').style.display='none';}
+// Vote-kick cooldown — stops any single player from spamming vote-kicks
+const VOTE_KICK_COOLDOWN_MS=180000; // 3 minutes
+let lastVoteKickAt=0;
+function ctxDoKick(){
+  if(!ctxP)return;
+  document.getElementById('ctxMenu').style.display='none';
+  const now=Date.now(),remain=VOTE_KICK_COOLDOWN_MS-(now-lastVoteKickAt);
+  if(remain>0){
+    const _mins=Math.floor(remain/60000),_secs=Math.ceil((remain%60000)/1000);
+    const _tstr=_mins>0?\`\${_mins}m \${_secs}s\`:\`\${_secs}s\`;
+    addMsg(\`<span class="sys-vote">⏳ Vote kick cooldown — please wait \${_tstr}.</span>\`,'sys-vote');
+    return;
+  }
+  lastVoteKickAt=now;
+  socket.emit('voteKick',{targetId:ctxP.id});
+}
+
+// Chat — alternating rows
+function addMsg(html,cls){
+  const c=document.getElementById('chatMsgs');
+  const d=document.createElement('div');
+  const rowClass=chatCount%2===0?'cmsg-even':'cmsg-odd';
+  d.className='cmsg '+rowClass+(cls?' '+cls:'');
+  d.innerHTML=html;c.appendChild(d);c.scrollTop=c.scrollHeight;chatCount++;
+  while(c.children.length>120){c.removeChild(c.firstChild);}
+}
+
+// Chat input: hard max 200 chars (prevent over-limit on keydown)
+document.getElementById('chatInp').addEventListener('keydown',e=>{
+  const inp=e.target;
+  if(inp.value.length>=100&&e.key.length===1&&!e.ctrlKey&&!e.metaKey){e.preventDefault();return;}
+  if(e.key==='Enter')sendChat();
+});
+document.getElementById('chatSend').addEventListener('click',sendChat);
+// Enter key: when in-game and chat isn't focused, focus it
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('gamePage')&&document.getElementById('gamePage').style.display!=='none'){
+    const ci=document.getElementById('chatInp');
+    if(ci&&document.activeElement!==ci&&document.activeElement!==document.getElementById('chatSend')){
+      e.preventDefault();ci.focus();
+    }
+  }
+});
+function sendChat(){const i=document.getElementById('chatInp');const m=i.value.trim().substring(0,100);if(!m)return;socket.emit('chat',{message:m});i.value='';}
+
+function showBubble(seat,text){
+  const room=document.getElementById('roomBox');if(!room||seat<0||seat>=8)return;
+  if(bubbles[seat]){clearTimeout(bubbles[seat].t);bubbles[seat].el.remove();}
+  const s=SEATS[seat];
+  const b=document.createElement('div');b.className='bubble';
+  b.textContent=text.length>34?text.substring(0,34)+'…':text;
+  // Percentage-positioned, same system as avatars — stays locked above
+  // the right player's head on every browser/device.
+  b.style.left=(s.cx/640*100)+'%';
+  b.style.top=((s.sy-78)/400*100)+'%';
+  room.appendChild(b);
+  const t=setTimeout(()=>{b.remove();delete bubbles[seat];},6000);
+  bubbles[seat]={el:b,t};
+}
+
+// ── Socket events
+socket.on('lobbyList',list=>{allLobbies=list||[];renderLobbies();});
+
+socket.on('joined',({playerId,seat,lobbyState,code})=>{
+  _intentionalLeave=false; // CRITICAL: reset so disconnect overlay works again after rejoining
+  myId=playerId;mySeat=seat;lobbyCode=code;chatCount=0;
+  players={};lobbyState.players.forEach(p=>players[p.id]=p);
+  document.getElementById('rcDisp').textContent=code;
+  fanOn=!!lobbyState.fanOn;
+  clockColor=lobbyState.clockColor||'red';
+  clockOffset=lobbyState.clockOffset||0;
+  showGame();renderPlayers();renderList();
+  applyFanState();applyClockColor();startClockLoop();
+  addMsg('<span style="color:#1a7a1a;font-weight:800">✓ You joined!</span>');
+});
+
+socket.on('fanState',({fanOn:on})=>{ fanOn=on; applyFanState(); playSwitchClick(); });
+socket.on('clockColorState',({clockColor:c})=>{ clockColor=c; applyClockColor(); playClockBeep(); });
+
+socket.on('playerJoined',({player,message})=>{
+  players[player.id]=player;renderPlayers();renderList();
+  addMsg(X(message),'sys-join');playTone(440,660,.35,.13);
+});
+
+socket.on('playerLeft',({playerId,playerName,reason,lobbyState})=>{
+  // Immediately remove from local state
+  delete players[playerId];
+  // Reconcile with authoritative server state
+  if(lobbyState){
+    const ids=new Set(lobbyState.players.map(p=>p.id));
+    // Remove anyone server doesn't know about
+    Object.keys(players).forEach(id=>{if(!ids.has(id))delete players[id];});
+    // Add anyone missing locally
+    lobbyState.players.forEach(p=>{if(!players[p.id])players[p.id]=p;});
+  }
+  renderPlayers();renderList();
+  // Only 'left' goes to chat here; 'kicked' is already handled by systemMessage from server
+  if(reason!=='kicked'){
+    addMsg(X(\`\${playerName} left\`),'sys-leave');
+  }
+  playTone(440,330,.35,.13);
+});
+
+socket.on('chat',({senderId,senderName,message})=>{
+  if(muted.has(senderId))return;
+  addMsg(\`<span class="sname">\${X(senderName)}:</span> <span class="mbody">\${X(message)}</span>\`);
+  playTone(880,0,.1,.055);
+  const p=players[senderId];
+  if(p&&p.seat!==undefined)showBubble(p.seat,message);
+});
+
+socket.on('systemMessage',({text,type})=>{
+  const m={join:'sys-join',leave:'sys-leave',kick:'sys-kick',vote:'sys-vote'};
+  addMsg(X(text),m[type]||'');
+});
+
+socket.on('kicked',({lobbyCode:kCode})=>{
+  // BULLETPROOF KICK NOTICE: write to localStorage FIRST, then force
+  // a hard page reload. This guarantees the notice shows no matter
+  // what — it can't be blocked by any extension, race condition, or
+  // in-page JS state issue, because it doesn't rely on the CURRENT
+  // page's JS continuing to run correctly. The fresh page load checks
+  // localStorage at the very top of execution (same reliable pattern
+  // as the age gate) and shows the notice before anything else runs.
+  try{
+    localStorage.setItem('cg_kicked_notice', JSON.stringify({
+      lobbyCode: kCode,
+      until: Date.now() + (10*60*1000),
+      shownAt: Date.now()
+    }));
+  }catch(e){}
+  // Hard reload — always lands back on the home page, guaranteed,
+  // with zero leftover state from the game session.
+  window.location.href = window.location.origin + window.location.pathname;
+});
+
+socket.on('joinError',({message})=>showErr(message));
+socket.on('leftLobby',()=>showHome());
+socket.on('voteReset',({targetName})=>{
+  addMsg(\`<span class="sys-vote">🔄 Vote kick against \${X(targetName)} has reset after 2 minutes.</span>\`,'sys-vote');
+});
+socket.on('voteKickCooldown',({secondsRemaining})=>{
+  const _m=Math.floor(secondsRemaining/60),_s=secondsRemaining%60;
+  const _ts=_m>0?\`\${_m}m \${_s}s\`:\`\${_s}s\`;
+  addMsg(\`<span class="sys-vote">⏳ Vote kick cooldown — please wait \${_ts}.</span>\`,'sys-vote');
+});
+
+// Private notices shown only to sender
+socket.on('chatBlocked',({type}={})=>{
+  const c=document.getElementById('chatMsgs');
+  const d=document.createElement('div');
+  d.className='msg-blocked';
+  d.textContent=type==='spam'
+    ? '⏱️ You’re sending messages too quickly.'
+    : '⛔ Message was not sent — your message contained content that is not allowed.';
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+  setTimeout(()=>{ try{d.remove();}catch(e){} },4000);
+});
+
+
+
+// ── Disconnect detection ──────────────────────────────────────────────
+// Track whether WE initiated the leave (button, pagehide) so we can
+// distinguish intentional exits from actual dropped connections.
+let _intentionalLeave=false;
+
+socket.on('disconnect',(reason)=>{
+  // 'io client disconnect' = we called socket.disconnect() ourselves
+  // (Leave button, tab close via pagehide). Don't show the error overlay.
+  if(reason==='io client disconnect'||_intentionalLeave) return;
+  // Anything else: ping timeout, transport close, transport error, server
+  // disconnect — these are real connection losses the player didn't choose.
+  showDisconnectOverlay();
+});
+
+socket.on('connect',()=>{
+  // Auto-recover when WiFi returns: hide disconnect overlay, refresh lobby list
+  // NOTE: do NOT hide kickNotice here — if you were just kicked and the socket
+  // briefly reconnects, hiding it here would make the kick message disappear instantly.
+  document.getElementById('disconnectOverlay').style.display='none';
+  clearTimeout(window._kickTimer);
+  _intentionalLeave=false;
+  if(document.getElementById('homePage').style.display!=='none'){
+    socket.emit('getLobbyList');
+  }
+});
+
+function showDisconnectOverlay(){
+  players={};muted=new Set();chatCount=0;
+  Object.values(bubbles||{}).forEach(b=>{try{clearTimeout(b.t);b.el.remove();}catch(e){}});bubbles={};
+  try{stopAmbience();}catch(e){}
+  try{stopCat();}catch(e){}
+  if(typeof rAF!=='undefined'&&rAF){cancelAnimationFrame(rAF);rAF=null;}
+  _intentionalLeave=false; // reset so future reconnects work correctly
+  document.getElementById('gamePage').style.display='none';
+  document.body.classList.remove('game-active');
+  document.getElementById('homePage').style.display='flex';
+  forceShow(document.getElementById('disconnectOverlay'),'flex');
+}
+
+function dismissDisconnect(){
+  forceHide(document.getElementById('disconnectOverlay'));
+  // Only emit if connected — connect handler will handle it on WiFi restore
+  if(socket.connected) socket.emit('getLobbyList');
+}
+
+function dismissKick(){
+  forceHide(document.getElementById('kickNotice'));
+  socket.emit('getLobbyList');
+}
+
+// Leave confirm
+function askLeave(){document.getElementById('leaveConfirm').style.display='flex';}
+function cancelLeave(){document.getElementById('leaveConfirm').style.display='none';}
+function confirmLeave(){document.getElementById('leaveConfirm').style.display='none';leaveGame(false);}
+
+function playRandom(){
+  const nameVal=document.getElementById('nameInp').value;
+  const chk=validateUsername(nameVal);
+  if(chk.valid===false){liveCheckName(nameVal);showErr('Please fix your username before joining.');return;}
+  try{getAC();}catch(e){}saveP();
+  socket.emit('joinRandom',{name:document.getElementById('nameInp').value,avatar:{...AV}});
+}
+function playCode(){
+  const nameVal=document.getElementById('nameInp').value;
+  const chk=validateUsername(nameVal);
+  if(chk.valid===false){liveCheckName(nameVal);showErr('Please fix your username before joining.');return;}
+  try{getAC();}catch(e){}saveP();
+  const code=document.getElementById('codeInp').value.trim().toUpperCase();
+  if(!code||code.length!==5){showErr('Enter a valid 5-letter room code.');return;}
+  socket.emit('joinByCode',{code,name:document.getElementById('nameInp').value,avatar:{...AV}});
+}
+function showErr(m){const e=document.getElementById('homeErr');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',5000);}
+
+function leaveGame(skipSocket){
+  _intentionalLeave=true; // prevent disconnect overlay during deliberate leave
+  if(!skipSocket)socket.emit('leave');
+  players={};muted=new Set();chatCount=0;
+  Object.values(bubbles||{}).forEach(b=>{try{clearTimeout(b.t);b.el.remove();}catch(e){}});bubbles={};
+  try{stopAmbience();}catch(e){}
+  try{stopCat();}catch(e){}
+  try{stopFanAndClock();}catch(e){}
+  if(typeof rAF!=='undefined'&&rAF){cancelAnimationFrame(rAF);rAF=null;}
+  // Reset after 3s so future disconnect detection works again in the same session
+  setTimeout(()=>{ _intentionalLeave=false; },3000);
+}
+function showGame(){
+  forceHide(document.getElementById('kickNotice'));
+  clearTimeout(window._kickTimer);
+  document.getElementById('homePage').style.display='none';
+  const gp=document.getElementById('gamePage');
+  gp.style.display='flex';
+  document.body.classList.add('game-active');
+  document.getElementById('chatMsgs').innerHTML='';
+  document.getElementById('leaveConfirm').style.display='none';
+  sizeRoom();
+  setTimeout(()=>{sizeRoom();initRain();animFire();startAmbience();startCat();},80);
+}
+function showHome(){
+  forceHide(document.getElementById('kickNotice'));
+  forceHide(document.getElementById('disconnectOverlay'));
+  try{stopAmbience();}catch(e){}
+  try{stopCat();}catch(e){}
+  try{stopFanAndClock();}catch(e){}
+  if(typeof rAF!=='undefined'&&rAF){cancelAnimationFrame(rAF);rAF=null;}
+  _intentionalLeave=false; // reset so future disconnect overlay works
+  document.getElementById('homePage').style.display='flex';
+  document.getElementById('gamePage').style.display='none';
+  document.body.classList.remove('game-active');
+  socket.emit('getLobbyList');
+}
+
+function renderLobbies(){
+  const el=document.getElementById('lobbyList');
+  const list=(allLobbies||[]).slice().sort((a,b)=>(a.count>=a.max?1:0)-(b.count>=b.max?1:0));
+  const tc=document.getElementById('totalPlayersCount');
+  if(tc)tc.textContent=(allLobbies||[]).reduce((s,l)=>s+l.count,0);
+  if(!list.length){el.innerHTML='<div class="no-lob">No open lobbies — be the first!</div>';return;}
+  el.innerHTML='';
+  list.forEach(l=>{
+    const isFull=l.count>=l.max;
+    const div=document.createElement('div');div.className='lobby-item'+(isFull?' lobby-full':'');
+    const avRow=document.createElement('div');avRow.className='lobby-avatars';
+    (l.players||[]).forEach(p=>{
+      const c=document.createElement('canvas');c.width=99;c.height=117;c.style.cssText='width:33px;height:39px;display:block;';
+      drawAV(c.getContext('2d'),p.avatar||{},49.5,53.8,32);avRow.appendChild(c);
+    });
+    const names=document.createElement('div');names.className='lobby-names';names.textContent=(l.players||[]).map(p=>p.name).join(', ');
+    const codeEl=document.createElement('div');codeEl.className='lobby-code-txt';codeEl.textContent=l.code;
+    const left=document.createElement('div');left.style.cssText='display:flex;flex-direction:column;gap:1px;';
+    left.appendChild(avRow);left.appendChild(names);left.appendChild(codeEl);
+    const right=document.createElement('div');right.className='lobby-cnt';
+    right.innerHTML=\`\${l.count}/\${l.max}\${isFull?'<div class="lobby-full-tag">FULL</div>':''}<div class="lobby-bar"><div class="lobby-fill" style="width:\${(l.count/l.max)*100}%"></div></div>\`;
+    div.appendChild(left);div.appendChild(right);
+    // Clicking a joinable lobby directly joins it; full lobbies are shown but not clickable
+    if(!isFull){
+      div.onclick=()=>{
+        // Check client-side kick ban on this specific lobby
+        if(window._kickedFromCode===l.code && window._kickedUntil && Date.now()<window._kickedUntil){
+          const minsLeft=Math.ceil((window._kickedUntil-Date.now())/60000);
+          showErr(\`You were kicked from this lobby. Wait \${minsLeft} minute\${minsLeft!==1?'s':''} to rejoin.\`);
+          return;
+        }
+        try{getAC();}catch(e){}saveP();
+        socket.emit('joinByCode',{code:l.code,name:document.getElementById('nameInp').value,avatar:{...AV}});
+      };
+    }
+    el.appendChild(div);
+  });
+}
+
+function X(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 buildRoom();
 socket.emit('getLobbyList');
 </script>
@@ -1266,7 +2389,8 @@ const WORD_LIST = [
   'StargazerX','NebulaPilot','CosmicDrifter','OrbitRider','GalaxyBounce','PlasmaPuff','NovaSurfer',
   'QuasarKid','PulsarPal','VoidWalker','DarkMatterM','LightspeedL','AstroSnack','MoonRocker','SunDrifter',
   'CometChaser','MeteorMunch','StellarSurge','NeutronNap','WarpZoneW','BlackHoleB','CrystalComet',
-  'RocketRamen','SpaceNoodle','ZeroGRamen','OrbitalOats','TwilightTaco','EventHorizon','SingularSnack',
+  'RocketRamen','SpaceNoodle','ZeroGRamen','OrbitalOats','TwilightTaco','EventHorizon','SingularSnack'
+,
   'PetiteOtter','BlissfulLantern','SpicyFox','GiantJasmine','FruityMuffin',
   'SparklyTulip','ZippyBrook','JumboPatch','MoonlitTruffle','CloudyMitten',
   'WavyPraline','SereneFudge','VintageQuilt','PeppyCider','JazzyMocha',
@@ -1445,7 +2569,7 @@ function createLobby(){
 
 function getLobbyList(){
   return Object.values(lobbies)
-    .filter(l=>Object.keys(l.players).length>0)
+    .filter(l=>Object.keys(l.players).length>0) // only lobbies with at least 1 player
     .map(l=>({
       code:l.code, count:Object.keys(l.players).length, max:LOBBY_MAX,
       players:Object.values(l.players).map(p=>({name:p.name,avatar:p.avatar}))
@@ -1453,12 +2577,13 @@ function getLobbyList(){
 }
 
 function findAvailableLobby(skipSocket){
+  // Skip lobbies this socket was kicked from
   for(const l of Object.values(lobbies)){
     if(Object.keys(l.players).length>=LOBBY_MAX) continue;
     if(skipSocket && isBanned(skipSocket.id,l.code,skipSocket)) continue;
     return l;
   }
-  return createLobby();
+  return createLobby(); // creates a fresh lobby they haven't been banned from
 }
 
 function assignSeat(lobby){
@@ -1467,6 +2592,9 @@ function assignSeat(lobby){
 }
 
 function randomName(lobby,usedAutoNames){
+  // Avoid: (1) any name currently used by another active player in this
+  // lobby, and (2) any name THIS SAME CONNECTION already received before,
+  // even in a completely different lobby earlier in the session.
   const usedInLobby=lobby?new Set(Object.values(lobby.players).map(p=>p.name)):new Set();
   const usedHistory=usedAutoNames||new Set();
   let attempts=0,name;
@@ -1477,10 +2605,12 @@ function randomName(lobby,usedAutoNames){
   return name;
 }
 
-// Server-side isBlocked (same as client copy)
+// Reused by BOTH the chat filter and the username filter, so nobody can
+// use a word in their name that they could not say in chat.
 function isBlocked(raw){
+  // 1. Normalize: lowercase, strip accents, collapse spaces, l33tspeak
   let s = raw.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // strip accents
     .replace(/[@]/g,'a').replace(/[4]/g,'a')
     .replace(/[3]/g,'e').replace(/[€]/g,'e')
     .replace(/[1!|]/g,'i').replace(/[0]/g,'o')
@@ -1488,54 +2618,94 @@ function isBlocked(raw){
     .replace(/[+]/g,'t').replace(/[8]/g,'b')
     .replace(/[9]/g,'g').replace(/[6]/g,'g')
     .replace(/[xX]/g,'x')
-    .replace(/\s+/g,'')
-    .replace(/[^a-z0-9]/g,'');
+    .replace(/\s+/g,'')          // remove all spaces (catches s p a c e d)
+    .replace(/[^a-z0-9]/g,'');   // strip all remaining non-alphanumeric
 
+  // 2. URL / contact-sharing patterns (raw, before normalization)
   const rawLower = raw.toLowerCase();
   if(/https?:\/\/|www\.|\.com|\.net|\.org|\.io|\.gg|\.ly|\.me|\.co|\.tv/.test(rawLower)) return true;
   if(/discord\.gg|discordapp|snap(chat)?|instagram|tiktok|onlyfans|telegram/.test(rawLower)) return true;
-  if(/[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(raw)) return true;
-  if(/(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/.test(raw)) return true;
+  if(/[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(raw)) return true;  // email
+  if(/(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/.test(raw)) return true; // phone
 
+  // 3. Racial & ethnic slurs — blocked regardless of context
   const racialSlurs = [
     'nigger','nigga','nigg','n1gg','niga','nigar',
     'chink','chinc','gook','zipperhead','slant','slanteye',
     'spic','spick','beaner','wetback',
     'kike','hymie','heeb',
     'cracker','honky','whitey',
-    'towelhead','raghead','sandnigger','cameljockey',
-    'paki','pakis','jap','japs','redskin','injun',
-    'coonass','coony','sambo','darkie','darky',
-    'gringo','gringos','wop','dago','guido','kraut','krauts',
-    'polack','polacks','mick','micks','cholo','cholos'
+    'towelhead','raghead','sandnigger','camel jockey','cameljockey',
+    'paki','pakis',
+    'jap','japs',
+    'redskin','redskins','injun',
+    'coonass','coony','sambo',
+    'darkie','darky',
+    'gringo','gringos',
+    'wop','dago','guido',
+    'kraut','krauts',
+    'polack','polacks',
+    'mick','micks',
+    'cholo','cholos',
   ];
+
+  // 4. Homophobic / transphobic slurs
   const lgbtSlurs = [
     'faggot','fagot','fag','fags','fagg',
-    'dyke','dykes','tranny','trannies',
-    'homo','homos','queer',
-    'shemale','heshe','ladyboy','sissy','sissies'
+    'dyke','dykes',
+    'tranny','trannies',
+    'homo','homos',
+    'queer',  // only block as a slur if combined with hate context — keep simple: block alone
+    'shemale','heshe',
+    'ladyboy',
+    'sissy','sissies',
   ];
+
+  // 5. Misogynistic / gendered slurs
   const genderSlurs = [
-    'cunt','cunts','whore','whores','whor',
-    'slut','sluts','skank','skanks',
-    'bitch','bitches','hoe','hoes','thot','twat','twats'
+    'cunt','cunts',
+    'whore','whores','whor',
+    'slut','sluts',
+    'skank','skanks',
+    'bitch','bitches',  // common insult but also used casually — we include it
+    'hoe','hoes',
+    'thot',
+    'twat','twats',
   ];
+
+  // 6. Severe sexual content
   const sexualTerms = [
-    'porn','porno','pornography','xxx','hentai','nsfw','onlyfans',
-    'nude','nudes','nudity','naked',
+    'porn','porno','pornography',
+    'xxx',
+    'hentai',
+    'nsfw',
+    'onlyfans',
+    'nude','nudes','nudity',
+    'naked',
     'penis','vagina','vulva','anus','rectum','butthole','asshole','arsehole',
-    'cock','cocks','dick','dicks','pussy','pussies',
+    'cock','cocks',
+    'dick','dicks',
+    'pussy','pussies',
     'boob','boobs','tits','tit','titties','titty',
     'cum','cumshot','cumming',
     'sex','sexy','sexting',
-    'masturbat','masterbat','orgasm','orgasms','erection',
-    'blowjob','handjob','footjob','dildo','vibrator',
-    'rape','raped','raping','rapist','molestation','molest','incest',
-    'pedophile','paedophile','pedo','paedo','pedophilia','lolita','loli',
-    'child porn','cp '
+    'masturbat','masterbat',
+    'orgasm','orgasms',
+    'erection',
+    'blowjob','handjob','footjob',
+    'dildo','vibrator',
+    'rape','raped','raping','rapist',
+    'molestation','molest',
+    'incest',
+    'pedophile','paedophile','pedo','paedo','pedophilia',
+    'lolita','loli',
+    'child porn','cp ',
   ];
+
+  // 7. Violence / threats / extremism
   const violenceTerms = [
-    'kill yourself','kys','kill urself',
+    'kill yourself','kys',
+    'kill urself',
     'i will kill','im gonna kill','gonna kill you',
     'die bitch','die you','you should die','hope you die',
     'shoot up','mass shooting','school shooting',
@@ -1544,41 +2714,63 @@ function isBlocked(raw){
     'genocide','ethnic cleansing',
     'neo nazi','neonazi','nsdap','heil hitler','sieg heil','14 words','88',
     'white power','white supremacy','kkk',
-    'lynch','lynching','assault','stab you','gonna stab'
+    'lynch','lynching',
+    'assault','stab you','gonna stab',
   ];
+
+  // 8. Self-harm / suicide promotion
   const selfHarmTerms = [
-    'kill myself','kms','commit suicide','end my life','end it all',
-    'slit my','cut myself','how to kill','ways to die',
-    'neck yourself','rope yourself','drink bleach','selfharm','self harm'
+    'kill myself','kms',
+    'commit suicide','end my life','end it all',
+    'slit my','cut myself',
+    'how to kill','ways to die',
+    'neck yourself',
+    'rope yourself',
+    'drink bleach',
+    'selfharm','self harm',
   ];
+
+  // 9. Drug-related (for AdSense compliance)
   const drugTerms = [
     'heroin','meth','methamphetamine','cocaine','crack cocaine',
     'fentanyl','oxycontin','opioid',
     'buy drugs','sell drugs','drug deal',
-    'weed for sale','weed dealer','mdma','ecstasy','molly pill'
+    'weed for sale','weed dealer',
+    'mdma','ecstasy','molly pill',
   ];
+
+  // 10. Spam / advertising patterns
   const spamPatterns = [
     'free robux','free vbucks','free gift card','free money',
     'click here','click this link','check out my',
     'subscribe to my','follow me on',
     'use code ','promo code',
     'cashapp me','venmo me','paypal me','send me money',
-    'join my server','join our discord','dm me','dms open'
+    'join my server','join our discord',
+    'dm me','dms open',
   ];
 
+  // Combine all lists and check
   const allTerms = [
-    ...racialSlurs, ...lgbtSlurs, ...genderSlurs,
-    ...sexualTerms, ...violenceTerms, ...selfHarmTerms,
-    ...drugTerms, ...spamPatterns
+    ...racialSlurs,
+    ...lgbtSlurs,
+    ...genderSlurs,
+    ...sexualTerms,
+    ...violenceTerms,
+    ...selfHarmTerms,
+    ...drugTerms,
+    ...spamPatterns,
   ];
 
-  for (const term of allTerms) {
+  // Check normalized (catches l33tspeak and spaced out versions)
+  for(const term of allTerms){
     const normTerm = term.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
-    if (normTerm && s.includes(normTerm)) return true;
+    if(normTerm && s.includes(normTerm)) return true;
   }
 
-  for (const term of [...spamPatterns, ...violenceTerms, ...selfHarmTerms, ...sexualTerms]) {
-    if (rawLower.includes(term.toLowerCase())) return true;
+  // Also check raw lowercase for multi-word phrases (spam patterns, threats)
+  for(const term of [...spamPatterns,...violenceTerms,...selfHarmTerms,...sexualTerms]){
+    if(rawLower.includes(term.toLowerCase())) return true;
   }
 
   return false;
@@ -1591,7 +2783,14 @@ function sanitizeName(name,lobby,usedAutoNames){
     n=name.trim().replace(/[<>&"']/g,'').substring(0,16);
     if(!n){ n=randomName(lobby,usedAutoNames); wasAuto=true; }
   }
+
+  // A typed name containing a banned word is REJECTED, never silently
+  // swapped — the player must see this and pick a different name.
   if(!wasAuto&&isBlocked(n)){ return {rejected:true}; }
+
+  // Hard guarantee: no two active players in the SAME lobby ever end up
+  // with an identical displayed name — covers auto-generated names AND
+  // names someone typed by hand that happen to match another player.
   if(lobby){
     const used=new Set(Object.values(lobby.players).map(p=>p.name));
     if(used.has(n)){
@@ -1604,7 +2803,11 @@ function sanitizeName(name,lobby,usedAutoNames){
       n=candidate;
     }
   }
+
+  // Remember this name for THIS connection only if it was auto-generated —
+  // typed names are the player's own choice and shouldn't restrict them.
   if(wasAuto&&usedAutoNames) usedAutoNames.add(n);
+
   return {rejected:false,name:n};
 }
 
@@ -1635,6 +2838,7 @@ function banLeft(sid,code,socket){
   return Math.max(0,Math.max(t1,t2)-Date.now());
 }
 
+// Clean empty lobbies every minute
 setInterval(()=>{
   for(const code of Object.keys(lobbies)){
     const l=lobbies[code];
@@ -1644,6 +2848,10 @@ setInterval(()=>{
 
 io.on('connection',(socket)=>{
   let curLobby=null, curPlayer=null, lastVoteKickAt=0;
+  // Tracks every auto-generated name this specific connection has already
+  // received, across however many lobbies they join/leave in this session —
+  // so leaving the name blank repeatedly never hands back a name they had
+  // before, even in a completely different lobby.
   const usedAutoNames=new Set();
 
   socket.emit('lobbyList',getLobbyList());
@@ -1674,6 +2882,7 @@ io.on('connection',(socket)=>{
       return;
     }
     const cleanName=nameResult.name;
+    // Already in a lobby? leave first silently
     if(curLobby&&curPlayer) doRemove(socket.id,curLobby,'left',true);
 
     const seat=assignSeat(lobby);
@@ -1692,19 +2901,28 @@ io.on('connection',(socket)=>{
     io.emit('lobbyList',getLobbyList());
   }
 
+  // Chat spam tracking per connection
   const _msgTimes=[];
-  const SPAM_MAX=5, SPAM_WIN=4000;
+  const SPAM_MAX=5, SPAM_WIN=4000; // 5 msgs per 4s
 
   socket.on('chat',({message})=>{
     if(!curLobby||!curPlayer)return;
     const msg=(message||'').trim().substring(0,100);
     if(!msg)return;
+    // Spam check
     const now=Date.now();
     while(_msgTimes.length&&now-_msgTimes[0]>SPAM_WIN)_msgTimes.shift();
     if(_msgTimes.length>=SPAM_MAX){socket.emit('chatBlocked',{type:'spam'});return;}
     _msgTimes.push(now);
 
+    // ════════════════════════════════════════════════════════════════════
+    //  SERVER-SIDE CONTENT FILTER
+    //  All filtering happens here — cannot be bypassed by the client.
+    //  Returns true if the message should be BLOCKED (not sent).
+    // ════════════════════════════════════════════════════════════════════
+
     if(isBlocked(msg)){
+      // Private notice to sender only — nobody else in the lobby sees anything
       socket.emit('chatBlocked');
       return;
     }
@@ -1721,7 +2939,7 @@ io.on('connection',(socket)=>{
   socket.on('toggleClockColor',({color})=>{
     if(!curLobby)return;
     if(color!=='red'&&color!=='green')return;
-    if(curLobby.clockColor===color)return;
+    if(curLobby.clockColor===color)return; // already that color, no-op
     curLobby.clockColor=color;
     io.to(curLobby.code).emit('clockColorState',{clockColor:color});
   });
@@ -1733,6 +2951,12 @@ io.on('connection',(socket)=>{
     if(!lobby.players[targetId])return;
 
     const playerCount=Object.keys(lobby.players).length;
+    // With only 2 players, "voting" would mean exactly one person can
+    // unilaterally kick the other — that's not a real vote. Require at
+    // least 3 total players so a kick always reflects agreement from
+    // more than one person. This is a hard requirement, not a special
+    // case of the threshold math below — it's checked first and blocks
+    // the vote entirely if the lobby is too small.
     if(playerCount<3){
       socket.emit('systemMessage',{
         text:'Vote kick needs at least 3 players in the lobby to be fair — it is not available yet.',
@@ -1741,6 +2965,8 @@ io.on('connection',(socket)=>{
       return;
     }
 
+    // Cooldown: a player can only attempt to initiate a vote-kick once per
+    // VOTE_KICK_COOLDOWN_MS, regardless of target, so it can't be spammed/abused.
     const now=Date.now();
     const sinceLast=now-lastVoteKickAt;
     if(sinceLast<VOTE_KICK_COOLDOWN_MS){
@@ -1750,9 +2976,11 @@ io.on('connection',(socket)=>{
     lastVoteKickAt=now;
 
     if(!lobby.votes[targetId]) lobby.votes[targetId]=new Set();
+    // Prevent double-voting
     if(lobby.votes[targetId].has(socket.id)) return;
     lobby.votes[targetId].add(socket.id);
 
+    // 2-minute reset: clears the vote count so players can start fresh
     if(!lobby.voteTimers) lobby.voteTimers={};
     clearTimeout(lobby.voteTimers[targetId]);
     lobby.voteTimers[targetId]=setTimeout(()=>{
@@ -1767,6 +2995,19 @@ io.on('connection',(socket)=>{
     const targetName=lobby.players[targetId]?.name||'Unknown';
     const voterName=curPlayer.name;
     const voteCount=lobby.votes[targetId].size;
+
+    // Vote threshold — always exactly "at least half the lobby, rounded up"
+    // must vote to kick. playerCount is guaranteed >= 3 at this point (the
+    // <3 case was already rejected above), so this never produces a
+    // 1-vote-kicks scenario — the smallest possible threshold is 2:
+    //   3 players → needed 2   (both other players)
+    //   4 players → needed 2   (majority of the other 3)
+    //   5 players → needed 3
+    //   6 players → needed 3
+    //   7 players → needed 4
+    //   8 players → needed 4
+    // The target can never vote for themselves, so "needed" is always
+    // achievable (it never exceeds playerCount-1) — verified for every N.
     const needed=Math.ceil(playerCount/2);
 
     io.to(lobby.code).emit('systemMessage',{
@@ -1774,12 +3015,19 @@ io.on('connection',(socket)=>{
     });
 
     if(voteCount>=needed){
+      // Get kicked player's socket first
       const tSock=io.sockets.sockets.get(targetId);
+      // Ban by IP (persists across page reloads) + by socket.id (immediate)
       const bannedIp=tSock?getClientIp(tSock):targetId;
       kickBans[bannedIp+':'+lobby.code]=Date.now()+KICK_BAN_MS;
       kickBans[targetId+':'+lobby.code]=Date.now()+KICK_BAN_MS;
+      // Notify the kicked player BEFORE removing them from lobby socket room
       if(tSock) tSock.emit('kicked',{lobbyCode:lobby.code});
+
+      // Broadcast kick message to all including the kicked player (they're still in the room socket)
       io.to(lobby.code).emit('systemMessage',{text:`${targetName} was kicked`,type:'kick'});
+
+      // Now remove from lobby state and socket room
       doRemove(targetId,lobby,'kicked',false);
       delete lobby.votes[targetId];
     }
@@ -1795,6 +3043,9 @@ io.on('connection',(socket)=>{
   });
 
   socket.on('disconnect',(reason)=>{
+    // 'client namespace disconnect' = the client called socket.disconnect() itself,
+    // meaning it was a deliberate tab-close (pagehide) or Leave button press.
+    // Everything else (ping timeout, transport close/error) is an involuntary drop.
     const wasIntentional = reason === 'client namespace disconnect';
     if(curLobby&&curPlayer) doRemove(socket.id, curLobby, wasIntentional ? 'left' : 'disconnected', false);
   });
@@ -1805,10 +3056,12 @@ io.on('connection',(socket)=>{
     const name=player.name;
     if(player.seat!==undefined) lobby.seats[player.seat]=null;
     delete lobby.players[playerId];
+    // Cancel the 2-min reset timer for votes against this player (they're gone)
     if(lobby.voteTimers&&lobby.voteTimers[playerId]){
       clearTimeout(lobby.voteTimers[playerId]);
       delete lobby.voteTimers[playerId];
     }
+    // Remove votes cast AGAINST them and their own vote FROM others' counts
     delete lobby.votes[playerId];
     for(const vs of Object.values(lobby.votes)) vs.delete(playerId);
     const tSock=io.sockets.sockets.get(playerId);
@@ -1816,6 +3069,7 @@ io.on('connection',(socket)=>{
     if(!silent){
       io.to(lobby.code).emit('playerLeft',{playerId,playerName:name,reason,lobbyState:getLobbyState(lobby)});
     }
+    // Delete lobby immediately if empty so it never shows in list
     if(Object.keys(lobby.players).length===0){
       delete lobbies[lobby.code];
     }
