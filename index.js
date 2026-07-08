@@ -2377,6 +2377,7 @@ socket.emit('getLobbyList');
 </html>
 `;
 app.get('/', (req,res) => res.type('html').send(INDEX_HTML));
+app.get('/ads.txt', (req,res) => res.type('text/plain').send('google.com, pub-2352009046427964, DIRECT, f08c47fec0942fa0'));
 
 const LOBBY_MAX = 8;
 const KICK_BAN_MS = 10*60*1000;
