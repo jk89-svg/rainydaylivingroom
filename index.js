@@ -43,8 +43,8 @@ const INDEX_HTML = `<!DOCTYPE html>
   --lobby-hover:#FFE8B0;
   --inp-bg:#fff;
   /* ── Orange / golden-yellow accent palette ── */
-  --grad-a:#0B2A4A;
-  --grad-b:#1B4D7A;
+  --grad-a:rgb(36, 81, 149);
+  --grad-b:rgb(19, 63, 140);
   --grad-c:#081C33;
   --accent:#C86000;
   --accent-mid:#D4A000;
@@ -71,7 +71,7 @@ body.dark{
   --inp-bg:#2a2a38;
 }
 
-body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,var(--grad-a),var(--grad-b) 50%,var(--grad-c));min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;overflow-y:auto;}
+body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;overflow-y:auto;}
 body.game-active{overflow:hidden;}
 
 /* ══ HOME ══ */
