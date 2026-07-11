@@ -802,8 +802,10 @@ function applyFanState(){
   // Switch lever intentionally left untouched here — it stays fully static
   // (no tilt/rotate) on every tap. Only the click sound + bulb color change.
   if(!fanAnimId)fanAnimId=requestAnimationFrame(fanAnimLoop);
-  if(fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
-  else if(!fanOn&&fanWindNode){ stopNode(fanWindNode); fanWindNode=null; }
+  // Fan intentionally makes no ambient sound while running — only the
+  // on/off click (playSwitchClick) plays. fanWindNode is left in place
+  // as a variable (used below for cleanup) but is never assigned a
+  // noise node, so no wind/hum audio is ever created.
 }
 function playSwitchClick(){
   if(sndMuted)return;
@@ -1726,8 +1728,6 @@ function setVolume(v){
   // also pause/resume ambience when muting in-game
   if(document.getElementById('gamePage')&&document.getElementById('gamePage').style.display!=='none'){
     if(sndMuted)stopAmbience(); else if(!sndMuted&&!thunderInt)startAmbience();
-    // Fan wind sound may not have started if it was muted when turned on
-    if(!sndMuted&&typeof fanOn!=='undefined'&&fanOn&&!fanWindNode){ fanWindNode=makeNoise(4,1800,.05); }
   }
 }
 let _preMuteVol=0.7;
