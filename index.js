@@ -1771,7 +1771,7 @@ function playThunder(){
     for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(Math.max(0,1-i/(d.length*.65)),1.5);
     const src=ac.createBufferSource(),lp=ac.createBiquadFilter(),g=ac.createGain();
     lp.type='lowpass';lp.frequency.value=190;src.buffer=buf;src.connect(lp);lp.connect(g);g.connect(masterGain);
-    g.gain.setValueAtTime(.0001,ac.currentTime);g.gain.linearRampToValueAtTime(.5,ac.currentTime+.06);
+    g.gain.setValueAtTime(.0001,ac.currentTime);g.gain.linearRampToValueAtTime(.65,ac.currentTime+.06);
     g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);src.start();}catch(e){}
 }
 function startAmbience(){
