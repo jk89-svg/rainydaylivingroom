@@ -1775,7 +1775,7 @@ function playThunder(){
     g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);src.start();}catch(e){}
 }
 function startAmbience(){
-  stopAmbience();rainNode=makeNoise(4,2600,.03);
+  stopAmbience();rainNode=makeNoise(4,2600,.016);
   thunderInt=setInterval(()=>{if(Math.random()<.55){const dl=Math.random()*1800;setTimeout(()=>{flash();setTimeout(playThunder,90+Math.random()*180);},dl);}},3000);
 }
 function stopAmbience(){clearInterval(thunderInt);thunderInt=null;stopNode(rainNode);rainNode=null;}
