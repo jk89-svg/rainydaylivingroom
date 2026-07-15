@@ -89,19 +89,6 @@ body.game-active{overflow:hidden;}
 
 .card{background:var(--bg-card);border-radius:12px;box-shadow:0 3px 14px rgba(0,0,0,.16);padding:9px 11px;flex-shrink:0;}
 .card h3{font-family:'Fredoka One',cursive;color:var(--accent-dark);font-size:.78rem;margin-bottom:6px;text-align:center;}
-/* Compact square-ish profile/play card + matching info card below it —
-   width capped so the card reads as roughly square (slightly taller than
-   wide once its contents stack), and centered within col-mid at every
-   breakpoint since col-mid's own width already adapts responsively. */
-.card-square{width:100%;max-width:232px;margin:0 auto;}
-/* Username input, Play button: same narrower width, centered, so a small
-   even gap shows on both sides inside the square frame. */
-.sq-narrow{display:block;width:86%;margin-left:auto;margin-right:auto;}
-/* Room code row: same overall width/centering as .sq-narrow, but keeps its
-   own display:flex (inherited from .code-row) so the code input + Join
-   button still sit side by side with a small gap between them, and the
-   row's left/right edges line up exactly with the Play button above it. */
-.sq-narrow-flex{width:86%;margin-left:auto;margin-right:auto;}
 
 .inp{width:100%;padding:5px 9px;border-radius:7px;border:2px solid var(--accent);font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:700;outline:none;color:var(--text-main);background:var(--inp-bg);}
 .inp:focus{border-color:var(--accent-dark);}
@@ -399,8 +386,9 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
 
     <!-- MIDDLE: Character + Play -->
     <div class="home-col col-mid">
-      <div class="card card-square">
-        <input id="nameInp" class="inp sq-narrow" type="text" placeholder="Username..." maxlength="16" style="margin-bottom:3px;" oninput="liveCheckName(this.value)">
+      <div class="card">
+        <h3>🎮 Your Profile</h3>
+        <input id="nameInp" class="inp" type="text" placeholder="Username..." maxlength="16" style="margin-bottom:3px;" oninput="liveCheckName(this.value)">
         <div id="nameValidMsg" class="name-valid-msg"></div>
         <div class="av-center">
           <!-- Avatar with arrows on sides -->
@@ -413,18 +401,16 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
               <button class="feat-arrow" onclick="prev('hat')" title="Hat">◀</button>
             </div>
             <canvas id="avCanvas" width="330" height="390" style="width:110px;height:130px;"></canvas>
-            <!-- Right arrows: refresh sits beside the top (skin) arrow, nudged right -->
+            <!-- Right arrows -->
             <div style="display:flex;flex-direction:column;gap:4px;align-items:center;">
-              <div style="display:flex;align-items:center;">
-                <button class="feat-arrow" onclick="nextSkin()" title="Skin">▶</button>
-                <button onclick="resetAvatar()" title="Randomize look" style="margin-left:7px;background:none;border:1.5px solid var(--border-soft);border-radius:5px;width:22px;height:22px;padding:0;font-size:.8rem;cursor:pointer;color:var(--text-main);display:flex;align-items:center;justify-content:center;flex-shrink:0;">🔄</button>
-              </div>
+              <button class="feat-arrow" onclick="nextSkin()" title="Skin">▶</button>
               <button class="feat-arrow" onclick="next('eyes')" title="Eyes">▶</button>
               <button class="feat-arrow" onclick="next('mouth')" title="Mouth">▶</button>
               <button class="feat-arrow" onclick="next('hat')" title="Hat">▶</button>
             </div>
           </div>
-          <!-- Labels below avatar (hidden via .feat-label, kept for future use) -->
+          <button onclick="resetAvatar()" title="Reset to random look" style="margin-top:4px;background:none;border:1.5px solid var(--border-soft);border-radius:8px;padding:3px 10px;font-size:.85rem;cursor:pointer;color:var(--text-main);">🔄</button>
+          <!-- Labels below avatar -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:100%;max-width:200px;">
             <div style="text-align:center;"><div class="feat-label" id="skinLbl" style="font-size:.65rem;padding:1px 4px;"></div></div>
             <div style="text-align:center;"><div class="feat-label" id="eyesLbl" style="font-size:.65rem;padding:1px 4px;"></div></div>
@@ -432,17 +418,19 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
             <div style="text-align:center;"><div class="feat-label" id="hatLbl" style="font-size:.65rem;padding:1px 4px;"></div></div>
           </div>
         </div>
+      </div>
+      <div class="card">
+        <h3>🚀 Play</h3>
         <div id="homeErr" class="err-msg"></div>
-        <button class="big-btn btn-play sq-narrow" onclick="playRandom()">▶ Play (Random Lobby)</button>
-        <div class="code-row sq-narrow-flex">
+        <button class="big-btn btn-play" onclick="playRandom()">▶ Play (Random Lobby)</button>
+        <div class="code-row">
           <input id="codeInp" class="code-inp" type="text" placeholder="ROOM CODE" maxlength="5">
           <button class="code-btn" onclick="playCode()">Join</button>
         </div>
-      </div>
-      <div class="card card-square">
         <p class="tagline-txt">Bored? Join this game to socialize and relax! It's a rainy day in the living room, so use your imagination and find something creative to do. Keep things fun, engaging, and entertaining for everyone.</p>
         <p class="tagline-txt" style="margin-top:5px;">👆 Tap any player's name on the player list to mute or vote kick them.</p>
         <p class="tagline-txt" style="margin-top:3px;font-weight:800;">👥 <span id="totalPlayersCount">0</span> players online right now</p>
+        
       </div>
     </div>
 
@@ -946,12 +934,10 @@ function next(feat){
   drawHome();saveP();
 }
 function resetAvatar(){
-  // Fully random look: skin, eyes, mouth, and accessory are each re-rolled
+  // Random skin color, default eyes/mouth, no accessory
   skinIdx=Math.floor(Math.random()*SKINS.length);
-  eyesIdx=Math.floor(Math.random()*EYES_LIST.length);
-  mouthIdx=Math.floor(Math.random()*MOUTH_LIST.length);
-  hatIdx=Math.floor(Math.random()*HAT_LIST.length);
-  AV={skin:SKINS[skinIdx].v,eyes:EYES_LIST[eyesIdx],mouth:MOUTH_LIST[mouthIdx],hat:HAT_LIST[hatIdx]};
+  eyesIdx=0;mouthIdx=0;hatIdx=0;
+  AV={skin:SKINS[skinIdx].v,eyes:EYES_LIST[0],mouth:MOUTH_LIST[0],hat:HAT_LIST[0]};
   updSkinLbl();
   const el=document.getElementById('eyesLbl');if(el)el.textContent=AV.eyes;
   const ml=document.getElementById('mouthLbl');if(ml)ml.textContent=AV.mouth;
