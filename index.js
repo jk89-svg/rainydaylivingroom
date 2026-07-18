@@ -401,8 +401,12 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
         <input id="nameInp" class="inp" type="text" placeholder="Username..." maxlength="16" style="margin-bottom:3px;" oninput="liveCheckName(this.value)">
         <div id="nameValidMsg" class="name-valid-msg"></div>
         <div class="av-center">
-          <!-- Avatar with arrows on sides -->
-          <div style="display:flex;align-items:center;justify-content:center;gap:5px;">
+          <!-- Avatar with arrows on sides. position:relative + the refresh
+               button below being position:absolute means the button floats
+               OUTSIDE this row entirely — it can never unbalance the
+               centering of [left arrows | canvas | right arrows], since
+               that trio is now perfectly symmetric on both sides. -->
+          <div style="display:flex;align-items:center;justify-content:center;gap:5px;position:relative;">
             <!-- Left arrows: skin prev, eyes prev, mouth prev, hat prev -->
             <div style="display:flex;flex-direction:column;gap:4px;align-items:center;">
               <button class="feat-arrow" onclick="prevSkin()" title="Skin">◀</button>
@@ -411,18 +415,14 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
               <button class="feat-arrow" onclick="prev('hat')" title="Hat">◀</button>
             </div>
             <canvas id="avCanvas" width="330" height="390" style="width:104px;height:123px;"></canvas>
-            <!-- Right arrows, with the randomize button next to the first one. flex-start
-                 keeps all 4 arrows in one straight line — the refresh button only
-                 widens its own row, it doesn't re-center (and thus shift) the rows below. -->
-            <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
-              <div style="display:flex;align-items:center;gap:5px;">
-                <button class="feat-arrow" onclick="nextSkin()" title="Skin">▶</button>
-                <button onclick="resetAvatar()" title="Randomize skin, eyes, mouth &amp; accessories" style="background:none;border:1.5px solid var(--border-soft);border-radius:6px;width:20px;height:20px;font-size:.7rem;line-height:1;cursor:pointer;color:var(--text-main);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">🔄</button>
-              </div>
+            <!-- Right arrows: mirrors the left column exactly -->
+            <div style="display:flex;flex-direction:column;gap:4px;align-items:center;">
+              <button class="feat-arrow" onclick="nextSkin()" title="Skin">▶</button>
               <button class="feat-arrow" onclick="next('eyes')" title="Eyes">▶</button>
               <button class="feat-arrow" onclick="next('mouth')" title="Mouth">▶</button>
               <button class="feat-arrow" onclick="next('hat')" title="Hat">▶</button>
             </div>
+            <button onclick="resetAvatar()" title="Randomize skin, eyes, mouth &amp; accessories" style="position:absolute;left:100%;top:0;margin-left:6px;background:none;border:1.5px solid var(--border-soft);border-radius:6px;width:20px;height:20px;font-size:.7rem;line-height:1;cursor:pointer;color:var(--text-main);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">🔄</button>
           </div>
           <!-- Labels below avatar -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:100%;max-width:190px;margin:0 auto;">
