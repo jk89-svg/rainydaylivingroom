@@ -199,7 +199,8 @@ body.dark .p-entry:hover{background:#3a3a50;}
 #roomBox{position:relative;border-radius:10px;background:#2a3a6a;container-type:inline-size;container-name:room;flex-shrink:0;}
 #roomClip{position:absolute;inset:0;overflow:hidden;border-radius:10px;}
 #roomSvg{width:100%;height:100%;display:block;}
-#rainCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
+#rainCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;opacity:0;transition:opacity 8s linear;}
+.win-sky{transition:fill 8s linear;}
 /* Avatar overlay sits OUTSIDE the clipped layer so nametags for edge
    seats are never chopped off by the room's rounded-corner clipping. */
 #avatarLayer{position:absolute;inset:0;pointer-events:none;z-index:6;}
@@ -853,16 +854,85 @@ function fallbackCopy(text,cb){
 function toggleFanClick(){ try{getAC();}catch(e){} socket.emit('toggleFan'); }
 function clockButtonClick(color){ try{getAC();}catch(e){} socket.emit('toggleClockColor',{color}); }
 
-// ── Wall clock: pure Date.now()-based math, synced per-lobby via a random
-//    offset assigned once when the lobby is created — same technique as
-//    the cat's deterministic movement, so every player always computes
-//    the exact same clock time without needing constant server ticks.
+// ═══════════════════════════════════════
+//  WEATHER / TIME-OF-DAY CYCLE
+//  Same "pure Date.now() math, no server ticking" technique as the fan/
+//  clock above: the server only ever hands out one small random seed per
+//  lobby (weatherSeed). Every client deterministically builds the exact
+//  same schedule of states from that seed, so everyone in a lobby always
+//  sees the identical state at the identical moment — but every lobby's
+//  seed (and therefore its whole sequence) is independently random.
+// ═══════════════════════════════════════
+// type: 0=night/clear  1=night/rain+thunder  2=day/clear  3=day/rain+thunder
+const WEATHER_TYPES=[{isDay:false,rain:false},{isDay:false,rain:true},{isDay:true,rain:false},{isDay:true,rain:true}];
+const WEATHER_MIN_SEC=240;      // 4 minutes minimum per state, guaranteed
+const WEATHER_EXTRA_SEC=360;    // + 0-6 random minutes -> 4-10 min range
+const WEATHER_SEGMENTS=60;      // long repeating supercycle (~a few hours) before it loops
+const WEATHER_TRANSITION_SEC=8; // smooth crossfade duration (matches the CSS/audio ramps below)
+let weatherSeed=0, weatherSchedule=null, curAppliedWeatherType=null, thunderActive=false;
+
+function mulberry32(seed){
+  let a=seed>>>0;
+  return function(){
+    a|=0;a=(a+0x6D2B79F5)|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=(t+Math.imul(t^t>>>7,61|t))^t;
+    return((t^t>>>14)>>>0)/4294967296;
+  };
+}
+function buildWeatherSchedule(seed){
+  const rnd=mulberry32(seed);
+  const segs=[];let total=0,lastType=-1;
+  for(let i=0;i<WEATHER_SEGMENTS;i++){
+    let type=Math.floor(rnd()*4);
+    if(type===lastType)type=(type+1+Math.floor(rnd()*3))%4; // never repeat the same state twice in a row
+    lastType=type;
+    const dur=WEATHER_MIN_SEC+Math.floor(rnd()*WEATHER_EXTRA_SEC);
+    segs.push({type,dur});total+=dur;
+  }
+  return{segs,total};
+}
+function getWeatherAt(schedule,nowSec){
+  const pos=((nowSec%schedule.total)+schedule.total)%schedule.total;
+  let acc=0;
+  for(let i=0;i<schedule.segs.length;i++){
+    const seg=schedule.segs[i];
+    if(pos<acc+seg.dur)return{type:seg.type,timeIntoState:pos-acc,segDur:seg.dur};
+    acc+=seg.dur;
+  }
+  const last=schedule.segs[schedule.segs.length-1];
+  return{type:last.type,timeIntoState:0,segDur:last.dur};
+}
+function applyWeatherState(type){
+  const info=WEATHER_TYPES[type];
+  document.querySelectorAll('.win-sky').forEach(el=>el.setAttribute('fill',info.isDay?'#8FD6F5':'#0E1E38'));
+  const rc=document.getElementById('rainCanvas');
+  if(rc)rc.style.opacity=info.rain?'1':'0';
+  thunderActive=info.rain;
+  if(rainNode&&AC){
+    try{
+      rainNode.gain.gain.cancelScheduledValues(AC.currentTime);
+      rainNode.gain.gain.linearRampToValueAtTime(info.rain?.022:.0001,AC.currentTime+WEATHER_TRANSITION_SEC);
+    }catch(e){}
+  }
+}
+function checkWeatherState(){
+  if(!weatherSchedule)return;
+  const w=getWeatherAt(weatherSchedule,Date.now()/1000);
+  if(w.type!==curAppliedWeatherType){curAppliedWeatherType=w.type;applyWeatherState(w.type);}
+}
+
+// ── Wall clock: pure Date.now()-based math, synced per-lobby via the same
+//    weatherSeed/schedule above, so the displayed hour always matches the
+//    current day/night state — daytime shows a daytime hour (7AM-6:59PM),
+//    nighttime shows a nighttime hour (7PM-5:59AM), advancing smoothly
+//    across each state's own duration and identical for everyone at once.
 function getClockDisplay(){
-  const cycleSeconds=660*20; // 11 hours × 60 min × 20s-per-displayed-minute
-  const t=Math.floor(Date.now()/1000);
-  const cyclePos=((t+clockOffset*20)%cycleSeconds+cycleSeconds)%cycleSeconds;
-  const minutesElapsed=Math.floor(cyclePos/20);
-  const totalMin=(19*60+minutesElapsed)%1440; // baseline 19:00 = 7:00 PM
+  if(!weatherSchedule)return'7:00 PM';
+  const w=getWeatherAt(weatherSchedule,Date.now()/1000);
+  const isDay=WEATHER_TYPES[w.type].isDay;
+  const frac=w.segDur>0?Math.min(1,w.timeIntoState/w.segDur):0;
+  const totalMin=isDay?(420+Math.floor(frac*719)):((1140+Math.floor(frac*659))%1440);
   const hour24=Math.floor(totalMin/60),min=totalMin%60;
   const period=hour24<12?'AM':'PM';
   let hour12=hour24%12; if(hour12===0)hour12=12;
@@ -873,9 +943,9 @@ function updateClockDisplay(){
   if(el)el.textContent=getClockDisplay();
 }
 function startClockLoop(){
-  updateClockDisplay();
+  updateClockDisplay();checkWeatherState();
   if(clockIntervalId)clearInterval(clockIntervalId);
-  clockIntervalId=setInterval(updateClockDisplay,1000);
+  clockIntervalId=setInterval(()=>{updateClockDisplay();checkWeatherState();},1000);
 }
 function stopClockLoop(){ if(clockIntervalId){clearInterval(clockIntervalId);clockIntervalId=null;} }
 function applyClockColor(){
@@ -1494,13 +1564,13 @@ function buildRoom(){
 <rect x="0" y="0" width="640" height="320" fill="#17852C"/>
 <rect x="0" y="310" width="640" height="10" fill="#C7BB68"/>
 <!-- Window -->
-<rect x="32" y="34" width="126" height="168" rx="5" fill="#0D1A2E" stroke="#6B4C1E" stroke-width="5"/>
+<rect id="winSkyOuter" class="win-sky" x="32" y="34" width="126" height="168" rx="5" fill="#0D1A2E" stroke="#6B4C1E" stroke-width="5"/>
 <line x1="95" y1="36" x2="95" y2="200" stroke="#6B4C1E" stroke-width="4"/>
 <line x1="34" y1="117" x2="156" y2="117" stroke="#6B4C1E" stroke-width="4"/>
-<rect x="35" y="37" width="58" height="78" fill="#0E1E38" rx="2"/>
-<rect x="97" y="37" width="57" height="78" fill="#0E1E38" rx="2"/>
-<rect x="35" y="119" width="58" height="81" fill="#0E1E38" rx="2"/>
-<rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2"/>
+<rect id="winPane1" class="win-sky" x="35" y="37" width="58" height="78" fill="#0E1E38" rx="2"/>
+<rect id="winPane2" class="win-sky" x="97" y="37" width="57" height="78" fill="#0E1E38" rx="2"/>
+<rect id="winPane3" class="win-sky" x="35" y="119" width="58" height="81" fill="#0E1E38" rx="2"/>
+<rect id="winPane4" class="win-sky" x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2"/>
 <rect id="lFlash" x="35" y="37" width="117" height="161" fill="white" opacity="0" rx="2"/>
 <!-- Curtains, open style, drawn back on each side of the window -->
 <path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#AB8659" stroke="#5E4A31" stroke-width="1.5"/>
@@ -1612,9 +1682,9 @@ function buildRoom(){
 <ellipse cx="466" cy="206" rx="11" ry="4" fill="#FFEEAA"/>
 <!-- Plant (keep) -->
 <rect x="614" y="232" width="14" height="14" rx="3" fill="#8B5E3C" stroke="#6B3E1C" stroke-width="1"/>
-<ellipse cx="621" cy="226" rx="12" ry="9" fill="#228B22"/>
-<ellipse cx="615" cy="222" rx="8" ry="7" fill="#2EAA2E"/>
-<ellipse cx="626" cy="223" rx="7" ry="6" fill="#1A8A1A"/>
+<ellipse cx="621" cy="226" rx="12" ry="9" fill="#114611"/>
+<ellipse cx="615" cy="222" rx="8" ry="7" fill="#175517"/>
+<ellipse cx="626" cy="223" rx="7" ry="6" fill="#0D450D"/>
 <!-- Rug -->
 <ellipse cx="307" cy="326" rx="210" ry="22" fill="#8B7355"/>
 <ellipse cx="307" cy="326" rx="196" ry="17" fill="#D9C9A0"/>
@@ -1812,8 +1882,12 @@ function playThunder(){
     g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur);src.start();}catch(e){}
 }
 function startAmbience(){
-  stopAmbience();rainNode=makeNoise(4,2600,.022);
-  thunderInt=setInterval(()=>{if(Math.random()<.55){const dl=Math.random()*1800;setTimeout(()=>{flash();setTimeout(playThunder,90+Math.random()*180);},dl);}},3000);
+  stopAmbience();rainNode=makeNoise(4,2600,.0001);
+  thunderInt=setInterval(()=>{if(thunderActive&&Math.random()<.55){const dl=Math.random()*1800;setTimeout(()=>{flash();setTimeout(playThunder,90+Math.random()*180);},dl);}},3000);
+  // Re-apply the current weather state now that rainNode actually exists,
+  // so its volume ramps to the right level immediately (in case this ran
+  // before the weather engine's own first check had a node to ramp).
+  if(curAppliedWeatherType!==null)applyWeatherState(curAppliedWeatherType);
 }
 function stopAmbience(){clearInterval(thunderInt);thunderInt=null;stopNode(rainNode);rainNode=null;}
 // muting now via toggleVolMute()+volMuteBtn in header
@@ -2165,6 +2239,9 @@ socket.on('joined',({playerId,seat,lobbyState,code})=>{
   fanOn=!!lobbyState.fanOn;
   clockColor=lobbyState.clockColor||'red';
   clockOffset=lobbyState.clockOffset||0;
+  weatherSeed=lobbyState.weatherSeed||0;
+  weatherSchedule=buildWeatherSchedule(weatherSeed);
+  curAppliedWeatherType=null;
   showGame();renderPlayers();renderList();
   applyFanState();applyClockColor();startClockLoop();
   addMsg('<span style="color:#1a7a1a;font-weight:800">✓ You joined!</span>');
@@ -2622,7 +2699,8 @@ function generateCode(){
 function createLobby(){
   const code=generateCode();
   lobbies[code]={code,players:{},seats:new Array(8).fill(null),votes:{},voteTimers:{},createdAt:Date.now(),
-    fanOn:false, clockColor:'red', clockOffset:Math.floor(Math.random()*660)};
+    fanOn:false, clockColor:'red', clockOffset:Math.floor(Math.random()*660),
+    weatherSeed:Math.floor(Math.random()*2147483647)};
   return lobbies[code];
 }
 
@@ -2875,7 +2953,8 @@ function getLobbyState(lobby){
     code:lobby.code,
     players:Object.values(lobby.players).map(p=>({id:p.id,name:p.name,avatar:p.avatar,seat:p.seat})),
     count:Object.keys(lobby.players).length,
-    fanOn:lobby.fanOn, clockColor:lobby.clockColor, clockOffset:lobby.clockOffset
+    fanOn:lobby.fanOn, clockColor:lobby.clockColor, clockOffset:lobby.clockOffset,
+    weatherSeed:lobby.weatherSeed
   };
 }
 
