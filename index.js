@@ -43,9 +43,9 @@ const INDEX_HTML = `<!DOCTYPE html>
   --lobby-hover:#FFE8B0;
   --inp-bg:#fff;
   /* ── Orange / golden-yellow accent palette ── */
-  --grad-a:#2E9B57;
-  --grad-b:#014421;
-  --grad-c:#014421;
+  --grad-a:#0041C2;
+  --grad-b:#002774;
+  --grad-c:#002774;
   --accent:#C86000;
   --accent-mid:#D4A000;
   --accent-dark:#A04400;
@@ -71,7 +71,7 @@ body.dark{
   --inp-bg:#2a2a38;
 }
 
-body{font-family:'Nunito',sans-serif;background-color:var(--grad-b);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='38' viewBox='0 0 44 38'%3E%3Cpolygon points='0,38 22,0 44,38' fill='rgba(255,255,255,0.05)'/%3E%3Cpolygon points='0,0 44,0 22,38' fill='rgba(1,68,33,0.14)'/%3E%3C/svg%3E"),linear-gradient(135deg,var(--grad-a),var(--grad-b));background-repeat:repeat,no-repeat;background-size:44px 38px,cover;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;overflow-y:auto;}
+body{font-family:'Nunito',sans-serif;background-color:var(--grad-b);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='38' viewBox='0 0 44 38'%3E%3Cpolygon points='0,38 22,0 44,38' fill='rgba(255,255,255,0.05)'/%3E%3Cpolygon points='0,0 44,0 22,38' fill='rgba(0,39,116,0.14)'/%3E%3C/svg%3E"),linear-gradient(135deg,var(--grad-a),var(--grad-b));background-repeat:repeat,no-repeat;background-size:44px 38px,cover;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;overflow-y:auto;}
 body.game-active{overflow:hidden;}
 
 /* ══ HOME ══ */
@@ -1503,8 +1503,8 @@ function buildRoom(){
 <rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2"/>
 <rect id="lFlash" x="35" y="37" width="117" height="161" fill="white" opacity="0" rx="2"/>
 <!-- Curtains, open style, drawn back on each side of the window -->
-<path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#745228" stroke="#402D16" stroke-width="1.5"/>
-<path d="M174,26 Q186,90 168,170 Q160,182 172,206 L150,206 Q158,182 152,170 Q172,90 150,26 Z" fill="#745228" stroke="#402D16" stroke-width="1.5"/>
+<path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#AB8659" stroke="#5E4A31" stroke-width="1.5"/>
+<path d="M174,26 Q186,90 168,170 Q160,182 172,206 L150,206 Q158,182 152,170 Q172,90 150,26 Z" fill="#AB8659" stroke="#5E4A31" stroke-width="1.5"/>
 <rect x="12" y="22" width="164" height="8" rx="3" fill="#402D16"/>
 <!-- Wall decor: Kelly Green frame, 2 cats -->
 <rect x="193" y="41" width="56" height="64" rx="3" fill="#8B5A2B" stroke="#5C3A1A" stroke-width="2.5"/>
@@ -1584,9 +1584,9 @@ function buildRoom(){
 <!-- Fire removed per request -->
 </g>
 <!-- TV desk/stand -->
-<rect x="466" y="244" width="162" height="14" rx="4" fill="#7A5E30"/>
-<rect x="476" y="258" width="9" height="58" rx="2" fill="#5A4020"/>
-<rect x="610" y="258" width="9" height="58" rx="2" fill="#5A4020"/>
+<rect x="466" y="244" width="162" height="14" rx="4" fill="#832D06"/>
+<rect x="476" y="258" width="9" height="58" rx="2" fill="#732209"/>
+<rect x="610" y="258" width="9" height="58" rx="2" fill="#732209"/>
 <!-- Realistic flat-screen TV: black frame, blue screen with light streaks -->
 <rect x="478" y="138" width="150" height="96" rx="8" fill="#111111"/>
 <rect x="485" y="144" width="136" height="82" rx="4" fill="#87CEEB"/>
