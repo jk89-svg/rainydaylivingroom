@@ -984,13 +984,15 @@ function applyFill(ctx,av,clip,x,y,w,h){
 }
 function drawAV(ctx,av,cx,cy,R){
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-  const LW=Math.max(1.2,R*.07);
+  const LW=Math.max(1.8,R*.16);
   // Body
   const bW=R*1.08,bH=R*.95,bX=cx-bW/2,bY=cy+R*.4;
   applyFill(ctx,av,()=>rrect(ctx,bX,bY,bW,bH,R*.22),bX,bY,bW,bH);
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;rrect(ctx,bX,bY,bW,bH,R*.22);ctx.stroke();
   // Head
   applyFill(ctx,av,()=>{ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);},cx-R,cy-R,R*2,R*2);
-  // No ears — clean round head, no outline
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  // No ears — clean round head
   drawEyes(ctx,av.eyes||'Round',cx,cy,R,LW);
   drawMouth(ctx,av.mouth||'Smile',cx,cy,R,LW);
   drawHat(ctx,av.hat||'None',cx,cy,R,LW);
@@ -2032,6 +2034,7 @@ function drawCat(){
     mk('ellipse',{cx:ex,cy:ey3+.5,rx:'1.6',ry:'2',fill:'#55AA22'});
     mk('ellipse',{cx:ex,cy:ey3+.5,rx:'.9',ry:'1.4',fill:'#111'});
     mk('circle',{cx:ex+.8,cy:ey3-.8,r:'0.8',fill:'#fff'});
+    mk('ellipse',{cx:ex,cy:ey3,rx:'2.5',ry:'3',fill:'none',stroke:'#1a1a1a','stroke-width':'1'});
   });
   // Nose
   mk('polygon',{points:\`\${hx+sc*6},\${hy+1.5} \${hx+sc*7.5},\${hy+4} \${hx+sc*4.5},\${hy+4}\`,fill:'#FF9999',stroke:'#DD6666','stroke-width':'.6'});
