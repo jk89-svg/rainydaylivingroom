@@ -984,14 +984,15 @@ function applyFill(ctx,av,clip,x,y,w,h){
 }
 function drawAV(ctx,av,cx,cy,R){
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-  const LW=Math.max(1.8,R*.16);
+  const LW=Math.max(1.2,R*.07);
+  const outlineLW=Math.max(1,R*.045);
   // Body
   const bW=R*1.08,bH=R*.95,bX=cx-bW/2,bY=cy+R*.4;
   applyFill(ctx,av,()=>rrect(ctx,bX,bY,bW,bH,R*.22),bX,bY,bW,bH);
-  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;rrect(ctx,bX,bY,bW,bH,R*.22);ctx.stroke();
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=outlineLW;rrect(ctx,bX,bY,bW,bH,R*.22);ctx.stroke();
   // Head
   applyFill(ctx,av,()=>{ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);},cx-R,cy-R,R*2,R*2);
-  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=LW;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=outlineLW;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
   // No ears — clean round head
   drawEyes(ctx,av.eyes||'Round',cx,cy,R,LW);
   drawMouth(ctx,av.mouth||'Smile',cx,cy,R,LW);
