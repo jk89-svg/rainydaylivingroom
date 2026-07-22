@@ -1585,7 +1585,7 @@ function buildRoom(){
 <line x1="0" y1="357" x2="640" y2="357" stroke="#6B4520" stroke-width="1" opacity=".3"/>
 <!-- Window: thick organic tree-branch frame -->
 <path d="M18,50 C25,20 60,15 95,18 C130,15 168,22 172,55 C178,90 175,140 173,180 C170,205 150,225 110,222 C75,225 40,220 22,200 C8,175 10,120 12,85 C13,68 14,58 18,50 Z
-         M33,39 L157,39 L157,201 L33,201 Z" fill="#6B4520" stroke="#3D2410" stroke-width="3" fill-rule="evenodd"/>
+         M33,39 L157,39 L157,201 L33,201 Z" fill="#5D3818" stroke="#3D2410" stroke-width="3" fill-rule="evenodd"/>
 <circle cx="30" cy="55" r="7" fill="#4A2C12" opacity=".55"/>
 <circle cx="155" cy="185" r="9" fill="#4A2C12" opacity=".5"/>
 <circle cx="160" cy="70" r="5" fill="#4A2C12" opacity=".5"/>
@@ -1596,17 +1596,22 @@ function buildRoom(){
 <ellipse cx="204" cy="26" rx="11" ry="6" fill="#2F5A10" stroke="#1A3508" stroke-width="1.2" transform="rotate(-25 204 26)"/>
 <ellipse cx="192" cy="20" rx="9" ry="5" fill="#356013" stroke="#1A3508" stroke-width="1.2" transform="rotate(10 192 20)"/>
 <rect x="33" y="39" width="124" height="162" fill="#0D1A2E"/>
-<line x1="95" y1="36" x2="95" y2="200" stroke="#1a1a1a" stroke-width="4"/>
-<line x1="34" y1="117" x2="156" y2="117" stroke="#1a1a1a" stroke-width="4"/>
-<rect x="35" y="37" width="58" height="78" fill="#0E1E38" rx="2" class="win-sky" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="97" y="37" width="57" height="78" fill="#0E1E38" rx="2" class="win-sky" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="35" y="119" width="58" height="81" fill="#0E1E38" rx="2" class="win-sky" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2" class="win-sky" stroke="#1a1a1a" stroke-width="2"/>
+<line x1="95" y1="36" x2="95" y2="200" stroke="#5D3818" stroke-width="4"/>
+<line x1="34" y1="117" x2="156" y2="117" stroke="#5D3818" stroke-width="4"/>
+<rect x="35" y="37" width="58" height="78" fill="#0E1E38" rx="2" class="win-sky" stroke="#5D3818" stroke-width="2"/>
+<rect x="97" y="37" width="57" height="78" fill="#0E1E38" rx="2" class="win-sky" stroke="#5D3818" stroke-width="2"/>
+<rect x="35" y="119" width="58" height="81" fill="#0E1E38" rx="2" class="win-sky" stroke="#5D3818" stroke-width="2"/>
+<rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2" class="win-sky" stroke="#5D3818" stroke-width="2"/>
 <rect id="lFlash" x="35" y="37" width="117" height="161" fill="white" opacity="0" rx="2"/>
 <!-- Curtains, open style, drawn back on each side of the window -->
-<path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#AB8659" stroke="#1a1a1a" stroke-width="1.5"/>
-<path d="M174,26 Q186,90 168,170 Q160,182 172,206 L150,206 Q158,182 152,170 Q172,90 150,26 Z" fill="#AB8659" stroke="#1a1a1a" stroke-width="1.5"/>
-<rect x="12" y="22" width="164" height="8" rx="3" fill="#402D16" stroke="#1a1a1a" stroke-width="1.5"/>
+<path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#1F456E" stroke="#1a1a1a" stroke-width="1.5"/>
+<path d="M174,26 Q186,90 168,170 Q160,182 172,206 L150,206 Q158,182 152,170 Q172,90 150,26 Z" fill="#1F456E" stroke="#1a1a1a" stroke-width="1.5"/>
+<!-- gold tiebacks, cinching each curtain at its natural pinch point -->
+<rect x="12" y="172" width="28" height="10" rx="4" fill="#D4AF37" stroke="#8B6914" stroke-width="1.2"/>
+<circle cx="26" cy="177" r="3" fill="#8B6914"/>
+<rect x="150" y="172" width="28" height="10" rx="4" fill="#D4AF37" stroke="#8B6914" stroke-width="1.2"/>
+<circle cx="164" cy="177" r="3" fill="#8B6914"/>
+<rect x="12" y="22" width="164" height="8" rx="3" fill="#808080" stroke="#1a1a1a" stroke-width="1.5"/>
 <!-- Wall decor: Kelly Green frame, 2 cats -->
 <rect x="193" y="41" width="56" height="64" rx="3" fill="#8B5A2B" stroke="#1a1a1a" stroke-width="2.5"/>
 <rect x="199" y="47" width="44" height="52" rx="2" fill="#EDE0C8" stroke="#1a1a1a" stroke-width="1.5"/>
@@ -1721,16 +1726,16 @@ function buildRoom(){
 <ellipse cx="307" cy="326" rx="196" ry="17" fill="#D9C9A0" stroke="#1a1a1a" stroke-width="1.5"/>
 <ellipse cx="307" cy="326" rx="175" ry="12" fill="#E5DBBE" opacity=".85" stroke="#1a1a1a" stroke-width="1.2"/>
 <!-- Left chair -->
-<rect x="38" y="250" width="100" height="50" rx="9" fill="#745228" stroke="#1a1a1a" stroke-width="2.5"/>
-<rect x="34" y="278" width="108" height="40" rx="7" fill="#A17F4E" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="30" y="260" width="13" height="53" rx="6" fill="#5A3D1C" stroke="#1a1a1a" stroke-width="1.5"/>
-<rect x="133" y="260" width="13" height="53" rx="6" fill="#5A3D1C" stroke="#1a1a1a" stroke-width="1.5"/>
+<rect x="38" y="250" width="100" height="50" rx="9" fill="#1F456E" stroke="#1a1a1a" stroke-width="2.5"/>
+<rect x="34" y="278" width="108" height="40" rx="7" fill="#6D86A1" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="30" y="260" width="13" height="53" rx="6" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
+<rect x="133" y="260" width="13" height="53" rx="6" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
 <line x1="87" y1="280" x2="87" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
 <!-- Main couch -->
-<rect x="154" y="242" width="308" height="56" rx="11" fill="#745228" stroke="#1a1a1a" stroke-width="2.5"/>
-<rect x="150" y="272" width="316" height="46" rx="9" fill="#A17F4E" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="143" y="252" width="15" height="62" rx="7" fill="#5A3D1C" stroke="#1a1a1a" stroke-width="1.5"/>
-<rect x="458" y="252" width="15" height="62" rx="7" fill="#5A3D1C" stroke="#1a1a1a" stroke-width="1.5"/>
+<rect x="154" y="242" width="308" height="56" rx="11" fill="#1F456E" stroke="#1a1a1a" stroke-width="2.5"/>
+<rect x="150" y="272" width="316" height="46" rx="9" fill="#6D86A1" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="143" y="252" width="15" height="62" rx="7" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
+<rect x="458" y="252" width="15" height="62" rx="7" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
 <line x1="229" y1="274" x2="229" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
 <line x1="308" y1="274" x2="308" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
 <line x1="387" y1="274" x2="387" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
@@ -1738,10 +1743,10 @@ function buildRoom(){
 <line x1="308" y1="244" x2="308" y2="270" stroke="#1a1a1a" stroke-width="1" opacity=".3"/>
 <line x1="387" y1="244" x2="387" y2="270" stroke="#1a1a1a" stroke-width="1" opacity=".3"/>
 <!-- Right chair -->
-<rect x="504" y="250" width="100" height="50" rx="9" fill="#745228" stroke="#1a1a1a" stroke-width="2.5"/>
-<rect x="500" y="278" width="108" height="40" rx="7" fill="#A17F4E" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="496" y="260" width="13" height="53" rx="6" fill="#5A3D1C" stroke="#1a1a1a" stroke-width="1.5"/>
-<rect x="599" y="260" width="13" height="53" rx="6" fill="#5A3D1C" stroke="#1a1a1a" stroke-width="1.5"/>
+<rect x="504" y="250" width="100" height="50" rx="9" fill="#1F456E" stroke="#1a1a1a" stroke-width="2.5"/>
+<rect x="500" y="278" width="108" height="40" rx="7" fill="#6D86A1" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="496" y="260" width="13" height="53" rx="6" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
+<rect x="599" y="260" width="13" height="53" rx="6" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
 <line x1="551" y1="280" x2="551" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
 <!-- Coffee table -->
 <rect x="174" y="328" width="268" height="30" rx="8" fill="#5A3008" stroke="#1a1a1a" stroke-width="2"/>
