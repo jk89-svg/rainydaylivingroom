@@ -1563,38 +1563,18 @@ const SEATS=[
 function buildRoom(){
   const svg=document.getElementById('roomSvg');
   svg.innerHTML=\`
-<defs></defs>
-<rect x="0" y="0" width="640" height="400" fill="#5D3818"/>
-<line x1="0" y1="42" x2="640" y2="42" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="84" x2="640" y2="84" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="126" x2="640" y2="126" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="168" x2="640" y2="168" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="210" x2="640" y2="210" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="252" x2="640" y2="252" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="294" x2="640" y2="294" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="336" x2="640" y2="336" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="378" x2="640" y2="378" stroke="#3D2410" stroke-width="2" opacity=".4"/>
-<line x1="0" y1="21" x2="640" y2="21" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<line x1="0" y1="63" x2="640" y2="63" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<line x1="0" y1="105" x2="640" y2="105" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<line x1="0" y1="147" x2="640" y2="147" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<line x1="0" y1="189" x2="640" y2="189" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<line x1="0" y1="231" x2="640" y2="231" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<line x1="0" y1="273" x2="640" y2="273" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<line x1="0" y1="315" x2="640" y2="315" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<line x1="0" y1="357" x2="640" y2="357" stroke="#6B4520" stroke-width="1" opacity=".3"/>
-<!-- Window: thick organic tree-branch frame -->
-<path d="M18,50 C25,20 60,15 95,18 C130,15 168,22 172,55 C178,90 175,140 173,180 C170,205 150,225 110,222 C75,225 40,220 22,200 C8,175 10,120 12,85 C13,68 14,58 18,50 Z
-         M33,39 L157,39 L157,201 L33,201 Z" fill="#5D3818" stroke="#3D2410" stroke-width="3" fill-rule="evenodd"/>
-<circle cx="30" cy="55" r="7" fill="#4A2C12" opacity=".55"/>
-<circle cx="155" cy="185" r="9" fill="#4A2C12" opacity=".5"/>
-<circle cx="160" cy="70" r="5" fill="#4A2C12" opacity=".5"/>
-<path d="M22,90 Q18,130 24,175" fill="none" stroke="#7A5228" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-<path d="M100,20 Q135,24 162,45" fill="none" stroke="#7A5228" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-<!-- small twig + leaves growing off the frame -->
-<path d="M170,40 Q185,28 198,32" fill="none" stroke="#5D3818" stroke-width="4" stroke-linecap="round"/>
-<ellipse cx="204" cy="26" rx="11" ry="6" fill="#2F5A10" stroke="#1A3508" stroke-width="1.2" transform="rotate(-25 204 26)"/>
-<ellipse cx="192" cy="20" rx="9" ry="5" fill="#356013" stroke="#1A3508" stroke-width="1.2" transform="rotate(10 192 20)"/>
+<defs>
+<pattern id="carpetTex" width="7" height="7" patternUnits="userSpaceOnUse">
+  <rect width="7" height="7" fill="#1B6122"/>
+  <circle cx="1.7" cy="1.7" r=".7" fill="#237A2A" opacity=".4"/>
+  <circle cx="5" cy="4.2" r=".6" fill="#134A18" opacity=".35"/>
+  <circle cx="3" cy="5.8" r=".55" fill="#237A2A" opacity=".3"/>
+</pattern>
+</defs>
+<rect x="0" y="0" width="640" height="320" fill="#EAD482"/>
+<rect x="0" y="316" width="640" height="84" fill="url(#carpetTex)"/>
+<!-- Window: simple frame -->
+<rect x="32" y="34" width="126" height="168" rx="5" fill="#5D3818" stroke="#3D2410" stroke-width="5"/>
 <rect x="33" y="39" width="124" height="162" fill="#0D1A2E"/>
 <line x1="95" y1="36" x2="95" y2="200" stroke="#5D3818" stroke-width="4"/>
 <line x1="34" y1="117" x2="156" y2="117" stroke="#5D3818" stroke-width="4"/>
@@ -1604,8 +1584,8 @@ function buildRoom(){
 <rect x="97" y="119" width="57" height="81" fill="#0E1E38" rx="2" class="win-sky" stroke="#5D3818" stroke-width="2"/>
 <rect id="lFlash" x="35" y="37" width="117" height="161" fill="white" opacity="0" rx="2"/>
 <!-- Curtains, open style, drawn back on each side of the window -->
-<path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#1F456E" stroke="#1a1a1a" stroke-width="1.5"/>
-<path d="M174,26 Q186,90 168,170 Q160,182 172,206 L150,206 Q158,182 152,170 Q172,90 150,26 Z" fill="#1F456E" stroke="#1a1a1a" stroke-width="1.5"/>
+<path d="M14,26 Q2,90 20,170 Q28,182 16,206 L38,206 Q30,182 36,170 Q16,90 38,26 Z" fill="#305789" stroke="#1a1a1a" stroke-width="1.5"/>
+<path d="M174,26 Q186,90 168,170 Q160,182 172,206 L150,206 Q158,182 152,170 Q172,90 150,26 Z" fill="#305789" stroke="#1a1a1a" stroke-width="1.5"/>
 <!-- gold tiebacks, cinching each curtain at its natural pinch point -->
 <rect x="12" y="172" width="28" height="10" rx="4" fill="#D4AF37" stroke="#8B6914" stroke-width="1.2"/>
 <circle cx="26" cy="177" r="3" fill="#8B6914"/>
@@ -1691,6 +1671,8 @@ function buildRoom(){
 </g>
 <!-- TV desk/stand -->
 <rect x="466" y="244" width="162" height="14" rx="4" fill="#832D06" stroke="#1a1a1a" stroke-width="2"/>
+<path d="M470,248 Q547,246 624,249" fill="none" stroke="#5A1D04" stroke-width="1" opacity=".4"/>
+<path d="M470,253 Q547,251 624,254" fill="none" stroke="#5A1D04" stroke-width="1" opacity=".35"/>
 <rect x="476" y="258" width="9" height="58" rx="2" fill="#732209" stroke="#1a1a1a" stroke-width="1.5"/>
 <rect x="610" y="258" width="9" height="58" rx="2" fill="#732209" stroke="#1a1a1a" stroke-width="1.5"/>
 <!-- Realistic flat-screen TV: black frame, blue screen with light streaks -->
@@ -1722,35 +1704,94 @@ function buildRoom(){
 <ellipse cx="615" cy="222" rx="8" ry="7" fill="#175517" stroke="#1a1a1a" stroke-width="1.2"/>
 <ellipse cx="626" cy="223" rx="7" ry="6" fill="#0D450D" stroke="#1a1a1a" stroke-width="1.2"/>
 <!-- Rug -->
-<ellipse cx="307" cy="326" rx="210" ry="22" fill="#8B7355" stroke="#1a1a1a" stroke-width="2"/>
-<ellipse cx="307" cy="326" rx="196" ry="17" fill="#D9C9A0" stroke="#1a1a1a" stroke-width="1.5"/>
-<ellipse cx="307" cy="326" rx="175" ry="12" fill="#E5DBBE" opacity=".85" stroke="#1a1a1a" stroke-width="1.2"/>
-<!-- Left chair -->
-<rect x="38" y="250" width="100" height="50" rx="9" fill="#1F456E" stroke="#1a1a1a" stroke-width="2.5"/>
-<rect x="34" y="278" width="108" height="40" rx="7" fill="#6D86A1" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="30" y="260" width="13" height="53" rx="6" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
-<rect x="133" y="260" width="13" height="53" rx="6" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="87" y1="280" x2="87" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<!-- Main couch -->
-<rect x="154" y="242" width="308" height="56" rx="11" fill="#1F456E" stroke="#1a1a1a" stroke-width="2.5"/>
-<rect x="150" y="272" width="316" height="46" rx="9" fill="#6D86A1" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="143" y="252" width="15" height="62" rx="7" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
-<rect x="458" y="252" width="15" height="62" rx="7" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="229" y1="274" x2="229" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<line x1="308" y1="274" x2="308" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<line x1="387" y1="274" x2="387" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<line x1="229" y1="244" x2="229" y2="270" stroke="#1a1a1a" stroke-width="1" opacity=".3"/>
-<line x1="308" y1="244" x2="308" y2="270" stroke="#1a1a1a" stroke-width="1" opacity=".3"/>
-<line x1="387" y1="244" x2="387" y2="270" stroke="#1a1a1a" stroke-width="1" opacity=".3"/>
-<!-- Right chair -->
-<rect x="504" y="250" width="100" height="50" rx="9" fill="#1F456E" stroke="#1a1a1a" stroke-width="2.5"/>
-<rect x="500" y="278" width="108" height="40" rx="7" fill="#6D86A1" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="496" y="260" width="13" height="53" rx="6" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
-<rect x="599" y="260" width="13" height="53" rx="6" fill="#173452" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="551" y1="280" x2="551" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<ellipse cx="307" cy="326" rx="210" ry="22" fill="#C9701A" stroke="#1a1a1a" stroke-width="2"/>
+<ellipse cx="307" cy="326" rx="196" ry="17" fill="#F5B942" stroke="#1a1a1a" stroke-width="1.5"/>
+<ellipse cx="307" cy="326" rx="175" ry="12" fill="#FFDD77" opacity=".85" stroke="#1a1a1a" stroke-width="1.2"/>
+<!-- Left chair: 2-seat loveseat matching reference -->
+<rect x="34" y="278" width="108" height="40" rx="7" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="38" y="250" width="100" height="50" rx="9" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<line x1="87" y1="252" x2="87" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<path d="M30,313 L30,262 Q30,246 46,246 Q62,246 62,262 L62,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<path d="M114,313 L114,262 Q114,246 130,246 Q146,246 146,262 L146,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<circle cx="62" cy="270" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
+<line x1="62" y1="270" x2="62" y2="263" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="62" y1="270" x2="68" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="62" y1="270" x2="56" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="62" y1="270" x2="66" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="62" y1="270" x2="58" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<circle cx="114" cy="270" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
+<line x1="114" y1="270" x2="114" y2="263" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="114" y1="270" x2="120" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="114" y1="270" x2="108" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="114" y1="270" x2="118" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="114" y1="270" x2="110" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<rect x="42" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="125" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<!-- Main couch: 4-seat sofa matching reference, with rolled arms, tufted back cushions, 2 tilted throw pillows -->
+<rect x="150" y="272" width="316" height="46" rx="9" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="154" y="242" width="308" height="56" rx="11" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<line x1="229" y1="244" x2="229" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<line x1="308" y1="244" x2="308" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<line x1="387" y1="244" x2="387" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<path d="M143,314 L143,256 Q143,238 163,238 Q183,238 183,256 L183,314 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<path d="M433,314 L433,256 Q433,238 453,238 Q473,238 473,256 L473,314 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<circle cx="196" cy="264" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
+<line x1="196" y1="264" x2="196" y2="255" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="196" y1="264" x2="204" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="196" y1="264" x2="188" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="196" y1="264" x2="202" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="196" y1="264" x2="190" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<circle cx="268" cy="264" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
+<line x1="268" y1="264" x2="268" y2="255" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="268" y1="264" x2="276" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="268" y1="264" x2="260" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="268" y1="264" x2="274" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="268" y1="264" x2="262" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<circle cx="347" cy="264" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
+<line x1="347" y1="264" x2="347" y2="255" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="347" y1="264" x2="355" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="347" y1="264" x2="339" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="347" y1="264" x2="353" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="347" y1="264" x2="341" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<circle cx="420" cy="264" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
+<line x1="420" y1="264" x2="420" y2="255" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="420" y1="264" x2="428" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="420" y1="264" x2="412" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="420" y1="264" x2="426" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="420" y1="264" x2="414" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<!-- 2 tilted throw pillows near the arms -->
+<rect x="163" y="245" width="46" height="46" rx="10" fill="#3B639A" stroke="#1a1a1a" stroke-width="2" transform="rotate(-16 186 268)"/>
+<circle cx="186" cy="268" r="3.5" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8" transform="rotate(-16 186 268)"/>
+<rect x="407" y="245" width="46" height="46" rx="10" fill="#3B639A" stroke="#1a1a1a" stroke-width="2" transform="rotate(16 430 268)"/>
+<circle cx="430" cy="268" r="3.5" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8" transform="rotate(16 430 268)"/>
+<rect x="151" y="313" width="10" height="11" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="455" y="313" width="10" height="11" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<!-- Right chair: 2-seat loveseat matching reference -->
+<rect x="500" y="278" width="108" height="40" rx="7" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="504" y="250" width="100" height="50" rx="9" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<line x1="551" y1="252" x2="551" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<path d="M496,313 L496,262 Q496,246 512,246 Q528,246 528,262 L528,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<path d="M580,313 L580,262 Q580,246 596,246 Q612,246 612,262 L612,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<circle cx="528" cy="270" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
+<line x1="528" y1="270" x2="528" y2="263" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="528" y1="270" x2="534" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="528" y1="270" x2="522" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="528" y1="270" x2="532" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="528" y1="270" x2="524" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<circle cx="580" cy="270" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
+<line x1="580" y1="270" x2="580" y2="263" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="580" y1="270" x2="586" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="580" y1="270" x2="574" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="580" y1="270" x2="584" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="580" y1="270" x2="576" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<rect x="508" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="591" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
 <!-- Coffee table -->
 <rect x="174" y="328" width="268" height="30" rx="8" fill="#5A3008" stroke="#1a1a1a" stroke-width="2"/>
 <rect x="180" y="331" width="256" height="22" rx="6" fill="#7A5028" stroke="#1a1a1a" stroke-width="1.5"/>
+<path d="M184,337 Q300,335 432,338" fill="none" stroke="#5A3008" stroke-width="1" opacity=".35"/>
+<path d="M184,344 Q300,342 432,345" fill="none" stroke="#5A3008" stroke-width="1" opacity=".3"/>
+<path d="M184,350 Q300,348 432,351" fill="none" stroke="#5A3008" stroke-width="1" opacity=".3"/>
 <rect x="186" y="357" width="9" height="12" rx="3" fill="#4A2006" stroke="#1a1a1a" stroke-width="1.2"/>
 <rect x="429" y="357" width="9" height="12" rx="3" fill="#4A2006" stroke="#1a1a1a" stroke-width="1.2"/>
 <!-- Red mug on the coffee table -->
@@ -1787,27 +1828,6 @@ function buildRoom(){
   <text id="clockText" x="553" y="91" text-anchor="middle" font-family="monospace" font-weight="700" font-size="13" fill="#CC2222">7:00 PM</text>
   <circle id="clockRedBtn" cx="533" cy="106" r="4.5" fill="#E14444" stroke="#1a1a1a" stroke-width="1" style="cursor:pointer;" onclick="clockButtonClick('red')"/>
   <circle id="clockGreenBtn" cx="573" cy="106" r="4.5" fill="#3FAE5C" stroke="#1a1a1a" stroke-width="1" style="cursor:pointer;" onclick="clockButtonClick('green')"/>
-</g>
-<!-- Treehouse corner borders (drawn last so they frame the whole scene) -->
-<path d="M0,0 L70,0 C40,10 15,35 8,70 C4,95 2,120 0,130 Z" fill="#2E1B0A"/>
-<path d="M0,0 L70,0 C40,10 15,35 8,70 C4,95 2,120 0,130 Z" fill="none" stroke="#4A2C10" stroke-width="2" opacity=".5"/>
-<path d="M640,0 L570,0 C600,10 622,32 630,62 C635,85 638,105 640,115 Z" fill="#2E1B0A"/>
-<path d="M640,0 L570,0 C600,10 622,32 630,62 C635,85 638,105 640,115 Z" fill="none" stroke="#4A2C10" stroke-width="2" opacity=".5"/>
-<path d="M0,400 L0,320 C10,350 28,372 58,384 C78,392 92,397 100,400 Z" fill="#2E1B0A"/>
-<path d="M0,400 L0,320 C10,350 28,372 58,384 C78,392 92,397 100,400 Z" fill="none" stroke="#4A2C10" stroke-width="2" opacity=".5"/>
-<path d="M640,400 L640,335 C630,358 612,375 588,385 C574,391 564,396 558,400 Z" fill="#2E1B0A"/>
-<path d="M640,400 L640,335 C630,358 612,375 588,385 C574,391 564,396 558,400 Z" fill="none" stroke="#4A2C10" stroke-width="2" opacity=".5"/>
-<!-- leaves tucked into the bottom-left corner trunk -->
-<ellipse cx="18" cy="378" rx="20" ry="10" fill="#2F5A10" stroke="#1A3508" stroke-width="1.5" transform="rotate(-18 18 378)"/>
-<ellipse cx="40" cy="392" rx="17" ry="9" fill="#356013" stroke="#1A3508" stroke-width="1.5" transform="rotate(8 40 392)"/>
-<ellipse cx="8" cy="352" rx="14" ry="7" fill="#2F5A10" stroke="#1A3508" stroke-width="1.2" transform="rotate(-35 8 352)"/>
-<!-- wooden ladder, foreground bottom-right -->
-<g id="treeLadder">
-  <rect x="560" y="352" width="7" height="48" rx="2" fill="#4A2C10" stroke="#2E1B0A" stroke-width="1.5" transform="rotate(-6 560 352)"/>
-  <rect x="600" y="352" width="7" height="48" rx="2" fill="#4A2C10" stroke="#2E1B0A" stroke-width="1.5" transform="rotate(6 600 352)"/>
-  <rect x="558" y="362" width="52" height="6" rx="2" fill="#5D3818" stroke="#2E1B0A" stroke-width="1.2"/>
-  <rect x="560" y="378" width="52" height="6" rx="2" fill="#5D3818" stroke="#2E1B0A" stroke-width="1.2"/>
-  <rect x="562" y="394" width="52" height="6" rx="2" fill="#5D3818" stroke="#2E1B0A" stroke-width="1.2"/>
 </g>
 <g id="catG"></g>\`;
 }
