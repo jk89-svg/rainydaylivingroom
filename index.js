@@ -206,7 +206,7 @@ body.dark .p-entry:hover{background:#3a3a50;}
 #avatarLayer{position:absolute;inset:0;pointer-events:none;z-index:6;}
 .avatar-wrap{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);}
 .avatar-wrap canvas{width:9.4cqw;height:11.25cqw;display:block;}
-.avatar-nametag{margin-top:.3cqw;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.5cqw;line-height:1.3;white-space:nowrap;color:#fff;-webkit-text-stroke:.035em #000;paint-order:stroke fill;}
+.avatar-nametag{margin-bottom:.3cqw;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.5cqw;line-height:1.3;white-space:nowrap;color:#fff;-webkit-text-stroke:.055em #000;paint-order:stroke fill;}
 .avatar-nametag.is-me{color:#4998FF;}
 /* Fallback sizing for the rare browser without container-query support:
    degrades gracefully to viewport-relative units (still proportional). */
@@ -263,7 +263,7 @@ body.dark .sys-vote{color:#F0C040;}
 .ctx-item:hover{background:var(--accent-subtle);}.ctx-danger{color:#c00;}.ctx-danger:hover{background:#ffe0e0;}
 body.dark .ctx-item:hover{background:#3a3a50;}
 
-.bubble{position:absolute;background:rgba(255,255,255,.97);border:.1cqw solid #1a1a1a;border-radius:1.6cqw;padding:.7cqw 1.4cqw;font-size:1.55cqw;font-weight:800;color:#111;max-width:22cqw;word-break:break-word;text-align:center;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:20;transform:translate(-50%,-100%);}
+.bubble{position:absolute;background:rgba(255,255,255,.97);border:.16cqw solid #1a1a1a;border-radius:1.6cqw;padding:.7cqw 1.4cqw;font-size:1.55cqw;font-weight:800;color:#111;max-width:22cqw;word-break:break-word;text-align:center;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:20;transform:translate(-50%,-100%);}
 
 to{transform:translateX(-50%) scale(1);opacity:1;}}
 
@@ -399,7 +399,7 @@ body.dark .dc-box{background:#2a2a3a;}.body.dark .dc-box h2{color:#ff6666;}body.
     <!-- MIDDLE: Character + Play (combined into one frame) -->
     <div class="home-col col-mid">
       <div class="card" id="midCard" style="display:flex;flex-direction:column;">
-        <input id="nameInp" class="inp" type="text" placeholder="Username..." maxlength="16" style="margin-bottom:3px;" oninput="liveCheckName(this.value)">
+        <input id="nameInp" class="inp" type="text" placeholder="Username..." maxlength="13" style="margin-bottom:3px;" oninput="liveCheckName(this.value)">
         <div id="nameValidMsg" class="name-valid-msg"></div>
         <div class="av-center">
           <!-- Avatar with arrows on sides. position:relative + the refresh
@@ -651,7 +651,7 @@ function validateUsername(name){
   const trimmed=(name||'').trim();
   if(!trimmed) return {valid:null, msg:null};
   if(trimmed.length<2) return {valid:false, msg:'❌ Username is too short — minimum 2 characters.'};
-  if(trimmed.length>16) return {valid:false, msg:'❌ Username is too long — maximum 16 characters.'};
+  if(trimmed.length>13) return {valid:false, msg:'❌ Username is too long — maximum 13 characters.'};
   const s=normUsername(trimmed);
   for(const term of USERNAME_BAD_TERMS){
     const n=term.replace(/\\s+/g,'').replace(/[^a-z0-9]/g,'');
@@ -2207,17 +2207,17 @@ function placeChar(layer,player,cx,sy){
   wrap.style.left=(cx/640*100)+'%';
   wrap.style.top=(sy/400*100)+'%';
 
-  const PX=3; // internal render resolution multiplier, for crisp avatars at any room size
-  const cvs=document.createElement('canvas');
-  cvs.width=dim*PX;cvs.height=(dim+12)*PX;
-  drawAV(cvs.getContext('2d'),player.avatar||{},cvs.width/2,cvs.height*.55,R*PX*.85);
-  wrap.appendChild(cvs);
-
   const isMe=player.id===myId;
   const tag=document.createElement('div');
   tag.className='avatar-nametag'+(isMe?' is-me':'');
   tag.textContent=isMe?\`\${player.name} (You)\`:player.name;
   wrap.appendChild(tag);
+
+  const PX=3; // internal render resolution multiplier, for crisp avatars at any room size
+  const cvs=document.createElement('canvas');
+  cvs.width=dim*PX;cvs.height=(dim+12)*PX;
+  drawAV(cvs.getContext('2d'),player.avatar||{},cvs.width/2,cvs.height*.55,R*PX*.85);
+  wrap.appendChild(cvs);
 
   layer.appendChild(wrap);
 }
@@ -2990,7 +2990,7 @@ function sanitizeName(name,lobby,usedAutoNames){
   let n,wasAuto=false;
   if(!name||!name.trim()){ n=randomName(lobby,usedAutoNames); wasAuto=true; }
   else{
-    n=name.trim().replace(/[<>&"']/g,'').substring(0,16);
+    n=name.trim().replace(/[<>&"']/g,'').substring(0,13);
     if(!n){ n=randomName(lobby,usedAutoNames); wasAuto=true; }
   }
 
@@ -3004,7 +3004,7 @@ function sanitizeName(name,lobby,usedAutoNames){
   if(lobby){
     const used=new Set(Object.values(lobby.players).map(p=>p.name));
     if(used.has(n)){
-      const base=n.substring(0,14);
+      const base=n.substring(0,11);
       let suffix=2,candidate=n;
       while(used.has(candidate)&&suffix<100){
         candidate=base+suffix;
