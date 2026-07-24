@@ -206,13 +206,13 @@ body.dark .p-entry:hover{background:#3a3a50;}
 #avatarLayer{position:absolute;inset:0;pointer-events:none;z-index:6;}
 .avatar-wrap{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);}
 .avatar-wrap canvas{width:9.4cqw;height:11.25cqw;display:block;}
-.avatar-nametag{margin-top:.3cqw;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.5cqw;line-height:1.3;white-space:nowrap;background:rgba(255,255,255,.95);border-radius:.8cqw;padding:.35cqw 1cqw;border:.18cqw solid #bbb;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.15);}
-.avatar-nametag.is-me{border-color:var(--accent);color:#4998FF;}
+.avatar-nametag{margin-top:.3cqw;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.5cqw;line-height:1.3;white-space:nowrap;color:#fff;-webkit-text-stroke:.035em #000;paint-order:stroke fill;}
+.avatar-nametag.is-me{color:#4998FF;}
 /* Fallback sizing for the rare browser without container-query support:
    degrades gracefully to viewport-relative units (still proportional). */
 @supports not (container-type:inline-size){
   .avatar-wrap canvas{width:8.6vw;height:10.3vw;}
-  .avatar-nametag{font-size:1.05vw;padding:.3vw .8vw;border-width:.15vw;border-radius:.6vw;}
+  .avatar-nametag{font-size:1.05vw;}
 }
 
 /* Dark mode switch + volume slider in bottom-left of living room */
@@ -263,7 +263,7 @@ body.dark .sys-vote{color:#F0C040;}
 .ctx-item:hover{background:var(--accent-subtle);}.ctx-danger{color:#c00;}.ctx-danger:hover{background:#ffe0e0;}
 body.dark .ctx-item:hover{background:#3a3a50;}
 
-.bubble{position:absolute;background:rgba(255,255,255,.97);border:.4cqw solid var(--accent);border-radius:1.6cqw;padding:.7cqw 1.4cqw;font-size:1.55cqw;font-weight:800;color:#111;max-width:22cqw;word-break:break-word;text-align:center;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:20;transform:translate(-50%,-100%);}
+.bubble{position:absolute;background:rgba(255,255,255,.97);border:.1cqw solid #1a1a1a;border-radius:1.6cqw;padding:.7cqw 1.4cqw;font-size:1.55cqw;font-weight:800;color:#111;max-width:22cqw;word-break:break-word;text-align:center;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:20;transform:translate(-50%,-100%);}
 
 to{transform:translateX(-50%) scale(1);opacity:1;}}
 
@@ -1555,20 +1555,23 @@ setTimeout(syncColumnHeights,500);
 //  LIVING ROOM — viewBox 640×400
 // ═══════════════════════════════════════
 const SEATS=[
-  {cx:64,sy:292},{cx:108,sy:292},
-  {cx:196,sy:285},{cx:260,sy:285},{cx:324,sy:285},{cx:388,sy:285},
-  {cx:528,sy:292},{cx:572,sy:292},
+  {cx:64,sy:304},{cx:108,sy:304},
+  {cx:196,sy:299},{cx:260,sy:299},{cx:324,sy:299},{cx:388,sy:299},
+  {cx:528,sy:304},{cx:572,sy:304},
 ];
 
 function buildRoom(){
   const svg=document.getElementById('roomSvg');
   svg.innerHTML=\`
 <defs>
-<pattern id="carpetTex" width="7" height="7" patternUnits="userSpaceOnUse">
-  <rect width="7" height="7" fill="#1B6122"/>
-  <circle cx="1.7" cy="1.7" r=".7" fill="#237A2A" opacity=".4"/>
-  <circle cx="5" cy="4.2" r=".6" fill="#134A18" opacity=".35"/>
-  <circle cx="3" cy="5.8" r=".55" fill="#237A2A" opacity=".3"/>
+<pattern id="carpetTex" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+  <rect width="6" height="6" fill="#1B6122"/>
+  <line x1="0" y1="0" x2="0" y2="6" stroke="#154D1B" stroke-width="1.4" opacity=".3"/>
+  <line x1="3" y1="0" x2="3" y2="6" stroke="#227A2A" stroke-width="1.1" opacity=".22"/>
+</pattern>
+<pattern id="rugTex" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+  <line x1="0" y1="0" x2="0" y2="5" stroke="#8B4A12" stroke-width="1" opacity=".16"/>
+  <line x1="2.5" y1="0" x2="2.5" y2="5" stroke="#FFF3D0" stroke-width=".8" opacity=".14"/>
 </pattern>
 </defs>
 <rect x="0" y="0" width="640" height="320" fill="#EAD482"/>
@@ -1707,85 +1710,86 @@ function buildRoom(){
 <ellipse cx="307" cy="326" rx="210" ry="22" fill="#C9701A" stroke="#1a1a1a" stroke-width="2"/>
 <ellipse cx="307" cy="326" rx="196" ry="17" fill="#F5B942" stroke="#1a1a1a" stroke-width="1.5"/>
 <ellipse cx="307" cy="326" rx="175" ry="12" fill="#FFDD77" opacity=".85" stroke="#1a1a1a" stroke-width="1.2"/>
+<ellipse cx="307" cy="326" rx="210" ry="22" fill="url(#rugTex)"/>
 <!-- Left chair: 2-seat loveseat matching reference -->
-<rect x="34" y="278" width="108" height="40" rx="7" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="38" y="250" width="100" height="50" rx="9" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
-<line x1="87" y1="252" x2="87" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<path d="M30,313 L30,262 Q30,246 46,246 Q62,246 62,262 L62,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
-<path d="M114,313 L114,262 Q114,246 130,246 Q146,246 146,262 L146,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
-<circle cx="62" cy="270" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
-<line x1="62" y1="270" x2="62" y2="263" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="62" y1="270" x2="68" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="62" y1="270" x2="56" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="62" y1="270" x2="66" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="62" y1="270" x2="58" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<circle cx="114" cy="270" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
-<line x1="114" y1="270" x2="114" y2="263" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="114" y1="270" x2="120" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="114" y1="270" x2="108" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="114" y1="270" x2="118" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="114" y1="270" x2="110" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<rect x="42" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
-<rect x="125" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<path d="M30,313 L30,246 Q30,238 38,238 Q58,238 58,258 L58,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<path d="M146,313 L146,246 Q146,238 138,238 Q118,238 118,258 L118,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="58" y="238" width="60" height="58" rx="9" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<rect x="58" y="296" width="60" height="17" rx="6" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<line x1="88" y1="240" x2="88" y2="313" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<circle cx="73" cy="261" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
+<line x1="73" y1="261" x2="73" y2="254" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="73" y1="261" x2="79" y2="258" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="73" y1="261" x2="67" y2="258" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="73" y1="261" x2="77" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="73" y1="261" x2="69" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<circle cx="103" cy="261" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
+<line x1="103" y1="261" x2="103" y2="254" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="103" y1="261" x2="109" y2="258" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="103" y1="261" x2="97" y2="258" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="103" y1="261" x2="107" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="103" y1="261" x2="99" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<rect x="40" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="127" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
 <!-- Main couch: 4-seat sofa matching reference, with rolled arms, tufted back cushions, 2 tilted throw pillows -->
-<rect x="150" y="272" width="316" height="46" rx="9" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="154" y="242" width="308" height="56" rx="11" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
-<line x1="229" y1="244" x2="229" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<line x1="308" y1="244" x2="308" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<line x1="387" y1="244" x2="387" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<path d="M143,314 L143,256 Q143,238 163,238 Q183,238 183,256 L183,314 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
-<path d="M433,314 L433,256 Q433,238 453,238 Q473,238 473,256 L473,314 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
-<circle cx="196" cy="264" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
-<line x1="196" y1="264" x2="196" y2="255" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="196" y1="264" x2="204" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="196" y1="264" x2="188" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="196" y1="264" x2="202" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="196" y1="264" x2="190" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<circle cx="268" cy="264" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
-<line x1="268" y1="264" x2="268" y2="255" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="268" y1="264" x2="276" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="268" y1="264" x2="260" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="268" y1="264" x2="274" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="268" y1="264" x2="262" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<circle cx="347" cy="264" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
-<line x1="347" y1="264" x2="347" y2="255" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="347" y1="264" x2="355" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="347" y1="264" x2="339" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="347" y1="264" x2="353" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="347" y1="264" x2="341" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<circle cx="420" cy="264" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
-<line x1="420" y1="264" x2="420" y2="255" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="420" y1="264" x2="428" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="420" y1="264" x2="412" y2="260" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="420" y1="264" x2="426" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
-<line x1="420" y1="264" x2="414" y2="271" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<path d="M143,314 L143,244 Q143,236 153,236 Q177,236 177,258 L177,314 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<path d="M473,314 L473,244 Q473,236 463,236 Q439,236 439,258 L439,314 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<rect x="177" y="236" width="262" height="54" rx="11" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<rect x="177" y="290" width="262" height="24" rx="8" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<line x1="242.5" y1="238" x2="242.5" y2="314" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<line x1="308" y1="238" x2="308" y2="314" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<line x1="373.5" y1="238" x2="373.5" y2="314" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<circle cx="209.75" cy="257" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
+<line x1="209.75" y1="257" x2="209.75" y2="248" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="209.75" y1="257" x2="217.75" y2="253" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="209.75" y1="257" x2="201.75" y2="253" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="209.75" y1="257" x2="215.75" y2="264" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="209.75" y1="257" x2="203.75" y2="264" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<circle cx="275.25" cy="257" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
+<line x1="275.25" y1="257" x2="275.25" y2="248" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="275.25" y1="257" x2="283.25" y2="253" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="275.25" y1="257" x2="267.25" y2="253" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="275.25" y1="257" x2="281.25" y2="264" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="275.25" y1="257" x2="269.25" y2="264" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<circle cx="340.75" cy="257" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
+<line x1="340.75" y1="257" x2="340.75" y2="248" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="340.75" y1="257" x2="348.75" y2="253" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="340.75" y1="257" x2="332.75" y2="253" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="340.75" y1="257" x2="346.75" y2="264" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="340.75" y1="257" x2="334.75" y2="264" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<circle cx="406.25" cy="257" r="4" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8"/>
+<line x1="406.25" y1="257" x2="406.25" y2="248" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="406.25" y1="257" x2="414.25" y2="253" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="406.25" y1="257" x2="398.25" y2="253" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="406.25" y1="257" x2="412.25" y2="264" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
+<line x1="406.25" y1="257" x2="400.25" y2="264" stroke="#1a1a1a" stroke-width=".7" opacity=".55"/>
 <!-- 2 tilted throw pillows near the arms -->
-<rect x="163" y="245" width="46" height="46" rx="10" fill="#3B639A" stroke="#1a1a1a" stroke-width="2" transform="rotate(-16 186 268)"/>
-<circle cx="186" cy="268" r="3.5" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8" transform="rotate(-16 186 268)"/>
-<rect x="407" y="245" width="46" height="46" rx="10" fill="#3B639A" stroke="#1a1a1a" stroke-width="2" transform="rotate(16 430 268)"/>
-<circle cx="430" cy="268" r="3.5" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8" transform="rotate(16 430 268)"/>
-<rect x="151" y="313" width="10" height="11" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
-<rect x="455" y="313" width="10" height="11" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="182" y="242" width="46" height="46" rx="10" fill="#3B639A" stroke="#1a1a1a" stroke-width="2" transform="rotate(-16 205 265)"/>
+<circle cx="205" cy="265" r="3.5" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8" transform="rotate(-16 205 265)"/>
+<rect x="388" y="242" width="46" height="46" rx="10" fill="#3B639A" stroke="#1a1a1a" stroke-width="2" transform="rotate(16 411 265)"/>
+<circle cx="411" cy="265" r="3.5" fill="#605E5C" stroke="#1a1a1a" stroke-width=".8" transform="rotate(16 411 265)"/>
+<rect x="155" y="314" width="10" height="11" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="451" y="314" width="10" height="11" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
 <!-- Right chair: 2-seat loveseat matching reference -->
-<rect x="500" y="278" width="108" height="40" rx="7" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
-<rect x="504" y="250" width="100" height="50" rx="9" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
-<line x1="551" y1="252" x2="551" y2="316" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
-<path d="M496,313 L496,262 Q496,246 512,246 Q528,246 528,262 L528,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
-<path d="M580,313 L580,262 Q580,246 596,246 Q612,246 612,262 L612,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
-<circle cx="528" cy="270" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
-<line x1="528" y1="270" x2="528" y2="263" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="528" y1="270" x2="534" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="528" y1="270" x2="522" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="528" y1="270" x2="532" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="528" y1="270" x2="524" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<circle cx="580" cy="270" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
-<line x1="580" y1="270" x2="580" y2="263" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="580" y1="270" x2="586" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="580" y1="270" x2="574" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="580" y1="270" x2="584" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<line x1="580" y1="270" x2="576" y2="276" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
-<rect x="508" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
-<rect x="591" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<path d="M496,313 L496,246 Q496,238 504,238 Q524,238 524,258 L524,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<path d="M612,313 L612,246 Q612,238 604,238 Q584,238 584,258 L584,313 Z" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<rect x="524" y="238" width="60" height="58" rx="9" fill="#305789" stroke="#1a1a1a" stroke-width="2.5"/>
+<rect x="524" y="296" width="60" height="17" rx="6" fill="#305789" stroke="#1a1a1a" stroke-width="2"/>
+<line x1="554" y1="240" x2="554" y2="313" stroke="#1a1a1a" stroke-width="1.5" opacity=".45"/>
+<circle cx="539" cy="261" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
+<line x1="539" y1="261" x2="539" y2="254" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="539" y1="261" x2="545" y2="258" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="539" y1="261" x2="533" y2="258" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="539" y1="261" x2="543" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="539" y1="261" x2="535" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<circle cx="569" cy="261" r="3.3" fill="#605E5C" stroke="#1a1a1a" stroke-width=".7"/>
+<line x1="569" y1="261" x2="569" y2="254" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="569" y1="261" x2="575" y2="258" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="569" y1="261" x2="563" y2="258" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="569" y1="261" x2="573" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<line x1="569" y1="261" x2="565" y2="267" stroke="#1a1a1a" stroke-width=".6" opacity=".55"/>
+<rect x="506" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="593" y="313" width="9" height="10" rx="2" fill="#82490F" stroke="#1a1a1a" stroke-width="1"/>
 <!-- Coffee table -->
 <rect x="174" y="328" width="268" height="30" rx="8" fill="#5A3008" stroke="#1a1a1a" stroke-width="2"/>
 <rect x="180" y="331" width="256" height="22" rx="6" fill="#7A5028" stroke="#1a1a1a" stroke-width="1.5"/>
@@ -2295,7 +2299,7 @@ function showBubble(seat,text){
   // Percentage-positioned, same system as avatars — stays locked above
   // the right player's head on every browser/device.
   b.style.left=(s.cx/640*100)+'%';
-  b.style.top=((s.sy-78)/400*100)+'%';
+  b.style.top=((s.sy-104)/400*100)+'%';
   room.appendChild(b);
   const t=setTimeout(()=>{b.remove();delete bubbles[seat];},6000);
   bubbles[seat]={el:b,t};
